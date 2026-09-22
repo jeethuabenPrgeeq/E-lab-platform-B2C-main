@@ -1,0 +1,516 @@
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
+
+import { getCTestCases } from './c-test-cases.js';
+
+import { getCppTestCases } from './cpp-test-cases.js';
+
+import { getJavaTestCases } from './java-test-cases.js';
+
+import { getCsharpTestCases } from './csharp-test-cases.js';
+
+import { getPythonTestCases } from './python-test-cases.js';
+
+import { getGoTestCases } from './go-test-cases.js';
+
+import { getRubyTestCases } from './ruby-test-cases.js';
+
+import { getSwiftTestCases } from './swift-test-cases.js';
+
+import { getGitTestCases } from './git-test-cases.js';
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type SubmissionRequest = {
+  problemSlug: string;
+
+  language: string;
+
+  code: string;
+
+  context?: {
+    source?: string;
+
+    technology?: string | null;
+
+    domain?: string | null;
+
+    stack?: string | null;
+
+    module?: string | null;
+
+    challenge?: string | null;
+
+    attempt?: string | null;
+  };
+};
+
+type HiddenTestCase = {
+  input?: string;
+
+  expectedOutput: string;
+
+  /*
+   * Git only — see git-test-cases.ts.
+   * Every other language leaves these
+   * undefined and uses input instead.
+   */
+
+  setupScript?: string;
+
+  verifyScript?: string;
+};
+
+type JudgeResponse = {
+  language?: string;
+
+  status:
+    | 'SUCCESS'
+    | 'COMPILATION_ERROR'
+    | 'RUNTIME_ERROR'
+    | 'TIME_LIMIT_EXCEEDED'
+    | 'UNSUPPORTED_LANGUAGE'
+    | 'INVALID_REQUEST'
+    | 'INTERNAL_ERROR';
+
+  output?: string;
+
+  stderr?: string;
+
+  exitCode?: number | null;
+
+  message?: string;
+};
+
+/* =========================================================
+   SUPPORTED SUBMISSION LANGUAGES
+========================================================= */
+
+const SUPPORTED_LANGUAGES = [
+  'c',
+  'cpp',
+  'java',
+  'csharp',
+  'python',
+  'go',
+  'ruby',
+  'swift',
+  'git',
+] as const;
+
+/* =========================================================
+   SERVICE
+========================================================= */
+
+@Injectable()
+export class SubmissionsService {
+  private readonly judgeUrl = process.env.JUDGE_URL ?? 'http://127.0.0.1:4100';
+
+  /* =======================================================
+     NORMALIZE LANGUAGE
+  ======================================================= */
+
+  private normalizeLanguage(language: string) {
+    const normalized = language.trim().toLowerCase();
+
+    if (normalized === 'c++' || normalized === 'cplusplus') {
+      return 'cpp';
+    }
+
+    return normalized;
+  }
+
+  /* =======================================================
+     NORMALIZE OUTPUT
+
+     Avoid failure only because of:
+     \n
+     \r\n
+     trailing spaces/newlines
+  ======================================================= */
+
+  private normalizeOutput(value: string) {
+    return value.replace(/\r\n/g, '\n').trim();
+  }
+
+  /* =======================================================
+     GET HIDDEN TESTS
+
+     C      → c-test-cases.ts
+     C++    → cpp-test-cases.ts
+     Java   → java-test-cases.ts
+     C#     → csharp-test-cases.ts
+     Python → python-test-cases.ts
+     Go     → go-test-cases.ts
+     Ruby   → ruby-test-cases.ts
+     Swift  → swift-test-cases.ts
+     Git    → git-test-cases.ts
+  ======================================================= */
+
+  private getHiddenTests(
+    language: string,
+    problemSlug: string,
+  ): HiddenTestCase[] {
+    if (language === 'c') {
+      return getCTestCases(problemSlug);
+    }
+
+    if (language === 'cpp') {
+      return getCppTestCases(problemSlug);
+    }
+
+    if (language === 'java') {
+      return getJavaTestCases(problemSlug);
+    }
+
+    if (language === 'csharp') {
+      return getCsharpTestCases(problemSlug);
+    }
+
+    if (language === 'python') {
+      return getPythonTestCases(problemSlug);
+    }
+
+    if (language === 'go') {
+      return getGoTestCases(problemSlug);
+    }
+
+    if (language === 'ruby') {
+      return getRubyTestCases(problemSlug);
+    }
+
+    if (language === 'swift') {
+      return getSwiftTestCases(problemSlug);
+    }
+
+    if (language === 'git') {
+      return getGitTestCases(problemSlug);
+    }
+
+    return [];
+  }
+
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
+
+  async submit(body: SubmissionRequest) {
+    /* =====================================================
+       VALIDATE PROBLEM
+    ===================================================== */
+
+    if (!body.problemSlug || !body.problemSlug.trim()) {
+      throw new BadRequestException('Problem slug is required.');
+    }
+
+    /* =====================================================
+       VALIDATE LANGUAGE
+    ===================================================== */
+
+    if (!body.language || !body.language.trim()) {
+      throw new BadRequestException('Language is required.');
+    }
+
+    /* =====================================================
+       VALIDATE CODE
+    ===================================================== */
+
+    if (!body.code || !body.code.trim()) {
+      throw new BadRequestException('Code is required.');
+    }
+
+    /* =====================================================
+       NORMALIZE LANGUAGE
+    ===================================================== */
+
+    const language = this.normalizeLanguage(body.language);
+
+    /* =====================================================
+       SUPPORT C + C++
+    ===================================================== */
+
+    if (
+      !SUPPORTED_LANGUAGES.includes(
+        language as (typeof SUPPORTED_LANGUAGES)[number],
+      )
+    ) {
+      throw new BadRequestException(
+        `Unsupported submission language: ${body.language}`,
+      );
+    }
+
+    /* =====================================================
+       GET HIDDEN TEST CASES
+    ===================================================== */
+
+    const testCases = this.getHiddenTests(language, body.problemSlug);
+
+    if (testCases.length === 0) {
+      throw new BadRequestException(
+        `No hidden test cases configured for ${body.problemSlug}.`,
+      );
+    }
+
+    /* =====================================================
+       RESULTS
+    ===================================================== */
+
+    const results: Array<{
+      testNumber: number;
+
+      passed: boolean;
+
+      status: string;
+
+      output: string;
+
+      expectedOutput: string;
+
+      stderr: string;
+    }> = [];
+
+    let passedTests = 0;
+
+    /* =====================================================
+       RUN EVERY HIDDEN TEST
+    ===================================================== */
+
+    for (let index = 0; index < testCases.length; index += 1) {
+      const testCase = testCases[index];
+
+      let response: Response;
+
+      try {
+        response = await fetch(`${this.judgeUrl}/run`, {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json',
+          },
+
+          body: JSON.stringify({
+            language,
+
+            code: body.code,
+
+            ...(language === 'git'
+              ? {
+                  setupScript: testCase.setupScript,
+
+                  verifyScript: testCase.verifyScript,
+                }
+              : {
+                  input: testCase.input,
+                }),
+          }),
+        });
+      } catch (error) {
+        console.error('Unable to connect to judge:', error);
+
+        throw new BadGatewayException('Unable to connect to the code judge.');
+      }
+
+      /* ===================================================
+         PARSE JUDGE RESPONSE
+      =================================================== */
+
+      let judgeResult: JudgeResponse;
+
+      try {
+        judgeResult = (await response.json()) as JudgeResponse;
+      } catch {
+        throw new BadGatewayException(
+          'Invalid response received from code judge.',
+        );
+      }
+
+      /* ===================================================
+         JUDGE HTTP ERROR
+      =================================================== */
+
+      if (!response.ok) {
+        throw new BadGatewayException(
+          judgeResult.message ?? 'Judge rejected the submission.',
+        );
+      }
+
+      /* ===================================================
+         COMPILATION ERROR
+
+         No need to execute remaining
+         test cases.
+      =================================================== */
+
+      if (judgeResult.status === 'COMPILATION_ERROR') {
+        return {
+          problemSlug: body.problemSlug,
+
+          language,
+
+          status: 'COMPILATION_ERROR',
+
+          passedTests: 0,
+
+          totalTests: testCases.length,
+
+          results: [
+            {
+              testNumber: 1,
+
+              passed: false,
+
+              status: 'COMPILATION_ERROR',
+
+              output: judgeResult.output ?? '',
+
+              expectedOutput: '',
+
+              stderr: judgeResult.stderr ?? '',
+            },
+          ],
+
+          context: body.context,
+        };
+      }
+
+      /* ===================================================
+         TIME LIMIT
+      =================================================== */
+
+      if (judgeResult.status === 'TIME_LIMIT_EXCEEDED') {
+        return {
+          problemSlug: body.problemSlug,
+
+          language,
+
+          status: 'TIME_LIMIT_EXCEEDED',
+
+          passedTests,
+
+          totalTests: testCases.length,
+
+          results: [
+            ...results,
+
+            {
+              testNumber: index + 1,
+
+              passed: false,
+
+              status: 'TIME_LIMIT_EXCEEDED',
+
+              output: judgeResult.output ?? '',
+
+              expectedOutput: testCase.expectedOutput,
+
+              stderr: judgeResult.stderr ?? '',
+            },
+          ],
+
+          context: body.context,
+        };
+      }
+
+      /* ===================================================
+         RUNTIME ERROR
+      =================================================== */
+
+      if (judgeResult.status === 'RUNTIME_ERROR') {
+        return {
+          problemSlug: body.problemSlug,
+
+          language,
+
+          status: 'RUNTIME_ERROR',
+
+          passedTests,
+
+          totalTests: testCases.length,
+
+          results: [
+            ...results,
+
+            {
+              testNumber: index + 1,
+
+              passed: false,
+
+              status: 'RUNTIME_ERROR',
+
+              output: judgeResult.output ?? '',
+
+              expectedOutput: testCase.expectedOutput,
+
+              stderr: judgeResult.stderr ?? '',
+            },
+          ],
+
+          context: body.context,
+        };
+      }
+
+      /* ===================================================
+         COMPARE OUTPUT
+      =================================================== */
+
+      const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+
+      const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+
+      const passed =
+        judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+
+      if (passed) {
+        passedTests += 1;
+      }
+
+      results.push({
+        testNumber: index + 1,
+
+        passed,
+
+        status: passed ? 'PASSED' : 'FAILED',
+
+        output: actualOutput,
+
+        expectedOutput,
+
+        stderr: judgeResult.stderr ?? '',
+      });
+    }
+
+    /* =====================================================
+       FINAL SUBMISSION RESULT
+    ===================================================== */
+
+    const totalTests = testCases.length;
+
+    const allTestsPassed = totalTests > 0 && passedTests === totalTests;
+
+    const score =
+      totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+
+    return {
+      problemSlug: body.problemSlug,
+
+      language,
+
+      status: allTestsPassed ? 'ACCEPTED' : 'WRONG_ANSWER',
+
+      passedTests,
+
+      totalTests,
+
+      score,
+
+      results,
+
+      context: body.context,
+    };
+  }
+}

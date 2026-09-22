@@ -1,0 +1,503 @@
+.problemList {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.problemCard {
+  min-height: 112px;
+
+  padding:
+    17px
+    18px;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    105px
+    92px;
+
+  align-items: center;
+
+  gap: 16px;
+
+  border-radius: 17px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 12px
+      rgba(
+        184,
+        193,
+        203,
+        0.53
+      ),
+    -5px -5px 12px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.problemCard:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    7px 7px 15px
+      rgba(
+        184,
+        193,
+        203,
+        0.58
+      ),
+    -7px -7px 15px
+      rgba(
+        255,
+        255,
+        255,
+        0.96
+      );
+}
+
+/* =========================================================
+   NUMBER
+========================================================= */
+
+.problemNumber {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.problemContent {
+  min-width: 0;
+}
+
+.problemMeta {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.problemContent h3 {
+  margin:
+    7px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 14px;
+
+  font-weight: 750;
+}
+
+.problemContent > p {
+  margin:
+    4px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   DIFFICULTY
+========================================================= */
+
+.difficultyBadge {
+  padding:
+    4px
+    7px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+.easy {
+  color: #15803d;
+
+  background:
+    rgba(
+      34,
+      197,
+      94,
+      0.08
+    );
+}
+
+.medium {
+  color: #b45309;
+
+  background:
+    rgba(
+      245,
+      158,
+      11,
+      0.09
+    );
+}
+
+.hard {
+  color: #dc2626;
+
+  background:
+    rgba(
+      239,
+      68,
+      68,
+      0.08
+    );
+}
+
+/* =========================================================
+   TIME
+========================================================= */
+
+.time {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  color: #94a3b8;
+
+  font-size: 8px;
+}
+
+.time svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* =========================================================
+   SKILLS
+========================================================= */
+
+.skills {
+  margin-top: 9px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.skills span {
+  padding:
+    4px
+    7px;
+
+  border-radius: 6px;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  box-shadow:
+    2px 2px 4px
+      rgba(
+        184,
+        193,
+        203,
+        0.42
+      ),
+    -2px -2px 4px
+      rgba(
+        255,
+        255,
+        255,
+        0.88
+      );
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color: #94a3b8;
+
+  text-align: center;
+}
+
+.status svg {
+  width: 17px;
+  height: 17px;
+}
+
+.status span {
+  font-size: 8px;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   SOLVE
+========================================================= */
+
+.solveButton {
+  min-height: 39px;
+
+  padding:
+    0
+    13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 0;
+  border-radius: 10px;
+
+  color: #ffffff;
+
+  background: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.solveButton svg {
+  width: 13px;
+  height: 13px;
+}
+
+.solveButton:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty {
+  min-height: 240px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 18px;
+
+  text-align: center;
+
+  box-shadow:
+    inset 5px 5px 11px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -5px -5px 11px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.empty svg {
+  width: 30px;
+  height: 30px;
+
+  color: #2563eb;
+}
+
+.empty h2 {
+  margin:
+    12px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 17px;
+}
+
+.empty p {
+  margin:
+    6px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .problemCard {
+    grid-template-columns:
+      42px
+      minmax(0, 1fr)
+      90px;
+  }
+
+  .status {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .problemCard {
+    grid-template-columns:
+      36px
+      minmax(0, 1fr);
+  }
+
+  .solveButton {
+    grid-column: 2;
+
+    width: max-content;
+
+    margin-top: 5px;
+  }
+}
+
+.solvedStatus {
+  width: max-content;
+
+  padding:
+    5px
+    9px;
+
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 9px;
+
+  color: #15803d;
+
+  background: #e7ecf2;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        185,
+        194,
+        204,
+        0.5
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.solvedStatus {
+  width: max-content;
+
+  padding: 5px 9px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  border-radius: 9px;
+
+  color: #15803d;
+
+  background: #e7ecf2;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(185, 194, 204, 0.5),
+    inset -3px -3px 6px
+      rgba(255, 255, 255, 0.95);
+}
+
+.solvedStatus svg {
+  width: 11px;
+  height: 11px;
+
+  flex-shrink: 0;
+}

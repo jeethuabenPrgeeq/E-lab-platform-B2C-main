@@ -1,0 +1,1467 @@
+/* =========================================================
+   eLAB CODING WORKSPACE
+   LEFT  = NEOMORPHIC PROBLEM PANEL
+   RIGHT = DARK CODING WORKSPACE
+========================================================= */
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+.workspace {
+  width: 100vw;
+  height: 100vh;
+
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  color: #1e293b;
+
+  background: #e7ecf2;
+}
+
+/* =========================================================
+   TOP HEADER
+========================================================= */
+
+.workspaceHeader {
+  min-height: 64px;
+
+  padding:
+    10px
+    14px;
+
+  display: grid;
+
+  grid-template-columns:
+    165px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  position: relative;
+
+  z-index: 20;
+
+  background: #e7ecf2;
+
+  border-bottom:
+    1px solid
+    rgba(
+      148,
+      163,
+      184,
+      0.18
+    );
+
+  box-shadow:
+    0 4px 14px
+      rgba(
+        148,
+        163,
+        184,
+        0.15
+      );
+}
+
+/* =========================================================
+   COMMON HEADER BUTTONS
+========================================================= */
+
+.backButton,
+.runButton,
+.submitButton {
+  border: 0;
+
+  outline: none;
+
+  font-family: inherit;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease,
+    background 150ms ease,
+    opacity 150ms ease;
+}
+
+/* =========================================================
+   BACK BUTTON — NEOMORPHIC
+========================================================= */
+
+.backButton {
+  width: max-content;
+
+  min-width: 108px;
+  height: 40px;
+
+  padding:
+    0
+    13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 12px;
+
+  color: #475569;
+
+  background: #e7ecf2;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  box-shadow:
+    5px 5px 10px
+      rgba(
+        185,
+        194,
+        204,
+        0.62
+      ),
+    -5px -5px 10px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.backButton:hover {
+  color: #2563eb;
+
+  transform:
+    translateY(-1px);
+}
+
+.backButton:active {
+  transform:
+    translateY(1px);
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        185,
+        194,
+        204,
+        0.58
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.backButton svg {
+  width: 15px;
+  height: 15px;
+
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   PROBLEM TITLE — HEADER
+========================================================= */
+
+.problemTitle {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+.problemTitle > svg {
+  width: 36px;
+  height: 36px;
+
+  padding: 8px;
+
+  flex-shrink: 0;
+
+  color: #2563eb;
+
+  border-radius: 11px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        185,
+        194,
+        204,
+        0.52
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.problemTitle div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.problemTitle strong {
+  overflow: hidden;
+
+  color: #1e293b;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.problemTitle span {
+  margin-top: 3px;
+
+  color: #64748b;
+
+  font-size: 9px;
+
+  font-weight: 600;
+}
+
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
+
+.workspaceActions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+/* =========================================================
+   RUN / SUBMIT
+========================================================= */
+
+.runButton,
+.submitButton {
+  height: 40px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border-radius: 12px;
+
+  font-size: 10px;
+
+  font-weight: 750;
+
+  white-space: nowrap;
+}
+
+.runButton {
+  color: #334155;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 10px
+      rgba(
+        185,
+        194,
+        204,
+        0.58
+      ),
+    -5px -5px 10px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.runButton:hover:not(:disabled) {
+  color: #2563eb;
+
+  transform:
+    translateY(-1px);
+}
+
+.runButton:active:not(:disabled) {
+  transform:
+    translateY(1px);
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        185,
+        194,
+        204,
+        0.55
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.submitButton {
+  color: #ffffff;
+
+  background: #2563eb;
+
+  box-shadow:
+    4px 4px 9px
+      rgba(
+        37,
+        99,
+        235,
+        0.27
+      ),
+    -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.85
+      );
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #1d4ed8;
+
+  transform:
+    translateY(-1px);
+}
+
+.submitButton:active:not(:disabled) {
+  transform:
+    translateY(1px);
+}
+
+.runButton svg,
+.submitButton svg {
+  width: 14px;
+  height: 14px;
+
+  flex-shrink: 0;
+}
+
+.runButton:disabled,
+.submitButton:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+.spinner {
+  animation:
+    workspaceSpinner
+    0.8s
+    linear
+    infinite;
+}
+
+@keyframes workspaceSpinner {
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+/* =========================================================
+   MAIN WORKSPACE BODY
+========================================================= */
+
+.workspaceBody {
+  min-width: 0;
+  min-height: 0;
+
+  flex: 1;
+
+  display: grid;
+
+  /*
+   * Problem area gets enough width,
+   * editor remains dominant.
+   */
+
+  grid-template-columns:
+    38%
+    62%;
+
+  overflow: hidden;
+
+  background: #e7ecf2;
+}
+
+/* =========================================================
+   LEFT — NEOMORPHIC PROBLEM PANEL
+========================================================= */
+
+.problemPanel {
+  min-width: 0;
+  min-height: 0;
+
+  padding:
+    13px
+    12px
+    13px
+    14px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  position: relative;
+
+  background: #e7ecf2;
+
+  border-right:
+    1px solid
+    rgba(
+      148,
+      163,
+      184,
+      0.18
+    );
+}
+
+/* =========================================================
+   PROBLEM PANEL HEADER
+========================================================= */
+
+.problemPanelHeader {
+  min-height: 40px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  color: #334155;
+
+  background: #e7ecf2;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.2px;
+
+  box-shadow:
+    4px 4px 9px
+      rgba(
+        185,
+        194,
+        204,
+        0.58
+      ),
+    -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+/* =========================================================
+   LEFT SCROLLABLE CONTENT
+========================================================= */
+
+.problemPanelContent {
+  min-width: 0;
+  min-height: 0;
+
+  margin-top: 13px;
+
+  padding:
+    20px
+    18px
+    28px;
+
+  flex: 1;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border-radius: 16px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 4px 4px 9px
+      rgba(
+        185,
+        194,
+        204,
+        0.48
+      ),
+    inset -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.91
+      );
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #b2bdc9
+    transparent;
+}
+
+.problemPanelContent::-webkit-scrollbar {
+  width: 7px;
+}
+
+.problemPanelContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.problemPanelContent::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #b2bdc9;
+}
+
+/* =========================================================
+   DIFFICULTY
+========================================================= */
+
+.difficulty {
+  width: max-content;
+
+  padding:
+    6px
+    10px;
+
+  border-radius: 9px;
+
+  color: #15803d;
+
+  background: #e7ecf2;
+
+  font-size: 8px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.5px;
+
+  text-transform: uppercase;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        185,
+        194,
+        204,
+        0.5
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+/* =========================================================
+   LEFT TITLE
+========================================================= */
+
+.problemPanelContent h1 {
+  margin:
+    18px
+    0
+    0;
+
+  color: #172033;
+
+  font-size: 23px;
+
+  line-height: 1.25;
+
+  font-weight: 800;
+
+  letter-spacing: -0.35px;
+}
+
+/* =========================================================
+   STATEMENT
+========================================================= */
+
+.statement {
+  margin:
+    14px
+    0
+    0;
+
+  color: #475569;
+
+  font-size: 11px;
+
+  line-height: 1.75;
+
+  white-space: pre-wrap;
+}
+
+/* =========================================================
+   SECTION HEADINGS
+========================================================= */
+
+.problemPanelContent h2 {
+  margin:
+    25px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1px;
+}
+
+/* =========================================================
+   SKILLS
+========================================================= */
+
+.skillTags {
+  margin-top: 11px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+}
+
+.skillTags span {
+  padding:
+    7px
+    10px;
+
+  border-radius: 9px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  font-size: 8px;
+
+  font-weight: 700;
+
+  box-shadow:
+    3px 3px 7px
+      rgba(
+        185,
+        194,
+        204,
+        0.55
+      ),
+    -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.93
+      );
+}
+
+/* =========================================================
+   SAMPLE / CONTEXT BOX
+========================================================= */
+
+.contextBox {
+  margin-top: 13px;
+
+  padding:
+    14px
+    15px;
+
+  border: 0;
+
+  border-radius: 13px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    4px 4px 9px
+      rgba(
+        185,
+        194,
+        204,
+        0.56
+      ),
+    -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.problemPanelContent
+  > .contextBox:last-child {
+  margin-top: 28px;
+}
+
+.contextBox > span {
+  display: block;
+
+  color: #2563eb;
+
+  font-size: 8px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.6px;
+
+  text-transform: uppercase;
+}
+
+.contextBox p {
+  margin:
+    8px
+    0
+    0;
+
+  overflow-wrap: anywhere;
+
+  color: #64748b;
+
+  font-size: 9px;
+
+  line-height: 1.6;
+
+  white-space: pre-wrap;
+}
+
+/* =========================================================
+   RIGHT — DARK EDITOR AREA
+========================================================= */
+
+.editorPanel {
+  min-width: 0;
+  min-height: 0;
+
+  height: 100%;
+
+  display: grid;
+
+  /*
+   * Correct structure:
+   *
+   * editor header
+   * Monaco
+   * custom input
+   * output
+   */
+
+  grid-template-rows:
+    42px
+    minmax(0, 1fr)
+    108px
+    180px;
+
+  overflow: hidden;
+
+  background: #0f172a;
+}
+
+/* =========================================================
+   EDITOR HEADER
+========================================================= */
+
+.editorHeader {
+  min-width: 0;
+
+  height: 42px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  border-bottom:
+    1px solid
+    #283449;
+
+  color: #cbd5e1;
+
+  background: #172235;
+
+  font-size: 10px;
+
+  font-weight: 750;
+}
+
+.editorHeader span:first-child {
+  color: #f8fafc;
+
+  font-weight: 800;
+}
+
+.editorHeader span:last-child {
+  margin-left: auto;
+
+  overflow: hidden;
+
+  color: #7185a3;
+
+  font-size: 9px;
+
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  text-transform: capitalize;
+}
+
+/* =========================================================
+   TEST INPUT PANEL
+========================================================= */
+
+.inputPanel {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-top:
+    1px solid
+    #283449;
+
+  background: #101827;
+}
+
+.inputHeader {
+  width: 100%;
+
+  min-height: 34px;
+  height: 34px;
+
+  padding:
+    0
+    14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  flex-shrink: 0;
+
+  border-bottom:
+    1px solid
+    #283449;
+
+  color: #e2e8f0;
+
+  background: #172235;
+
+  font-size: 10px;
+
+  font-weight: 750;
+}
+
+.inputHeader span:first-child {
+  color: #f8fafc;
+}
+
+.inputHeader span:last-child {
+  margin-left: auto;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.5px;
+
+  text-transform: uppercase;
+}
+
+.inputEditor {
+  width: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  flex: 1;
+
+  padding:
+    10px
+    14px;
+
+  resize: none;
+
+  border: 0;
+
+  outline: none;
+
+  color: #e2e8f0;
+
+  background: #101827;
+
+  font-family:
+    Consolas,
+    Monaco,
+    'Courier New',
+    monospace;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #334155
+    #101827;
+}
+
+.inputEditor::placeholder {
+  color: #475569;
+}
+
+.inputEditor:focus {
+  background: #111b2c;
+}
+
+.inputEditor::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.inputEditor::-webkit-scrollbar-track {
+  background: #101827;
+}
+
+.inputEditor::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #334155;
+}
+
+/* =========================================================
+   OUTPUT PANEL
+========================================================= */
+
+.consolePanel {
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-top:
+    1px solid
+    #283449;
+
+  background: #101827;
+}
+
+.consoleHeader {
+  width: 100%;
+
+  min-height: 36px;
+  height: 36px;
+
+  padding:
+    0
+    14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  flex-shrink: 0;
+
+  border-bottom:
+    1px solid
+    #283449;
+
+  color: #e2e8f0;
+
+  background: #172235;
+
+  font-size: 10px;
+
+  font-weight: 750;
+}
+
+.consoleHeader span:first-child {
+  color: #f8fafc;
+}
+
+.consoleHeader span:last-child {
+  margin-left: auto;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.4px;
+
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   CONSOLE OUTPUT
+========================================================= */
+
+.consoleBody {
+  min-width: 0;
+  min-height: 0;
+
+  margin: 0;
+
+  padding:
+    13px
+    15px
+    16px;
+
+  flex: 1;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  color: #94a3b8;
+
+  background: #101827;
+
+  font-family:
+    Consolas,
+    Monaco,
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #334155
+    #101827;
+}
+
+.consoleBody::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.consoleBody::-webkit-scrollbar-track {
+  background: #101827;
+}
+
+.consoleBody::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #334155;
+}
+
+/* =========================================================
+   NOT FOUND
+========================================================= */
+
+.notFound {
+  width: 100vw;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 17px;
+
+  color: #334155;
+
+  background: #e7ecf2;
+}
+
+.notFound h1 {
+  margin: 0;
+
+  color: #1e293b;
+
+  font-size: 24px;
+
+  font-weight: 800;
+}
+
+.notFound button {
+  min-height: 40px;
+
+  padding:
+    0
+    17px;
+
+  border: 0;
+
+  border-radius: 12px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  font-size: 11px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    5px 5px 10px
+      rgba(
+        185,
+        194,
+        204,
+        0.6
+      ),
+    -5px -5px 10px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .workspaceBody {
+    grid-template-columns:
+      40%
+      60%;
+  }
+
+  .workspaceHeader {
+    grid-template-columns:
+      145px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 12px;
+  }
+
+  .editorPanel {
+    grid-template-rows:
+      42px
+      minmax(0, 1fr)
+      105px
+      170px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — SMALL TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+  .workspaceHeader {
+    min-height: auto;
+
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+
+    padding:
+      9px
+      11px;
+  }
+
+  .workspaceActions {
+    grid-column:
+      1 / -1;
+
+    width: 100%;
+
+    justify-content: flex-end;
+
+    padding-top: 2px;
+  }
+
+  .workspaceBody {
+    grid-template-columns:
+      42%
+      58%;
+  }
+
+  .problemPanel {
+    padding:
+      10px
+      9px;
+  }
+
+  .problemPanelContent {
+    padding:
+      18px
+      15px
+      24px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .workspace {
+    height: auto;
+
+    min-height: 100vh;
+
+    overflow: auto;
+  }
+
+  .workspaceHeader {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 40;
+
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+
+    gap: 10px;
+
+    padding:
+      9px
+      10px;
+  }
+
+  .problemTitle strong {
+    max-width: 210px;
+  }
+
+  .workspaceActions {
+    grid-column:
+      1 / -1;
+
+    justify-content: flex-end;
+  }
+
+  .workspaceBody {
+    display: block;
+
+    overflow: visible;
+  }
+
+  .problemPanel {
+    height: auto;
+
+    min-height: 500px;
+
+    border-right: 0;
+
+    border-bottom:
+      1px solid
+      rgba(
+        148,
+        163,
+        184,
+        0.2
+      );
+  }
+
+  .problemPanelContent {
+    max-height: none;
+
+    overflow: visible;
+  }
+
+  .editorPanel {
+    height: 720px;
+
+    grid-template-rows:
+      42px
+      minmax(0, 1fr)
+      110px
+      175px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .workspaceHeader {
+    gap: 8px;
+  }
+
+  .backButton {
+    min-width: auto;
+
+    height: 36px;
+
+    padding:
+      0
+      10px;
+
+    font-size: 9px;
+  }
+
+  .problemTitle > svg {
+    width: 32px;
+    height: 32px;
+
+    padding: 7px;
+  }
+
+  .problemTitle strong {
+    max-width: 145px;
+
+    font-size: 10px;
+  }
+
+  .problemTitle span {
+    font-size: 8px;
+  }
+
+  .workspaceActions {
+    justify-content: stretch;
+  }
+
+  .runButton,
+  .submitButton {
+    flex: 1;
+
+    height: 38px;
+  }
+
+  .problemPanel {
+    padding:
+      9px
+      8px;
+  }
+
+  .problemPanelContent {
+    padding:
+      16px
+      14px
+      22px;
+  }
+
+  .problemPanelContent h1 {
+    font-size: 20px;
+  }
+
+  .statement {
+    font-size: 10px;
+  }
+
+  .contextBox {
+    padding:
+      12px
+      13px;
+  }
+
+  .editorPanel {
+    height: 680px;
+
+    grid-template-rows:
+      42px
+      minmax(0, 1fr)
+      105px
+      170px;
+  }
+}

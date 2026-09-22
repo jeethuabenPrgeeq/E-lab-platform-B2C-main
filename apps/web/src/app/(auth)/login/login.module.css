@@ -1,0 +1,1055 @@
+/* =========================================================
+   eLAB LOGIN
+   Full-screen clean neomorphic UI
+========================================================= */
+
+.page {
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  background: #e7ecf2;
+  color: #1e293b;
+}
+
+/* =========================================================
+   PAGE LAYOUT
+   Give slightly more space to login side
+========================================================= */
+
+.shell {
+  width: 100%;
+  height: 100vh;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.92fr)
+    minmax(500px, 1.08fr);
+
+  overflow: hidden;
+
+  background: #e7ecf2;
+}
+
+/* =========================================================
+   LEFT BRAND SECTION
+========================================================= */
+
+.brandPanel {
+  position: relative;
+
+  height: 100vh;
+
+  padding: 34px 44px 30px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e9eef4 0%,
+      #e5ebf1 50%,
+      #e3e9ef 100%
+    );
+}
+
+.brandPanel::before {
+  content: "";
+
+  position: absolute;
+
+  width: 360px;
+  height: 360px;
+
+  top: -135px;
+  right: -105px;
+
+  border-radius: 50%;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 14px 14px 28px rgba(184, 193, 203, 0.5),
+    inset -14px -14px 28px rgba(255, 255, 255, 0.92);
+
+  opacity: 0.75;
+
+  pointer-events: none;
+}
+
+.brandPanel::after {
+  content: "";
+
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  left: -90px;
+  bottom: -100px;
+
+  border-radius: 50%;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    10px 10px 22px rgba(188, 197, 207, 0.6),
+    -10px -10px 22px rgba(255, 255, 255, 0.94);
+
+  opacity: 0.7;
+
+  pointer-events: none;
+}
+
+.logoRow,
+.hero,
+.featureGrid {
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logoRow {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.logoIcon {
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  color: #2563eb;
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 11px rgba(184, 193, 203, 0.58),
+    -5px -5px 11px rgba(255, 255, 255, 0.95);
+}
+
+.logoIcon svg {
+  width: 22px;
+  height: 22px;
+
+  stroke-width: 2;
+}
+
+.logoText {
+  margin: 0;
+
+  color: #1e293b;
+
+  font-size: 26px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -0.8px;
+}
+
+.logoText span {
+  color: #2563eb;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  width: 100%;
+  max-width: 620px;
+
+  margin: auto 0;
+
+  padding: 12px 0 18px;
+}
+
+.eyebrow {
+  width: max-content;
+
+  min-height: 32px;
+
+  padding: 0 15px;
+
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 999px;
+
+  color: #2563eb;
+  background: #e7ecf2;
+
+  font-size: 11px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 1.3px;
+
+  text-transform: uppercase;
+
+  box-shadow:
+    inset 3px 3px 6px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.94);
+}
+
+.heroTitle {
+  max-width: 620px;
+
+  margin: 20px 0 0;
+
+  color: #1e293b;
+
+  font-size: clamp(38px, 3.5vw, 54px);
+  line-height: 1.08;
+
+  font-weight: 750;
+
+  letter-spacing: -2px;
+}
+
+.heroTitleAccent {
+  color: #2563eb;
+}
+
+.heroDescription {
+  max-width: 570px;
+
+  margin: 18px 0 0;
+
+  color: #64748b;
+
+  font-size: 15px;
+  line-height: 1.7;
+
+  font-weight: 400;
+}
+
+/* =========================================================
+   FEATURE CARDS
+========================================================= */
+
+.featureGrid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.featureCard {
+  min-height: 108px;
+
+  padding: 15px;
+
+  border-radius: 17px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 12px rgba(184, 193, 203, 0.56),
+    -5px -5px 12px rgba(255, 255, 255, 0.94);
+}
+
+.featureIcon {
+  width: 36px;
+  height: 36px;
+
+  margin-bottom: 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 6px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.94);
+}
+
+.featureIcon svg {
+  width: 18px;
+  height: 18px;
+
+  stroke-width: 2;
+}
+
+.featureCard:nth-child(1) .featureIcon {
+  color: #2563eb;
+}
+
+.featureCard:nth-child(2) .featureIcon {
+  color: #7c3aed;
+}
+
+.featureCard:nth-child(3) .featureIcon {
+  color: #f97316;
+}
+
+.featureTitle {
+  margin: 0;
+
+  color: #334155;
+
+  font-size: 14px;
+  line-height: 1.3;
+
+  font-weight: 700;
+}
+
+.featureDescription {
+  margin: 4px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  font-weight: 400;
+}
+
+/* =========================================================
+   RIGHT LOGIN AREA
+========================================================= */
+
+.formPanel {
+  position: relative;
+
+  width: 100%;
+  height: 100vh;
+
+  padding: 24px 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background: #e7ecf2;
+
+  border-left: 1px solid rgba(255, 255, 255, 0.72);
+
+  box-shadow:
+    inset 8px 0 18px rgba(190, 198, 207, 0.13);
+}
+
+/* =========================================================
+   LOGIN CARD
+========================================================= */
+
+.loginCard {
+  width: min(100%, 480px);
+
+  padding: 32px 34px 28px;
+
+  border-radius: 26px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    10px 10px 24px rgba(184, 193, 203, 0.67),
+    -10px -10px 24px rgba(255, 255, 255, 0.96);
+}
+
+/* =========================================================
+   LOGIN ICON
+========================================================= */
+
+.loginIcon {
+  width: 52px;
+  height: 52px;
+
+  margin-bottom: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 11px rgba(184, 193, 203, 0.58),
+    -5px -5px 11px rgba(255, 255, 255, 0.95);
+}
+
+.loginIcon svg {
+  width: 23px;
+  height: 23px;
+
+  stroke-width: 2;
+}
+
+/* =========================================================
+   LOGIN TEXT
+========================================================= */
+
+.title {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 30px;
+  line-height: 1.2;
+
+  font-weight: 750;
+
+  letter-spacing: -0.9px;
+}
+
+.subtitle {
+  margin: 7px 0 24px;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.55;
+
+  font-weight: 400;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 17px;
+}
+
+.field {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.label {
+  color: #334155;
+
+  font-size: 13px;
+  line-height: 1.3;
+
+  font-weight: 700;
+}
+
+.forgot {
+  margin: 0;
+  padding: 0;
+
+  border: none;
+
+  color: #2563eb;
+  background: transparent;
+
+  font-size: 12px;
+  line-height: 1.3;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: color 160ms ease;
+}
+
+.forgot:hover {
+  color: #1d4ed8;
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.inputShell {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid transparent;
+
+  border-radius: 14px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(184, 193, 203, 0.56),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.95);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.inputShell:focus-within {
+  border-color: rgba(37, 99, 235, 0.16);
+
+  box-shadow:
+    inset 4px 4px 8px rgba(184, 193, 203, 0.54),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.95),
+    0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.inputIcon {
+  width: 19px;
+  height: 19px;
+
+  flex: 0 0 19px;
+
+  margin-right: 11px;
+
+  color: #3b82f6;
+}
+
+.input {
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  color: #1e293b;
+  background: transparent;
+
+  font-size: 14px;
+  line-height: 1;
+
+  font-weight: 500;
+}
+
+.input::placeholder {
+  color: #94a3b8;
+
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* =========================================================
+   PASSWORD EYE
+========================================================= */
+
+.passwordAction {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  margin-left: 8px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 10px;
+
+  color: #64748b;
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.passwordAction svg {
+  width: 17px;
+  height: 17px;
+}
+
+.passwordAction:hover {
+  color: #2563eb;
+
+  box-shadow:
+    3px 3px 6px rgba(184, 193, 203, 0.5),
+    -3px -3px 6px rgba(255, 255, 255, 0.92);
+}
+
+/* =========================================================
+   REMEMBER
+========================================================= */
+
+.optionsRow {
+  min-height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rememberLabel {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #475569;
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+
+  margin: 0;
+
+  accent-color: #2563eb;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.error {
+  padding: 10px 13px;
+
+  border-radius: 11px;
+
+  color: #dc2626;
+  background: #e7ecf2;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  font-weight: 600;
+
+  box-shadow:
+    inset 3px 3px 6px rgba(184, 193, 203, 0.44),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.92);
+}
+
+/* =========================================================
+   SIGN IN BUTTON
+========================================================= */
+
+.signInButton {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3478f6,
+      #1f5ed7
+    );
+
+  font-size: 14px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    6px 6px 13px rgba(174, 183, 194, 0.67),
+    -6px -6px 13px rgba(255, 255, 255, 0.93);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.signInButton svg {
+  width: 17px;
+  height: 17px;
+
+  stroke-width: 2.2;
+}
+
+.signInButton:hover {
+  transform: translateY(-1px);
+
+  background:
+    linear-gradient(
+      145deg,
+      #397df8,
+      #1d58ca
+    );
+
+  box-shadow:
+    7px 7px 15px rgba(174, 183, 194, 0.72),
+    -7px -7px 15px rgba(255, 255, 255, 0.96);
+}
+
+.signInButton:active {
+  transform: translateY(0);
+
+  box-shadow:
+    inset 3px 3px 7px rgba(22, 73, 176, 0.44),
+    inset -3px -3px 7px rgba(88, 140, 248, 0.62);
+}
+
+.signInButton:disabled {
+  opacity: 0.62;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+/* =========================================================
+   DEMO CREDENTIALS
+========================================================= */
+
+.demo {
+  width: 100%;
+
+  margin-top: 19px;
+
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border-radius: 14px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(184, 193, 203, 0.48),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.94);
+}
+
+.demoIcon {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  color: #059669;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    3px 3px 6px rgba(184, 193, 203, 0.5),
+    -3px -3px 6px rgba(255, 255, 255, 0.93);
+}
+
+.demoIcon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.demoTitle {
+  margin: 0;
+
+  color: #475569;
+
+  font-size: 11px;
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+
+  text-transform: uppercase;
+}
+
+.demoCredentials {
+  margin: 4px 0 0;
+
+  color: #475569;
+
+  font-size: 12px;
+  line-height: 1.5;
+
+  font-weight: 500;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  margin: 16px 0 0;
+
+  color: #94a3b8;
+
+  text-align: center;
+
+  font-size: 11px;
+  line-height: 1.4;
+
+  font-weight: 500;
+}
+
+/* =========================================================
+   LAPTOPS
+========================================================= */
+
+@media (max-width: 1200px) {
+  .shell {
+    grid-template-columns:
+      minmax(0, 0.88fr)
+      minmax(480px, 1.12fr);
+  }
+
+  .brandPanel {
+    padding:
+      30px
+      36px
+      28px;
+  }
+
+  .heroTitle {
+    font-size: clamp(35px, 3.6vw, 48px);
+  }
+
+  .formPanel {
+    padding:
+      22px
+      28px;
+  }
+
+  .loginCard {
+    max-width: 460px;
+  }
+}
+
+/* =========================================================
+   SHORT SCREENS - KEEP EVERYTHING IN ONE VIEW
+========================================================= */
+
+@media (max-height: 760px) and (min-width: 951px) {
+  .brandPanel {
+    padding:
+      22px
+      38px
+      20px;
+  }
+
+  .hero {
+    padding: 5px 0;
+  }
+
+  .heroTitle {
+    margin-top: 14px;
+
+    font-size: clamp(32px, 3vw, 43px);
+  }
+
+  .heroDescription {
+    margin-top: 12px;
+
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .featureCard {
+    min-height: 90px;
+
+    padding: 12px;
+  }
+
+  .featureIcon {
+    width: 32px;
+    height: 32px;
+
+    margin-bottom: 8px;
+  }
+
+  .featureTitle {
+    font-size: 13px;
+  }
+
+  .featureDescription {
+    font-size: 11px;
+  }
+
+  .formPanel {
+    padding: 14px 28px;
+  }
+
+  .loginCard {
+    max-width: 460px;
+
+    padding: 24px 30px 22px;
+  }
+
+  .loginIcon {
+    width: 46px;
+    height: 46px;
+
+    margin-bottom: 13px;
+  }
+
+  .title {
+    font-size: 27px;
+  }
+
+  .subtitle {
+    margin-bottom: 18px;
+
+    font-size: 13px;
+  }
+
+  .form {
+    gap: 13px;
+  }
+
+  .inputShell {
+    height: 46px;
+  }
+
+  .signInButton {
+    height: 46px;
+  }
+
+  .demo {
+    margin-top: 14px;
+    padding: 10px 13px;
+  }
+
+  .footer {
+    margin-top: 10px;
+  }
+}
+
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
+
+@media (max-width: 950px) {
+  .page {
+    height: auto;
+    min-height: 100vh;
+
+    overflow-y: auto;
+  }
+
+  .shell {
+    height: auto;
+    min-height: 100vh;
+
+    grid-template-columns: 1fr;
+  }
+
+  .brandPanel {
+    display: none;
+  }
+
+  .formPanel {
+    height: auto;
+    min-height: 100vh;
+
+    padding: 30px 24px;
+
+    border-left: none;
+
+    box-shadow: none;
+  }
+
+  .loginCard {
+    width: min(100%, 460px);
+  }
+}
+
+@media (max-width: 520px) {
+  .formPanel {
+    padding: 22px 16px;
+  }
+
+  .loginCard {
+    padding: 27px 22px 24px;
+
+    border-radius: 22px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .input {
+    font-size: 13px;
+  }
+}

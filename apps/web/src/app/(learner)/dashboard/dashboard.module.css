@@ -1,0 +1,1202 @@
+/* =========================================================
+   eLAB START PRACTICING DASHBOARD
+   Professional Neomorphic Coding Platform
+========================================================= */
+
+.page {
+  min-height: 100vh;
+
+  margin: 0;
+
+  background: #e7ecf2;
+
+  color: #1e293b;
+}
+
+/* =========================================================
+   CONTENT WIDTH
+========================================================= */
+
+.headerInner,
+.main {
+  width: calc(100% - 40px);
+
+  max-width: 1360px;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+  width: 100%;
+
+  padding-top: 18px;
+
+  background: #e7ecf2;
+}
+
+.headerInner {
+  min-height: 68px;
+
+  padding:
+    10px
+    14px
+    10px
+    16px;
+
+  display: grid;
+
+  grid-template-columns:
+    170px
+    minmax(0, 1fr)
+    210px;
+
+  align-items: center;
+
+  gap: 20px;
+
+  border-radius: 20px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    7px 7px 16px rgba(184, 193, 203, 0.56),
+    -7px -7px 16px rgba(255, 255, 255, 0.95);
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logoArea {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.logoIcon {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    4px 4px 9px rgba(184, 193, 203, 0.56),
+    -4px -4px 9px rgba(255, 255, 255, 0.94);
+}
+
+.logoIcon svg {
+  width: 21px;
+  height: 21px;
+
+  stroke-width: 2;
+}
+
+.logo {
+  color: #1e293b;
+
+  font-size: 24px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -0.7px;
+}
+
+.logo span {
+  color: #2563eb;
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.nav {
+  justify-self: center;
+
+  min-height: 44px;
+
+  padding: 5px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 3px;
+
+  border-radius: 14px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+}
+
+.navItem {
+  height: 34px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  color: #64748b;
+
+  background: transparent;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.navItem svg {
+  width: 15px;
+  height: 15px;
+
+  stroke-width: 2;
+}
+
+.navItem:hover {
+  color: #2563eb;
+}
+
+.navActive {
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    3px 3px 7px rgba(184, 193, 203, 0.54),
+    -3px -3px 7px rgba(255, 255, 255, 0.95);
+}
+
+/* =========================================================
+   ACCOUNT
+========================================================= */
+
+.accountArea {
+  justify-self: end;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+}
+
+.avatar svg {
+  width: 17px;
+  height: 17px;
+}
+
+.accountText {
+  min-width: 94px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.accountName {
+  color: #334155;
+
+  font-size: 11px;
+  line-height: 1.25;
+
+  font-weight: 700;
+}
+
+.accountRole {
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.logoutButton {
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  border-radius: 11px;
+
+  color: #64748b;
+
+  background: #e7ecf2;
+
+  cursor: pointer;
+
+  box-shadow:
+    4px 4px 8px rgba(184, 193, 203, 0.54),
+    -4px -4px 8px rgba(255, 255, 255, 0.94);
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.logoutButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.logoutButton:hover {
+  color: #dc2626;
+
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main {
+  padding:
+    38px
+    4px
+    60px;
+}
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.pageHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 40px;
+
+  padding:
+    0
+    4px
+    26px;
+
+  border-bottom:
+    1px
+    solid
+    rgba(148, 163, 184, 0.2);
+}
+
+.pageLabel {
+  width: max-content;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #2563eb;
+
+  font-size: 11px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.8px;
+
+  text-transform: uppercase;
+}
+
+.pageLabel svg {
+  width: 15px;
+  height: 15px;
+}
+
+.pageTitle {
+  margin:
+    10px
+    0
+    0;
+
+  color: #172033;
+
+  font-size: 32px;
+  line-height: 1.18;
+
+  font-weight: 750;
+
+  letter-spacing: -1.1px;
+}
+
+.pageDescription {
+  max-width: 720px;
+
+  margin:
+    7px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  font-weight: 400;
+}
+
+/* =========================================================
+   QUICK INFO
+========================================================= */
+
+.quickInfo {
+  min-width: 185px;
+
+  padding:
+    12px
+    15px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  border-radius: 14px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+}
+
+.quickInfo > svg {
+  width: 19px;
+  height: 19px;
+
+  flex-shrink: 0;
+
+  color: #7c3aed;
+}
+
+.quickInfo div {
+  display: flex;
+  flex-direction: column;
+}
+
+.quickInfo strong {
+  color: #334155;
+
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.quickInfo span {
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.toolbar {
+  width: 100%;
+
+  margin-top: 25px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.searchBox {
+  width: 100%;
+  max-width: 600px;
+
+  height: 46px;
+
+  padding:
+    0
+    14px;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 13px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(184, 193, 203, 0.5),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.94);
+}
+
+.searchBox > svg {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+
+  margin-right: 10px;
+
+  color: #3b82f6;
+}
+
+.searchInput {
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+
+  color: #1e293b;
+
+  background: transparent;
+
+  font-size: 12px;
+
+  font-weight: 500;
+}
+
+.searchInput::placeholder {
+  color: #94a3b8;
+
+  font-weight: 400;
+}
+
+.clearSearch {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  color: #64748b;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.clearSearch svg {
+  width: 14px;
+  height: 14px;
+}
+
+.clearSearch:hover {
+  color: #2563eb;
+}
+
+.resultCount {
+  color: #64748b;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+
+  font-weight: 600;
+}
+
+/* =========================================================
+   CATEGORY FILTERS
+========================================================= */
+
+.categoryTabs {
+  margin-top: 16px;
+
+  padding-bottom: 3px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  overflow-x: auto;
+}
+
+.categoryTab {
+  min-height: 34px;
+
+  padding:
+    0
+    14px;
+
+  flex-shrink: 0;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  color: #64748b;
+
+  background: #e7ecf2;
+
+  font-size: 11px;
+  line-height: 1;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px rgba(184, 193, 203, 0.48),
+    -3px -3px 7px rgba(255, 255, 255, 0.92);
+
+  transition:
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.categoryTab:hover {
+  color: #2563eb;
+}
+
+.categoryTabActive {
+  color: #2563eb;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+}
+
+/* =========================================================
+   TECHNOLOGY CONTENT
+========================================================= */
+
+.technologyContent {
+  padding-top: 36px;
+}
+
+/* =========================================================
+   CATEGORY SECTION
+========================================================= */
+
+.categorySection {
+  margin-bottom: 42px;
+}
+
+.categorySection:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   CATEGORY HEADER
+========================================================= */
+
+.categoryHeader {
+  margin-bottom: 15px;
+
+  padding:
+    0
+    2px
+    12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom:
+    1px
+    solid
+    rgba(148, 163, 184, 0.18);
+}
+
+.categoryHeaderLeft {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+.categoryIcon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    4px 4px 8px rgba(184, 193, 203, 0.5),
+    -4px -4px 8px rgba(255, 255, 255, 0.93);
+}
+
+.categoryIcon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.categoryTitle {
+  margin: 0;
+
+  color: #334155;
+
+  font-size: 16px;
+  line-height: 1.25;
+
+  font-weight: 750;
+}
+
+.categorySubtitle {
+  margin:
+    3px
+    0
+    0;
+
+  color: #94a3b8;
+
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+/* =========================================================
+   TECHNOLOGY GRID
+========================================================= */
+
+.technologyGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+}
+
+/* =========================================================
+   TECHNOLOGY CARD
+========================================================= */
+
+.technologyCard {
+  min-height: 90px;
+
+  padding:
+    13px
+    13px;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    27px;
+
+  align-items: center;
+
+  gap: 12px;
+
+  border: 0;
+
+  border-radius: 15px;
+
+  color: inherit;
+
+  background: #e7ecf2;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-shadow:
+    4px 4px 10px rgba(184, 193, 203, 0.52),
+    -4px -4px 10px rgba(255, 255, 255, 0.93);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.technologyCard:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    6px 6px 13px rgba(184, 193, 203, 0.58),
+    -6px -6px 13px rgba(255, 255, 255, 0.96);
+}
+
+.technologyCard:active {
+  transform: translateY(0);
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.93);
+}
+
+/* =========================================================
+   REAL TECHNOLOGY LOGOS
+========================================================= */
+
+.technologyIcon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 13px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.technologyIcon > svg {
+  width: 27px;
+  height: 27px;
+}
+
+.technologyCard:hover
+.technologyIcon {
+  transform: scale(1.04);
+
+  box-shadow:
+    4px 4px 8px rgba(184, 193, 203, 0.52),
+    -4px -4px 8px rgba(255, 255, 255, 0.94);
+}
+
+/* HTML + CSS together */
+
+.dualTechnologyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1px;
+}
+
+.dualTechnologyIcon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.htmlIcon {
+  color: #e34f26;
+}
+
+.cssIcon {
+  color: #1572b6;
+}
+
+/* =========================================================
+   TECHNOLOGY DETAILS
+========================================================= */
+
+.technologyDetails {
+  min-width: 0;
+}
+
+.technologyName {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #334155;
+
+  font-size: 13px;
+  line-height: 1.3;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.technologyDescription {
+  margin:
+    4px
+    0
+    0;
+
+  overflow: hidden;
+
+  color: #64748b;
+
+  font-size: 10px;
+  line-height: 1.35;
+
+  font-weight: 400;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   CARD ARROW
+========================================================= */
+
+.cardArrow {
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  color: #94a3b8;
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.cardArrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+.technologyCard:hover
+.cardArrow {
+  color: #2563eb;
+
+  transform: translateX(2px);
+}
+
+/* =========================================================
+   EMPTY RESULT
+========================================================= */
+
+.empty {
+  min-height: 250px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 15px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(184, 193, 203, 0.5),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.94);
+}
+
+.emptyIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.empty h2 {
+  margin:
+    14px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 17px;
+
+  font-weight: 700;
+}
+
+.empty p {
+  margin:
+    6px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+.empty button {
+  margin-top: 15px;
+
+  padding:
+    9px
+    15px;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px rgba(184, 193, 203, 0.5),
+    -3px -3px 7px rgba(255, 255, 255, 0.93);
+}
+
+/* =========================================================
+   RESPONSIVE - 1200
+========================================================= */
+
+@media (max-width: 1200px) {
+  .headerInner,
+  .main {
+    width: calc(100% - 30px);
+  }
+
+  .headerInner {
+    grid-template-columns:
+      150px
+      1fr
+      185px;
+  }
+
+  .navItem {
+    padding:
+      0
+      11px;
+
+    font-size: 11px;
+  }
+
+  .technologyGrid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - 980
+========================================================= */
+
+@media (max-width: 980px) {
+  .headerInner {
+    grid-template-columns:
+      1fr
+      auto;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .pageHeader {
+    align-items: flex-start;
+  }
+
+  .technologyGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - 700
+========================================================= */
+
+@media (max-width: 700px) {
+  .headerInner,
+  .main {
+    width: calc(100% - 20px);
+  }
+
+  .main {
+    padding-top: 28px;
+  }
+
+  .accountText {
+    display: none;
+  }
+
+  .pageHeader {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 18px;
+  }
+
+  .quickInfo {
+    min-width: 0;
+  }
+
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .searchBox {
+    max-width: 100%;
+  }
+
+  .technologyGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .header {
+    padding-top: 10px;
+  }
+
+  .headerInner {
+    min-height: 60px;
+
+    padding:
+      9px
+      10px;
+  }
+
+  .logoIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .pageTitle {
+    font-size: 27px;
+  }
+
+  .pageDescription {
+    font-size: 12px;
+  }
+
+  .categoryTabs {
+    margin-right: -10px;
+  }
+
+  .technologyContent {
+    padding-top: 30px;
+  }
+
+  .categorySection {
+    margin-bottom: 34px;
+  }
+
+  .technologyCard {
+    min-height: 86px;
+  }
+
+  .technologyIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .technologyIcon > svg {
+    width: 24px;
+    height: 24px;
+  }
+}

@@ -1,0 +1,43 @@
+# Node dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/.next
+dist
+**/dist
+build
+coverage
+
+# Git
+.git
+.gitignore
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# IDE files
+.vscode
+.idea
+
+# Temporary files
+tmp
+temp
+runtime-workspaces
+execution-temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation not required inside runtime images
+docs
+
+# Tests can be excluded from production images
+tests

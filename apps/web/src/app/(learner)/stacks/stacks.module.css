@@ -1,0 +1,2914 @@
+/* =========================================================
+   eLAB TARGETED STACK
+   Professional Neomorphic UI
+========================================================= */
+
+.page {
+  min-height: 100vh;
+
+  padding-bottom: 70px;
+
+  color: #1e293b;
+
+  background: #e7ecf2;
+}
+
+.container,
+.headerInner {
+  width: calc(100% - 40px);
+
+  max-width: 1360px;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+  width: 100%;
+
+  padding-top: 18px;
+}
+
+.headerInner {
+  min-height: 68px;
+
+  padding:
+    10px
+    14px
+    10px
+    16px;
+
+  display: grid;
+
+  grid-template-columns:
+    170px
+    minmax(0, 1fr)
+    210px;
+
+  align-items: center;
+
+  gap: 20px;
+
+  border-radius: 20px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    7px 7px 16px
+      rgba(
+        184,
+        193,
+        203,
+        0.56
+      ),
+    -7px -7px 16px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logoArea {
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 0;
+
+  color: inherit;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.logoIcon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    4px 4px 9px
+      rgba(
+        184,
+        193,
+        203,
+        0.56
+      ),
+    -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.logoIcon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.logo {
+  color: #1e293b;
+
+  font-size: 24px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -0.7px;
+}
+
+.logo span {
+  color: #2563eb;
+}
+
+/* =========================================================
+   NAV
+========================================================= */
+
+.navShell {
+  justify-self: center;
+
+  padding: 5px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 3px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.navButton {
+  height: 34px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  border: 0;
+  border-radius: 9px;
+
+  color: #64748b;
+
+  background: transparent;
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.navButton svg {
+  width: 15px;
+  height: 15px;
+}
+
+.navButton:hover {
+  color: #2563eb;
+}
+
+.activeNav {
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.54
+      ),
+    -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+/* =========================================================
+   USER
+========================================================= */
+
+.userArea {
+  justify-self: end;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.avatar svg {
+  width: 17px;
+  height: 17px;
+}
+
+.userText {
+  min-width: 94px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  color: #334155;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+.userRole {
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+.logout {
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 11px;
+
+  color: #64748b;
+
+  background: #e7ecf2;
+
+  cursor: pointer;
+
+  box-shadow:
+    4px 4px 8px
+      rgba(
+        184,
+        193,
+        203,
+        0.54
+      ),
+    -4px -4px 8px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.logout svg {
+  width: 16px;
+  height: 16px;
+}
+
+.logout:hover {
+  color: #dc2626;
+}
+
+/* =========================================================
+   PAGE HEADING
+========================================================= */
+
+.pageHeading {
+  padding:
+    46px
+    4px
+    29px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 40px;
+
+  border-bottom:
+    1px
+    solid
+    rgba(
+      148,
+      163,
+      184,
+      0.18
+    );
+}
+
+.eyebrow {
+  width: max-content;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+.eyebrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pageTitle {
+  margin:
+    10px
+    0
+    0;
+
+  color: #172033;
+
+  font-size:
+    clamp(
+      30px,
+      3.3vw,
+      42px
+    );
+
+  line-height: 1.15;
+
+  font-weight: 750;
+
+  letter-spacing: -1.4px;
+}
+
+.pageDescription {
+  max-width: 710px;
+
+  margin:
+    8px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.domainSummary {
+  min-width: 150px;
+
+  padding:
+    13px
+    16px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  border-radius: 13px;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.domainSummary strong {
+  color: #2563eb;
+
+  font-size: 20px;
+}
+
+.domainSummary span {
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.toolbar {
+  padding-top: 24px;
+}
+
+.searchBox {
+  width: 100%;
+
+  max-width: 620px;
+
+  height: 48px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    inset 4px 4px 9px
+      rgba(
+        184,
+        193,
+        203,
+        0.52
+      ),
+    inset -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.searchBox > svg {
+  width: 18px;
+  height: 18px;
+
+  color: #3b82f6;
+}
+
+.searchBox input {
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+
+  outline: 0;
+
+  color: #334155;
+
+  background: transparent;
+
+  font-size: 12px;
+}
+
+.searchBox input::placeholder {
+  color: #94a3b8;
+}
+
+/* =========================================================
+   DOMAIN GRID
+========================================================= */
+
+.domainGrid {
+  padding-top: 31px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 20px;
+}
+
+.domainCard {
+  min-height: 285px;
+
+  padding: 23px;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 0;
+
+  border-radius: 20px;
+
+  color: inherit;
+
+  background: #e7ecf2;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-shadow:
+    6px 6px 15px
+      rgba(
+        184,
+        193,
+        203,
+        0.56
+      ),
+    -6px -6px 15px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+
+  transition:
+    transform
+    160ms ease,
+    box-shadow
+    160ms ease;
+}
+
+.domainCard:hover {
+  transform:
+    translateY(-4px);
+
+  box-shadow:
+    9px 9px 20px
+      rgba(
+        184,
+        193,
+        203,
+        0.62
+      ),
+    -9px -9px 20px
+      rgba(
+        255,
+        255,
+        255,
+        0.98
+      );
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+}
+
+.domainIcon {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 4px 4px 8px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -4px -4px 8px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.domainIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.stackCount {
+  padding:
+    6px
+    9px;
+
+  border-radius: 8px;
+
+  color: #64748b;
+
+  font-size: 9px;
+
+  font-weight: 650;
+
+  box-shadow:
+    2px 2px 5px
+      rgba(
+        184,
+        193,
+        203,
+        0.5
+      ),
+    -2px -2px 5px
+      rgba(
+        255,
+        255,
+        255,
+        0.92
+      );
+}
+
+.domainCard h2 {
+  margin:
+    20px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 18px;
+
+  font-weight: 750;
+}
+
+.domainDescription {
+  min-height: 58px;
+
+  margin:
+    8px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   DOMAIN PATH
+========================================================= */
+
+.pathBox {
+  margin-top: 16px;
+
+  padding:
+    11px
+    12px;
+
+  border-radius: 11px;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.46
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.92
+      );
+}
+
+.pathBox span {
+  color: #94a3b8;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.8px;
+
+  text-transform: uppercase;
+}
+
+.pathBox p {
+  margin:
+    5px
+    0
+    0;
+
+  color: #2563eb;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   CARD FOOTER
+========================================================= */
+
+.cardFooter {
+  margin-top: auto;
+
+  padding-top: 19px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.cardFooter > span {
+  color: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+.arrowButton {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.46
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.arrowButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* =========================================================
+   DOMAIN DETAILS HEADER
+========================================================= */
+
+.backButton {
+  margin-top: 36px;
+
+  min-height: 38px;
+
+  padding:
+    0
+    13px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  color: #64748b;
+
+  background: #e7ecf2;
+
+  font-size: 11px;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.52
+      ),
+    -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.93
+      );
+}
+
+.backButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.backButton:hover {
+  color: #2563eb;
+}
+
+.domainHeader {
+  max-width: 850px;
+
+  padding:
+    33px
+    3px
+    30px;
+}
+
+.domainPath {
+  width: max-content;
+
+  max-width: 100%;
+
+  margin-top: 17px;
+
+  padding:
+    9px
+    13px;
+
+  border-radius: 10px;
+
+  color: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 650;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.46
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+/* =========================================================
+   STACK GRID
+========================================================= */
+
+.stackGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 20px;
+}
+
+.stackCard {
+  min-height: 310px;
+
+  padding: 23px;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 0;
+
+  border-radius: 20px;
+
+  color: inherit;
+
+  background: #e7ecf2;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-shadow:
+    6px 6px 15px
+      rgba(
+        184,
+        193,
+        203,
+        0.56
+      ),
+    -6px -6px 15px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+
+  transition:
+    transform
+    160ms ease,
+    box-shadow
+    160ms ease;
+}
+
+.stackCard:hover {
+  transform:
+    translateY(-4px);
+
+  box-shadow:
+    9px 9px 20px
+      rgba(
+        184,
+        193,
+        203,
+        0.62
+      ),
+    -9px -9px 20px
+      rgba(
+        255,
+        255,
+        255,
+        0.98
+      );
+}
+
+.stackCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.stackLogo {
+  min-height: 38px;
+
+  padding:
+    0
+    12px;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 10px;
+
+  color: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.level {
+  color: #94a3b8;
+
+  font-size: 9px;
+
+  font-weight: 650;
+}
+
+.stackCard h2 {
+  margin:
+    20px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 18px;
+
+  font-weight: 750;
+}
+
+.stackDescription {
+  min-height: 55px;
+
+  margin:
+    8px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   TECHNOLOGY TAGS
+========================================================= */
+
+.technologyTags {
+  margin-top: 17px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+.technologyTags span {
+  padding:
+    6px
+    8px;
+
+  border-radius: 8px;
+
+  color: #64748b;
+
+  font-size: 9px;
+
+  font-weight: 650;
+
+  box-shadow:
+    2px 2px 5px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    -2px -2px 5px
+      rgba(
+        255,
+        255,
+        255,
+        0.9
+      );
+}
+
+/* =========================================================
+   COMING SOON
+========================================================= */
+
+.comingSoon {
+  min-height: 260px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  text-align: center;
+
+  box-shadow:
+    inset 5px 5px 11px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -5px -5px 11px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.comingSoon > svg {
+  width: 31px;
+  height: 31px;
+
+  color: #2563eb;
+}
+
+.comingSoon h2 {
+  margin:
+    15px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 18px;
+}
+
+.comingSoon p {
+  margin:
+    7px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   NOT FOUND
+========================================================= */
+
+.notFound {
+  min-height: 70vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.notFound button {
+  margin-top: 15px;
+
+  padding:
+    10px
+    15px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  color: #2563eb;
+
+  background: #e7ecf2;
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.5
+      ),
+    -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.93
+      );
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .headerInner,
+  .container {
+    width:
+      calc(
+        100% - 30px
+      );
+  }
+
+  .domainGrid,
+  .stackGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (max-width: 1000px) {
+  .headerInner {
+    grid-template-columns:
+      1fr
+      auto;
+  }
+
+  .navShell {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .headerInner,
+  .container {
+    width:
+      calc(
+        100% - 20px
+      );
+  }
+
+  .userText {
+    display: none;
+  }
+
+  .pageHeading {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 18px;
+
+    padding-top: 35px;
+  }
+
+  .domainGrid,
+  .stackGrid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .domainSummary {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding-top: 10px;
+  }
+
+  .headerInner {
+    min-height: 60px;
+
+    padding:
+      9px
+      10px;
+  }
+
+  .logoIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .pageTitle {
+    font-size: 27px;
+  }
+
+  .domainCard,
+  .stackCard {
+    padding: 19px;
+  }
+}
+
+/* =========================================================
+   STACK ROADMAP HERO
+========================================================= */
+
+.stackRoadmapHero {
+  margin-top: 30px;
+
+  padding: 32px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    300px;
+
+  gap: 42px;
+
+  align-items: center;
+
+  border-radius: 22px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    7px 7px 17px
+      rgba(
+        184,
+        193,
+        203,
+        0.56
+      ),
+    -7px -7px 17px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.stackRoadmapInfo {
+  min-width: 0;
+}
+
+.stackTitleRow {
+  margin-top: 18px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.stackHeroBadge {
+  min-width: 72px;
+  height: 72px;
+
+  padding:
+    0
+    12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 18px;
+
+  color: #2563eb;
+
+  font-size: 11px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.4px;
+
+  text-align: center;
+
+  box-shadow:
+    inset 5px 5px 10px
+      rgba(
+        184,
+        193,
+        203,
+        0.52
+      ),
+    inset -5px -5px 10px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.stackRoadmapTitle {
+  margin: 0;
+
+  color: #172033;
+
+  font-size:
+    clamp(
+      29px,
+      3vw,
+      40px
+    );
+
+  line-height: 1.15;
+
+  font-weight: 760;
+
+  letter-spacing: -1.2px;
+}
+
+.stackRoadmapDescription {
+  max-width: 720px;
+
+  margin:
+    7px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   STACK PROGRESS CARD
+========================================================= */
+
+.stackProgressCard {
+  padding: 21px;
+
+  border-radius: 17px;
+
+  box-shadow:
+    inset 4px 4px 9px
+      rgba(
+        184,
+        193,
+        203,
+        0.5
+      ),
+    inset -4px -4px 9px
+      rgba(
+        255,
+        255,
+        255,
+        0.95
+      );
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.progressHeader span {
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+.progressHeader strong {
+  color: #2563eb;
+
+  font-size: 21px;
+
+  font-weight: 800;
+}
+
+.progressTrack {
+  height: 8px;
+
+  margin-top: 13px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  box-shadow:
+    inset 2px 2px 5px
+      rgba(
+        184,
+        193,
+        203,
+        0.58
+      ),
+    inset -2px -2px 5px
+      rgba(
+        255,
+        255,
+        255,
+        0.9
+      );
+}
+
+.progressFill {
+  height: 100%;
+
+  border-radius: 999px;
+
+  background: #2563eb;
+
+  transition:
+    width
+    200ms ease;
+}
+
+.progressStats {
+  margin-top: 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      1fr
+    );
+
+  gap: 10px;
+}
+
+.progressStats > div {
+  padding: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  border-radius: 10px;
+
+  text-align: center;
+
+  box-shadow:
+    2px 2px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    -2px -2px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.92
+      );
+}
+
+.progressStats strong {
+  color: #334155;
+
+  font-size: 15px;
+}
+
+.progressStats span {
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 8px;
+
+  font-weight: 650;
+}
+
+.progressHint {
+  margin:
+    15px
+    0
+    0;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+
+  line-height: 1.55;
+}
+
+/* =========================================================
+   ROADMAP HEADER
+========================================================= */
+
+.roadmapHeader {
+  padding:
+    42px
+    4px
+    20px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 30px;
+}
+
+.roadmapLabel {
+  color: #2563eb;
+
+  font-size: 9px;
+
+  font-weight: 850;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+.roadmapHeader h2 {
+  margin:
+    6px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 22px;
+
+  font-weight: 750;
+
+  letter-spacing: -0.5px;
+}
+
+.roadmapHeader p {
+  max-width: 690px;
+
+  margin:
+    6px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+.moduleCountBadge {
+  min-width: 96px;
+
+  padding:
+    11px
+    14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  border-radius: 12px;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.moduleCountBadge strong {
+  color: #2563eb;
+
+  font-size: 18px;
+}
+
+.moduleCountBadge span {
+  color: #64748b;
+
+  font-size: 9px;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   ROADMAP LIST
+========================================================= */
+
+.roadmapList {
+  padding-bottom: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+/* =========================================================
+   ROADMAP CARD
+========================================================= */
+
+.roadmapCard {
+  width: 100%;
+
+  min-height: 116px;
+
+  padding:
+    17px
+    18px;
+
+  display: grid;
+
+  grid-template-columns:
+    46px
+    42px
+    minmax(0, 1fr)
+    105px;
+
+  align-items: center;
+
+  gap: 15px;
+
+  border: 0;
+
+  border-radius: 17px;
+
+  color: inherit;
+
+  background: #e7ecf2;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-shadow:
+    5px 5px 12px
+      rgba(
+        184,
+        193,
+        203,
+        0.53
+      ),
+    -5px -5px 12px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+
+  transition:
+    transform
+    160ms ease,
+    box-shadow
+    160ms ease;
+}
+
+.roadmapCard:hover {
+  transform:
+    translateX(4px);
+
+  box-shadow:
+    7px 7px 15px
+      rgba(
+        184,
+        193,
+        203,
+        0.58
+      ),
+    -7px -7px 15px
+      rgba(
+        255,
+        255,
+        255,
+        0.96
+      );
+}
+
+.roadmapCardActive {
+  border:
+    1px
+    solid
+    rgba(
+      37,
+      99,
+      235,
+      0.16
+    );
+}
+
+/* =========================================================
+   ROADMAP STEP
+========================================================= */
+
+.roadmapStep {
+  position: relative;
+
+  height: 100%;
+
+  display: flex;
+  justify-content: center;
+}
+
+.roadmapStep > span {
+  width: 38px;
+  height: 38px;
+
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #64748b;
+
+  background: #e7ecf2;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.47
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.93
+      );
+}
+
+.roadmapLine {
+  width: 1px;
+
+  height: calc(100% + 28px);
+
+  position: absolute;
+
+  top: 39px;
+
+  left: 50%;
+
+  background:
+    rgba(
+      148,
+      163,
+      184,
+      0.25
+    );
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.roadmapStatus {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #94a3b8;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    inset -3px -3px 7px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.roadmapCardActive
+  .roadmapStatus {
+  color: #2563eb;
+}
+
+.roadmapStatus svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* =========================================================
+   ROADMAP CONTENT
+========================================================= */
+
+.roadmapContent {
+  min-width: 0;
+}
+
+.roadmapContentTop {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  flex-wrap: wrap;
+}
+
+.phaseBadge,
+.currentBadge {
+  width: max-content;
+
+  padding:
+    5px
+    8px;
+
+  border-radius: 7px;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.6px;
+
+  text-transform: uppercase;
+}
+
+.phaseBadge {
+  color: #64748b;
+
+  box-shadow:
+    inset 2px 2px 5px
+      rgba(
+        184,
+        193,
+        203,
+        0.46
+      ),
+    inset -2px -2px 5px
+      rgba(
+        255,
+        255,
+        255,
+        0.92
+      );
+}
+
+.currentBadge {
+  color: #2563eb;
+
+  box-shadow:
+    2px 2px 5px
+      rgba(
+        184,
+        193,
+        203,
+        0.48
+      ),
+    -2px -2px 5px
+      rgba(
+        255,
+        255,
+        255,
+        0.92
+      );
+}
+
+.roadmapContent h3 {
+  margin:
+    7px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 14px;
+
+  font-weight: 750;
+}
+
+.roadmapContent > p {
+  margin:
+    4px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   TOPIC PREVIEW
+========================================================= */
+
+.topicPreview {
+  margin-top: 9px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.topicPreview span {
+  padding:
+    4px
+    7px;
+
+  border-radius: 6px;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  box-shadow:
+    2px 2px 4px
+      rgba(
+        184,
+        193,
+        203,
+        0.43
+      ),
+    -2px -2px 4px
+      rgba(
+        255,
+        255,
+        255,
+        0.88
+      );
+}
+
+.topicPreview
+  .moreTopics {
+  color: #2563eb;
+}
+
+/* =========================================================
+   ROADMAP ACTIONS
+========================================================= */
+
+.roadmapActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 11px;
+}
+
+.roadmapActions > span {
+  color: #94a3b8;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+}
+
+.roadmapArrow {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(
+        184,
+        193,
+        203,
+        0.46
+      ),
+    inset -3px -3px 6px
+      rgba(
+        255,
+        255,
+        255,
+        0.94
+      );
+}
+
+.roadmapArrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* =========================================================
+   ROADMAP RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+  .stackRoadmapHero {
+    grid-template-columns: 1fr;
+  }
+
+  .stackProgressCard {
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 760px) {
+  .stackRoadmapHero {
+    padding: 23px;
+  }
+
+  .stackTitleRow {
+    align-items: flex-start;
+  }
+
+  .stackHeroBadge {
+    min-width: 58px;
+    height: 58px;
+
+    border-radius: 15px;
+  }
+
+  .roadmapHeader {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  .roadmapCard {
+    grid-template-columns:
+      38px
+      34px
+      minmax(0, 1fr);
+
+    padding:
+      15px
+      13px;
+  }
+
+  .roadmapActions {
+    display: none;
+  }
+
+  .roadmapStep > span {
+    width: 33px;
+    height: 33px;
+  }
+
+  .roadmapLine {
+    top: 34px;
+  }
+
+  .roadmapStatus {
+    width: 31px;
+    height: 31px;
+  }
+}
+
+@media (max-width: 500px) {
+  .stackRoadmapHero {
+    padding: 19px;
+  }
+
+  .stackTitleRow {
+    flex-direction: column;
+  }
+
+  .stackRoadmapTitle {
+    font-size: 27px;
+  }
+
+  .roadmapCard {
+    grid-template-columns:
+      31px
+      minmax(0, 1fr);
+
+    gap: 10px;
+  }
+
+  .roadmapStep {
+    display: none;
+  }
+
+  .roadmapStatus {
+    align-self: flex-start;
+
+    margin-top: 3px;
+  }
+
+  .topicPreview span:nth-child(
+      n + 4
+    ) {
+    display: none;
+  }
+}
+
+
+
+/* =========================================================
+   MODULE PROBLEM PAGE
+========================================================= */
+
+.problemModuleHeader {
+  margin-top: 30px;
+
+  padding: 28px 30px;
+
+  display: grid;
+
+  grid-template-columns:
+    66px
+    minmax(0, 1fr)
+    145px;
+
+  align-items: center;
+
+  gap: 22px;
+
+  border-radius: 21px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    7px 7px 16px
+      rgba(184, 193, 203, 0.56),
+    -7px -7px 16px
+      rgba(255, 255, 255, 0.95);
+}
+
+.problemModuleIcon {
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 17px;
+
+  color: #2563eb;
+
+  box-shadow:
+    inset 4px 4px 9px
+      rgba(184, 193, 203, 0.5),
+    inset -4px -4px 9px
+      rgba(255, 255, 255, 0.95);
+}
+
+.problemModuleIcon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.problemModuleInfo {
+  min-width: 0;
+}
+
+.modulePhaseLabel {
+  color: #2563eb;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+.problemModuleInfo h1 {
+  margin:
+    6px
+    0
+    0;
+
+  color: #172033;
+
+  font-size: 30px;
+
+  line-height: 1.15;
+
+  font-weight: 760;
+
+  letter-spacing: -0.8px;
+}
+
+.problemModuleInfo > p {
+  margin:
+    6px
+    0
+    0;
+
+  max-width: 720px;
+
+  color: #64748b;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+.moduleTopicTags {
+  margin-top: 13px;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+.moduleTopicTags span {
+  padding:
+    5px
+    8px;
+
+  border-radius: 7px;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 650;
+
+  box-shadow:
+    2px 2px 5px
+      rgba(184, 193, 203, 0.46),
+    -2px -2px 5px
+      rgba(255, 255, 255, 0.9);
+}
+
+.problemSummary {
+  padding: 16px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 14px;
+
+  text-align: center;
+
+  box-shadow:
+    inset 3px 3px 7px
+      rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px
+      rgba(255, 255, 255, 0.94);
+}
+
+.problemSummary strong {
+  color: #2563eb;
+
+  font-size: 23px;
+}
+
+.problemSummary span {
+  margin-top: 3px;
+
+  color: #64748b;
+
+  font-size: 9px;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   PROBLEM LIST HEADER
+========================================================= */
+
+.problemListHeader {
+  padding:
+    38px
+    4px
+    18px;
+}
+
+.problemListHeader span {
+  color: #2563eb;
+
+  font-size: 9px;
+
+  font-weight: 850;
+
+  letter-spacing: 1px;
+}
+
+.problemListHeader h2 {
+  margin:
+    5px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 22px;
+
+  font-weight: 750;
+}
+
+.problemListHeader p {
+  margin:
+    5px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   PROBLEM LIST
+========================================================= */
+
+.problemList {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.problemCard {
+  min-height: 112px;
+
+  padding:
+    17px
+    18px;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    105px
+    92px;
+
+  align-items: center;
+
+  gap: 16px;
+
+  border-radius: 17px;
+
+  background: #e7ecf2;
+
+  box-shadow:
+    5px 5px 12px
+      rgba(184, 193, 203, 0.53),
+    -5px -5px 12px
+      rgba(255, 255, 255, 0.94);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.problemCard:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    7px 7px 15px
+      rgba(184, 193, 203, 0.58),
+    -7px -7px 15px
+      rgba(255, 255, 255, 0.96);
+}
+
+.problemNumber {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  box-shadow:
+    inset 3px 3px 6px
+      rgba(184, 193, 203, 0.48),
+    inset -3px -3px 6px
+      rgba(255, 255, 255, 0.94);
+}
+
+.problemContent {
+  min-width: 0;
+}
+
+.problemMetaTop {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.difficultyBadge {
+  padding:
+    4px
+    7px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+.difficultyEasy {
+  color: #15803d;
+
+  background:
+    rgba(34, 197, 94, 0.08);
+}
+
+.difficultyMedium {
+  color: #b45309;
+
+  background:
+    rgba(245, 158, 11, 0.09);
+}
+
+.difficultyHard {
+  color: #dc2626;
+
+  background:
+    rgba(239, 68, 68, 0.08);
+}
+
+.problemTime {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color: #94a3b8;
+
+  font-size: 8px;
+}
+
+.problemTime svg {
+  width: 12px;
+  height: 12px;
+}
+
+.problemContent h3 {
+  margin:
+    7px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 14px;
+
+  font-weight: 750;
+}
+
+.problemContent > p {
+  margin:
+    4px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+.problemSkills {
+  margin-top: 9px;
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.problemSkills span {
+  padding:
+    4px
+    7px;
+
+  border-radius: 6px;
+
+  color: #64748b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  box-shadow:
+    2px 2px 4px
+      rgba(184, 193, 203, 0.42),
+    -2px -2px 4px
+      rgba(255, 255, 255, 0.88);
+}
+
+/* =========================================================
+   PROBLEM STATUS
+========================================================= */
+
+.problemStatus {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color: #94a3b8;
+
+  text-align: center;
+}
+
+.problemStatus svg {
+  width: 17px;
+  height: 17px;
+}
+
+.problemStatus span {
+  font-size: 8px;
+
+  font-weight: 650;
+}
+
+/* =========================================================
+   SOLVE
+========================================================= */
+
+.solveButton {
+  min-height: 39px;
+
+  padding:
+    0
+    13px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  color: #ffffff;
+
+  background: #2563eb;
+
+  font-size: 10px;
+
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    3px 3px 7px
+      rgba(184, 193, 203, 0.62),
+    -3px -3px 7px
+      rgba(255, 255, 255, 0.92);
+}
+
+.solveButton svg {
+  width: 13px;
+  height: 13px;
+}
+
+.solveButton:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   NO PROBLEMS
+========================================================= */
+
+.noProblems {
+  min-height: 250px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 18px;
+
+  text-align: center;
+
+  box-shadow:
+    inset 5px 5px 11px
+      rgba(184, 193, 203, 0.48),
+    inset -5px -5px 11px
+      rgba(255, 255, 255, 0.94);
+}
+
+.noProblems svg {
+  width: 30px;
+  height: 30px;
+
+  color: #2563eb;
+}
+
+.noProblems h2 {
+  margin:
+    12px
+    0
+    0;
+
+  color: #334155;
+
+  font-size: 17px;
+}
+
+.noProblems p {
+  margin:
+    6px
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   PROBLEM PAGE RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .problemModuleHeader {
+    grid-template-columns:
+      60px
+      minmax(0, 1fr);
+  }
+
+  .problemSummary {
+    grid-column:
+      1 / -1;
+
+    flex-direction: row;
+
+    gap: 8px;
+
+    justify-self: start;
+  }
+
+  .problemCard {
+    grid-template-columns:
+      42px
+      minmax(0, 1fr)
+      90px;
+  }
+
+  .problemStatus {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .problemModuleHeader {
+    padding: 20px;
+
+    grid-template-columns: 1fr;
+  }
+
+  .problemModuleIcon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .problemCard {
+    grid-template-columns:
+      36px
+      minmax(0, 1fr);
+  }
+
+  .solveButton {
+    grid-column:
+      2;
+
+    width: max-content;
+
+    margin-top: 5px;
+  }
+}
