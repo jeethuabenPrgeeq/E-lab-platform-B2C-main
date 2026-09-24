@@ -1,15 +1,3 @@
-/* =========================================================
-   GIT TEST CASES
-
-   Unlike every other language, a Git problem has
-   no stdin to vary — the learner submits one fixed
-   sequence of commands. So instead of several
-   {input, expectedOutput} pairs, each problem gets
-   one {setupScript, verifyScript, expectedOutput}
-   scenario. Kept as an array for structural
-   consistency with every other *-test-cases.ts file.
-========================================================= */
-
 export type GitTestCase = {
   setupScript: string;
 
@@ -18,20 +6,7 @@ export type GitTestCase = {
   expectedOutput: string;
 };
 
-/* =========================================================
-   TEST CASE DATABASE
-
-   Temporary in-code tests.
-
-   Later these will move to PostgreSQL.
-========================================================= */
-
-const gitTestCases:
-  Record<string, GitTestCase[]> = {
-  /* =======================================================
-     CREATE A FEATURE BRANCH
-  ======================================================= */
-
+const gitTestCases: Record<string, GitTestCase[]> = {
   'git-create-feature-branch': [
     {
       setupScript: `git init -q
@@ -64,10 +39,6 @@ Commit message correct: PASS`,
     },
   ],
 
-  /* =======================================================
-     PUSH A COMMIT TO THE REMOTE
-  ======================================================= */
-
   'git-push-to-remote': [
     {
       setupScript: `git init --bare -q /tmp/remote.git
@@ -87,13 +58,7 @@ rm -rf /tmp/seed
 cd /tmp/repo
 git clone -q /tmp/remote.git .`,
 
-            verifyScript: `echo "--- SETUP OUTPUT ---"
-cat /tmp/setup-output.txt
-echo "--- LEARNER OUTPUT ---"
-cat /tmp/learner-output.txt
-echo "--- END DEBUG ---"
-
-cd /tmp/remote.git
+      verifyScript: `cd /tmp/remote.git
 
 if git log main --oneline 2>/dev/null | grep -qi "add notes"; then
   echo "Commit pushed to remote: PASS"
@@ -113,16 +78,7 @@ notes.txt present on remote: PASS`,
   ],
 };
 
-/* =========================================================
-   GET GIT TEST CASES
-========================================================= */
-
-export function getGitTestCases(
-  problemSlug: string,
-): GitTestCase[] {
-  return (
-    gitTestCases[
-      problemSlug
-    ] ?? []
-  );
+export function getGitTestCases(problemSlug: string): GitTestCase[] {
+  return gitTestCases[problemSlug] ?? [];
 }
+

@@ -627,31 +627,94 @@ export const practicePaths: TechnologyPracticePath[] = [
 
     stages: [
       {
-        slug: "git-fundamentals",
-
-        title: "Git Fundamentals",
-
-        description: "Branching, staging and committing.",
-
-        level: "Beginner",
-
-        order: 1,
-
-        problemSlugs: ["git-create-feature-branch"],
-      },
-
-      {
         slug: "git-remotes",
 
-        title: "Remotes",
+        title: "Git Fundamentals",
 
         description: "Pushing changes to a remote repository.",
 
         level: "Beginner",
 
-        order: 2,
+        order: 1,
 
         problemSlugs: ["git-push-to-remote"],
+      },
+    ],
+  },
+
+  {
+    technologySlug: "linux",
+
+    name: "Linux",
+
+    shortName: "Linux",
+
+    description: "Practice real Linux shell commands — navigating, creating and inspecting files — checked against the actual resulting filesystem state.",
+
+    stages: [
+      {
+        slug: "linux-fundamentals",
+
+        title: "Linux Fundamentals",
+
+        description: "Navigating directories and working with files from the shell.",
+
+        level: "Beginner",
+
+        order: 1,
+
+        problemSlugs: ["linux-create-project-folder"],
+      },
+    ],
+  },
+
+  {
+    technologySlug: "docker",
+    name: "Docker",
+    shortName: "Docker",
+    description: "Practice writing Dockerfiles — checked against the actual file content for required instructions.",
+    stages: [
+      {
+        slug: "docker-fundamentals",
+        title: "Docker Fundamentals",
+        description: "Writing Dockerfiles to containerize applications.",
+        level: "Beginner",
+        order: 1,
+        problemSlugs: ["docker-write-a-dockerfile"],
+      },
+    ],
+  },
+
+  {
+    technologySlug: "kubernetes",
+    name: "Kubernetes",
+    shortName: "Kubernetes",
+    description: "Practice writing Kubernetes manifests — checked against the actual file content for required fields.",
+    stages: [
+      {
+        slug: "kubernetes-fundamentals",
+        title: "Kubernetes Fundamentals",
+        description: "Writing Pod manifests to deploy containers.",
+        level: "Beginner",
+        order: 1,
+        problemSlugs: ["write-a-pod-manifest"],
+      },
+    ],
+  },
+
+  {
+    technologySlug: "cicd",
+    name: "CI/CD",
+    shortName: "CI/CD",
+    description: "Practice writing CI/CD pipeline files — checked against the actual file content for required structure.",
+    stages: [
+      {
+        slug: "cicd-fundamentals",
+        title: "CI/CD Fundamentals",
+        description: "Writing GitHub Actions workflows to automate builds.",
+        level: "Beginner",
+        order: 1,
+        problemSlugs: ["write-a-github-actions-workflow"],
       },
     ],
   },

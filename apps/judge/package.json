@@ -1,0 +1,12 @@
+{
+  "name": "elab-judge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.mjs"
+  },
+  "dependencies": {
+    "@homebridge/node-pty-prebuilt-multiarch": "^0.14.1",
+    "ws": "^8.18.0"
+  }
+}

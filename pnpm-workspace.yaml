@@ -2,6 +2,7 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  '@homebridge/node-pty-prebuilt-multiarch': true
   '@scarf/scarf': true
   bcrypt: false
   unrs-resolver: false

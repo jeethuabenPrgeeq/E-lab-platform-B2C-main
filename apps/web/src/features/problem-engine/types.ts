@@ -56,6 +56,10 @@ export type ProblemLanguage =
   | 'go'
   | 'ruby'
   | 'git'
+  | 'linux'
+  | "docker"
+  | 'kubernetes'
+  | 'cicd'
   | 'swift'
   | 'html'
   | 'css'

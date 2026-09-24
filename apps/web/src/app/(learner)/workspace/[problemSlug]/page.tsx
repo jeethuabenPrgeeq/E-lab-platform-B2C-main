@@ -1,17 +1,16 @@
 "use client";
 
 import { ArrowLeft, Code2, Loader2, Play, Send } from "lucide-react";
-
 import { useEffect, useState } from "react";
-
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-
 import CodeEditor from "@/components/editor/CodeEditor";
-
+import GitLiveWorkspace from "../../../../components/workspace/GitLiveWorkspace";
+import LinuxLiveWorkspace from "../../../../components/workspace/LinuxLiveWorkspace";
+import DockerLiveWorkspace from '../../../../components/workspace/DockerLiveWorkspace';
+import KubernetesLiveWorkspace from '../../../../components/workspace/KubernetesLiveWorkspace';
+import CicdLiveWorkspace from '../../../../components/workspace/CicdLiveWorkspace';
 import { getProblemBySlug } from "@/features/problem-engine";
-
 import { markProblemSolved } from "@/features/progress/local-progress";
-
 import styles from "./workspace.module.css";
 
 /* =========================================================
@@ -223,6 +222,26 @@ export default function CodingWorkspacePage() {
 
     router.back();
   };
+
+  if (problem.technologySlug === "git") {
+    return <GitLiveWorkspace problem={problem} onBack={goBack} />;
+  }
+
+  if (problem.technologySlug === "linux") {
+    return <LinuxLiveWorkspace problem={problem} onBack={goBack} />;
+  }
+
+  if (problem.technologySlug === 'docker') {
+    return <DockerLiveWorkspace problem={problem} onBack={goBack} />;
+  }
+
+  if (problem.technologySlug === 'kubernetes') {
+    return <KubernetesLiveWorkspace problem={problem} onBack={goBack} />;
+  }
+
+  if (problem.technologySlug === 'cicd') {
+    return <CicdLiveWorkspace problem={problem} onBack={goBack} />;
+  }
 
   /* =======================================================
      RETURN AFTER SUCCESSFUL SUBMISSION

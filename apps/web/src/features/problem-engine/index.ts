@@ -8,6 +8,9 @@ export * from './go-problems';
 export * from './ruby-problems';
 export * from './swift-problems';
 export * from './git-problems';
+export * from './linux-problems';
+export * from './docker-problems';
+export * from './kubernetes-problems';
+export * from './cicd-problems';
 export * from './problems';
 export * from './stack-problem-mappings';
-

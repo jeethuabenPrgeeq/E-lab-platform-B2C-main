@@ -5,22 +5,18 @@ import {
 } from '@nestjs/common';
 
 import { getCTestCases } from './c-test-cases.js';
-
 import { getCppTestCases } from './cpp-test-cases.js';
-
 import { getJavaTestCases } from './java-test-cases.js';
-
 import { getCsharpTestCases } from './csharp-test-cases.js';
-
 import { getPythonTestCases } from './python-test-cases.js';
-
 import { getGoTestCases } from './go-test-cases.js';
-
 import { getRubyTestCases } from './ruby-test-cases.js';
-
 import { getSwiftTestCases } from './swift-test-cases.js';
-
 import { getGitTestCases } from './git-test-cases.js';
+import { getLinuxTestCases } from './linux-test-cases.js';
+import { getDockerTestCases } from './docker-test-cases.js';
+import { getKubernetesTestCases } from './kubernetes-test-cases.js';
+import { getCicdTestCases } from './cicd-test-cases.js';
 
 /* =========================================================
    TYPES
@@ -28,31 +24,21 @@ import { getGitTestCases } from './git-test-cases.js';
 
 type SubmissionRequest = {
   problemSlug: string;
-
   language: string;
-
   code: string;
-
   context?: {
     source?: string;
-
     technology?: string | null;
-
     domain?: string | null;
-
     stack?: string | null;
-
     module?: string | null;
-
     challenge?: string | null;
-
     attempt?: string | null;
   };
 };
 
 type HiddenTestCase = {
   input?: string;
-
   expectedOutput: string;
 
   /*
@@ -62,7 +48,6 @@ type HiddenTestCase = {
    */
 
   setupScript?: string;
-
   verifyScript?: string;
 };
 
@@ -79,11 +64,8 @@ type JudgeResponse = {
     | 'INTERNAL_ERROR';
 
   output?: string;
-
   stderr?: string;
-
   exitCode?: number | null;
-
   message?: string;
 };
 
@@ -101,6 +83,10 @@ const SUPPORTED_LANGUAGES = [
   'ruby',
   'swift',
   'git',
+  'linux',
+  'docker',
+  'kubernetes',
+  'cicd',
 ] as const;
 
 /* =========================================================
@@ -117,11 +103,9 @@ export class SubmissionsService {
 
   private normalizeLanguage(language: string) {
     const normalized = language.trim().toLowerCase();
-
     if (normalized === 'c++' || normalized === 'cplusplus') {
       return 'cpp';
     }
-
     return normalized;
   }
 
@@ -136,6 +120,30 @@ export class SubmissionsService {
 
   private normalizeOutput(value: string) {
     return value.replace(/\r\n/g, '\n').trim();
+  }
+
+  private async fetchJudgeWithRetry(
+    url: string,
+    init: RequestInit,
+    retries = 2,
+    delayMs = 500,
+  ): Promise<Response> {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      try {
+        return await fetch(url, init);
+      } catch (error) {
+        lastError = error;
+
+        if (attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+
+    console.error('Unable to connect to judge after retries:', lastError);
+    throw new BadGatewayException('Unable to connect to the code judge.');
   }
 
   /* =======================================================
@@ -190,6 +198,22 @@ export class SubmissionsService {
 
     if (language === 'git') {
       return getGitTestCases(problemSlug);
+    }
+
+    if (language === 'linux') {
+      return getLinuxTestCases(problemSlug);
+    }
+
+    if (language === 'docker') {
+      return getDockerTestCases(problemSlug);
+    }
+
+    if (language === 'kubernetes') {
+      return getKubernetesTestCases(problemSlug);
+    }
+
+    if (language === 'cicd') {
+      return getCicdTestCases(problemSlug);
     }
 
     return [];
@@ -262,15 +286,10 @@ export class SubmissionsService {
 
     const results: Array<{
       testNumber: number;
-
       passed: boolean;
-
       status: string;
-
       output: string;
-
       expectedOutput: string;
-
       stderr: string;
     }> = [];
 
@@ -283,37 +302,30 @@ export class SubmissionsService {
     for (let index = 0; index < testCases.length; index += 1) {
       const testCase = testCases[index];
 
-      let response: Response;
+      const response = await this.fetchJudgeWithRetry(`${this.judgeUrl}/run`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
 
-      try {
-        response = await fetch(`${this.judgeUrl}/run`, {
-          method: 'POST',
+        body: JSON.stringify({
+          language,
+          code: body.code,
 
-          headers: {
-            'Content-Type': 'application/json',
-          },
-
-          body: JSON.stringify({
-            language,
-
-            code: body.code,
-
-            ...(language === 'git'
-              ? {
-                  setupScript: testCase.setupScript,
-
-                  verifyScript: testCase.verifyScript,
-                }
-              : {
-                  input: testCase.input,
-                }),
-          }),
-        });
-      } catch (error) {
-        console.error('Unable to connect to judge:', error);
-
-        throw new BadGatewayException('Unable to connect to the code judge.');
-      }
+          ...(language === 'git' ||
+          language === 'linux' ||
+          language === 'docker' ||
+          language === 'kubernetes' ||
+          language === 'cicd'
+            ? {
+                setupScript: testCase.setupScript,
+                verifyScript: testCase.verifyScript,
+              }
+            : {
+                input: testCase.input,
+              }),
+        }),
+      });
 
       /* ===================================================
          PARSE JUDGE RESPONSE
@@ -349,27 +361,17 @@ export class SubmissionsService {
       if (judgeResult.status === 'COMPILATION_ERROR') {
         return {
           problemSlug: body.problemSlug,
-
           language,
-
           status: 'COMPILATION_ERROR',
-
           passedTests: 0,
-
           totalTests: testCases.length,
-
           results: [
             {
               testNumber: 1,
-
               passed: false,
-
               status: 'COMPILATION_ERROR',
-
               output: judgeResult.output ?? '',
-
               expectedOutput: '',
-
               stderr: judgeResult.stderr ?? '',
             },
           ],
@@ -385,29 +387,19 @@ export class SubmissionsService {
       if (judgeResult.status === 'TIME_LIMIT_EXCEEDED') {
         return {
           problemSlug: body.problemSlug,
-
           language,
-
           status: 'TIME_LIMIT_EXCEEDED',
-
           passedTests,
-
           totalTests: testCases.length,
-
           results: [
             ...results,
 
             {
               testNumber: index + 1,
-
               passed: false,
-
               status: 'TIME_LIMIT_EXCEEDED',
-
               output: judgeResult.output ?? '',
-
               expectedOutput: testCase.expectedOutput,
-
               stderr: judgeResult.stderr ?? '',
             },
           ],
@@ -423,33 +415,22 @@ export class SubmissionsService {
       if (judgeResult.status === 'RUNTIME_ERROR') {
         return {
           problemSlug: body.problemSlug,
-
           language,
-
           status: 'RUNTIME_ERROR',
-
           passedTests,
-
           totalTests: testCases.length,
-
           results: [
             ...results,
 
             {
               testNumber: index + 1,
-
               passed: false,
-
               status: 'RUNTIME_ERROR',
-
               output: judgeResult.output ?? '',
-
               expectedOutput: testCase.expectedOutput,
-
               stderr: judgeResult.stderr ?? '',
             },
           ],
-
           context: body.context,
         };
       }
@@ -459,9 +440,7 @@ export class SubmissionsService {
       =================================================== */
 
       const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
-
       const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
-
       const passed =
         judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
 
@@ -471,15 +450,10 @@ export class SubmissionsService {
 
       results.push({
         testNumber: index + 1,
-
         passed,
-
         status: passed ? 'PASSED' : 'FAILED',
-
         output: actualOutput,
-
         expectedOutput,
-
         stderr: judgeResult.stderr ?? '',
       });
     }
@@ -489,28 +463,248 @@ export class SubmissionsService {
     ===================================================== */
 
     const totalTests = testCases.length;
-
     const allTestsPassed = totalTests > 0 && passedTests === totalTests;
-
     const score =
       totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
 
     return {
       problemSlug: body.problemSlug,
-
       language,
-
       status: allTestsPassed ? 'ACCEPTED' : 'WRONG_ANSWER',
-
       passedTests,
-
       totalTests,
-
       score,
-
       results,
-
       context: body.context,
+    };
+  }
+
+  /* =======================================================
+     GET GIT SETUP SCRIPT
+
+     Used by the live terminal to prepare the starting
+     repo state before the learner types anything —
+     same test case data Submit already uses.
+  ======================================================= */
+
+  getGitSetupScript(problemSlug: string) {
+    const testCases = getGitTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(
+        `No git task configured for ${problemSlug}.`,
+      );
+    }
+
+    return {
+      setupScript: testCase.setupScript,
+    };
+  }
+
+  getLinuxSetupScript(problemSlug: string) {
+    const testCases = getLinuxTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(
+        `No linux task configured for ${problemSlug}.`,
+      );
+    }
+
+    return {
+      setupScript: testCase.setupScript,
+    };
+  }
+
+  async checkLinuxSession(problemSlug: string, containerName: string) {
+    const testCases = getLinuxTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(
+        `No linux task configured for ${problemSlug}.`,
+      );
+    }
+
+    const response = await this.fetchJudgeWithRetry(
+      `${this.judgeUrl}/verify-session-linux`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
+          containerName,
+          verifyScript: testCase.verifyScript,
+        }),
+      },
+    );
+
+    const judgeResult = await response.json();
+    const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+    const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+    const passed =
+      judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+
+    return {
+      status: passed ? 'ACCEPTED' : 'WRONG_ANSWER',
+      output: actualOutput,
+      expectedOutput,
+    };
+  }
+
+  getDockerSetupScript(problemSlug: string) {
+    const testCases = getDockerTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(
+        `No docker task configured for ${problemSlug}.`,
+      );
+    }
+    return { setupScript: testCase.setupScript };
+  }
+
+  async checkDockerSession(problemSlug: string, containerName: string) {
+    const testCases = getDockerTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(
+        `No docker task configured for ${problemSlug}.`,
+      );
+    }
+    const response = await this.fetchJudgeWithRetry(
+      `${this.judgeUrl}/verify-session-docker`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          containerName,
+          verifyScript: testCase.verifyScript,
+        }),
+      },
+    );
+    const judgeResult = await response.json();
+    const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+    const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+    const passed =
+      judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+    return {
+      status: passed ? 'ACCEPTED' : 'WRONG_ANSWER',
+      output: actualOutput,
+      expectedOutput,
+    };
+  }
+
+    getKubernetesSetupScript(problemSlug: string) {
+    const testCases = getKubernetesTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(`No kubernetes task configured for ${problemSlug}.`);
+    }
+    return { setupScript: testCase.setupScript };
+  }
+
+  async checkKubernetesSession(problemSlug: string, containerName: string) {
+    const testCases = getKubernetesTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(`No kubernetes task configured for ${problemSlug}.`);
+    }
+    const response = await this.fetchJudgeWithRetry(
+      `${this.judgeUrl}/verify-session-kubernetes`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ containerName, verifyScript: testCase.verifyScript }),
+      },
+    );
+    const judgeResult = await response.json();
+    const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+    const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+    const passed = judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+    return { status: passed ? 'ACCEPTED' : 'WRONG_ANSWER', output: actualOutput, expectedOutput };
+  }
+
+  getCicdSetupScript(problemSlug: string) {
+    const testCases = getCicdTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(`No cicd task configured for ${problemSlug}.`);
+    }
+    return { setupScript: testCase.setupScript };
+  }
+
+  async checkCicdSession(problemSlug: string, containerName: string) {
+    const testCases = getCicdTestCases(problemSlug);
+    const testCase = testCases[0];
+    if (!testCase) {
+      throw new BadRequestException(`No cicd task configured for ${problemSlug}.`);
+    }
+    const response = await this.fetchJudgeWithRetry(
+      `${this.judgeUrl}/verify-session-cicd`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ containerName, verifyScript: testCase.verifyScript }),
+      },
+    );
+    const judgeResult = await response.json();
+    const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+    const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+    const passed = judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+    return { status: passed ? 'ACCEPTED' : 'WRONG_ANSWER', output: actualOutput, expectedOutput };
+  }
+
+  /* =======================================================
+     CHECK GIT LIVE SESSION (PHASE 3)
+
+     Runs verifyScript inside the learner's existing
+     live container via the Judge, then reuses the
+     exact same comparison logic Submit already uses.
+  ======================================================= */
+
+  async checkGitSession(problemSlug: string, containerName: string) {
+    const testCases = getGitTestCases(problemSlug);
+
+    const testCase = testCases[0];
+
+    if (!testCase) {
+      throw new BadRequestException(
+        `No git task configured for ${problemSlug}.`,
+      );
+    }
+
+    const response = await this.fetchJudgeWithRetry(
+      `${this.judgeUrl}/verify-session`,
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
+          containerName,
+
+          verifyScript: testCase.verifyScript,
+        }),
+      },
+    );
+
+    const judgeResult = await response.json();
+
+    const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
+
+    const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
+
+    const passed =
+      judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+
+    return {
+      status: passed ? 'ACCEPTED' : 'WRONG_ANSWER',
+
+      output: actualOutput,
+
+      expectedOutput,
     };
   }
 }
