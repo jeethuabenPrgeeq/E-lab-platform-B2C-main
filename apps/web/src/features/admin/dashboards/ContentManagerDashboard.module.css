@@ -1,0 +1,141 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.split,
+.halves {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 24px;
+}
+
+.halves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 1199px) {
+  .statGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  .split,
+  .halves {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 559px) {
+  .page {
+    gap: 24px;
+  }
+
+  .statGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.select {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ad-radius-sm);
+  background: var(--ad-bg);
+  box-shadow: var(--ad-inset-sm);
+  color: var(--ad-text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--ad-primary);
+  outline-offset: 2px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: var(--ad-inset-sm);
+  font-size: 14px;
+  color: var(--ad-text);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: var(--ad-muted);
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: var(--ad-raised-sm);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tone_draft { color: var(--ad-muted); }
+.tone_review { color: var(--ad-warning); }
+.tone_ready { color: var(--ad-primary); }
+.tone_published { color: var(--ad-success); }
+.tone_deprecated { color: var(--ad-danger); }
+
+.empty {
+  margin: 0;
+  padding: 16px 0;
+  font-size: 14px;
+  color: var(--ad-muted);
+}
+
+@media (max-width: 559px) {
+  .filters,
+  .select {
+    width: 100%;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

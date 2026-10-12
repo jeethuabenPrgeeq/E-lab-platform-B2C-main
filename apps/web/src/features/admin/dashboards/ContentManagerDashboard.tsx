@@ -1,0 +1,160 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { CheckCircle2, ClipboardList, FilePen, FileCode2, Hourglass, Rocket } from 'lucide-react';
+import { ShareBar } from '@/components/admin/charts/Charts';
+import { MetricStrip, PageHeader, Panel, Section, StatCard } from '@/components/admin/widgets/AdminWidgets';
+import { adminApi, errorText } from '@/features/admin/lib/api';
+import type { DistributionItem, Metric } from '@/features/admin/types';
+import styles from './ContentManagerDashboard.module.css';
+
+export interface ContentDashboardData {
+  updatedAt: string;
+  technologies: { id: string; name: string }[];
+  summary: Metric[];
+  pipeline: DistributionItem[];
+  attention: Metric[];
+  recent: { id: string; slug: string; title: string; status: string; statusLabel: string; difficulty: string; technology: string; updatedAt: number }[];
+  activity: { id: string; at: number; summary: string; type: string }[];
+}
+
+const SUMMARY_ICONS = {
+  assigned: FileCode2,
+  draft: FilePen,
+  review: Hourglass,
+  published: CheckCircle2,
+};
+
+const ATTENTION_ICONS = {
+  staleDrafts: ClipboardList,
+  ready: Rocket,
+};
+
+const PERIODS = [
+  { value: '', label: 'All time' },
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+  { value: '90', label: 'Last 90 days' },
+];
+
+const REFRESH_MS = 60_000;
+
+function timeAgo(at: number) {
+  const minutes = Math.round((Date.now() - at) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+export function ContentManagerDashboard() {
+  const [data, setData] = useState<ContentDashboardData | null>(null);
+  const [error, setError] = useState('');
+  const [technologyId, setTechnologyId] = useState('');
+  const [days, setDays] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      adminApi<ContentDashboardData>('/content-manager/dashboard', { query: { technologyId, days } })
+        .then((next) => {
+          if (!alive) return;
+          setData(next);
+          setError('');
+        })
+        .catch((err) => {
+          if (alive) setError(errorText(err));
+        });
+    void load();
+    const timer = window.setInterval(() => void load(), REFRESH_MS);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [technologyId, days]);
+
+  if (!data) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Content Dashboard" pill="Content workspace" meta={error || 'Loading live data…'} />
+      </div>
+    );
+  }
+
+  const filters = (
+    <div className={styles.filters}>
+      <select className={styles.select} value={technologyId} onChange={(event) => setTechnologyId(event.target.value)} aria-label="Filter by technology">
+        <option value="">All technologies</option>
+        {data.technologies.map((tech) => (
+          <option key={tech.id} value={tech.id}>
+            {tech.name}
+          </option>
+        ))}
+      </select>
+      <select className={styles.select} value={days} onChange={(event) => setDays(event.target.value)} aria-label="Filter by period">
+        {PERIODS.map((period) => (
+          <option key={period.value} value={period.value}>
+            {period.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  return (
+    <div className={styles.page}>
+      <PageHeader title="Content Dashboard" pill="Content workspace" meta={error ? `Showing data from ${data.updatedAt} · ${error}` : `Updated ${data.updatedAt}`} actions={filters} />
+
+      <Section title="My work">
+        <div className={styles.statGrid}>
+          {data.summary.map((metric) => (
+            <StatCard key={metric.key} metric={metric} icon={SUMMARY_ICONS[metric.key as keyof typeof SUMMARY_ICONS]} />
+          ))}
+        </div>
+        <div className={styles.split}>
+          <Panel title="Recently edited" subtitle="Problems you created or last changed">
+            {data.recent.length ? (
+              <ul className={styles.list}>
+                {data.recent.map((item) => (
+                  <li key={item.id} className={styles.item}>
+                    <span className={styles.itemMain}>
+                      <span className={styles.itemTitle}>{item.title}</span>
+                      <span className={styles.itemMeta}>{`${item.technology} · ${item.difficulty} · ${timeAgo(item.updatedAt)}`}</span>
+                    </span>
+                    <span className={`${styles.badge} ${styles[`tone_${item.status}`] ?? ''}`}>{item.statusLabel}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.empty}>No problems yet. Problems you create will appear here.</p>
+            )}
+          </Panel>
+          <Panel title="Pipeline" subtitle="Your problems by stage">
+            <ShareBar title="Your problems by stage" items={data.pipeline} />
+          </Panel>
+        </div>
+        <MetricStrip label="Needs attention" items={data.attention} icons={ATTENTION_ICONS} minItemWidth={200} />
+      </Section>
+
+      <Section title="Recent activity">
+        <Panel title="Your latest actions" subtitle="Problems, test cases and imports">
+          {data.activity.length ? (
+            <ul className={styles.list}>
+              {data.activity.map((item) => (
+                <li key={item.id} className={styles.item}>
+                  <span className={styles.itemMain}>
+                    <span>{item.summary}</span>
+                    <span className={styles.itemMeta}>{timeAgo(item.at)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.empty}>No activity yet.</p>
+          )}
+        </Panel>
+      </Section>
+    </div>
+  );
+}

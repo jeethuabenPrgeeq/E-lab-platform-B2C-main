@@ -9,7 +9,7 @@ import type { AdminActor } from '../common/admin-actor.decorator.js';
 import { pageArgs } from '../common/pagination.js';
 import { activityFor } from '../content/activity.js';
 import type { AdminQueryDto, CreateRoleDto, InviteAdminDto } from './access.dto.js';
-import { ALL_SCOPE, DEFAULT_ROLES, PERMISSIONS, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
+import { ALL_SCOPE, CONTENT_ROLE, DEFAULT_ROLES, PERMISSIONS, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
 
 const ADMIN_SELECT = {
   id: true,
@@ -28,9 +28,10 @@ const ADMIN_SELECT = {
 
 type AdminRow = Prisma.UserGetPayload<{ select: typeof ADMIN_SELECT }>;
 
-const roleIdOf = (row: Pick<AdminRow, 'role' | 'adminRoleId'>) => row.adminRoleId ?? (row.role === 'PLATFORM_ADMIN' ? PLATFORM_ROLE : SUPER_ROLE);
+const roleIdOf = (row: Pick<AdminRow, 'role' | 'adminRoleId'>) => row.adminRoleId ?? (row.role === 'PLATFORM_ADMIN' ? PLATFORM_ROLE : row.role === 'CONTENT_MANAGER' ? CONTENT_ROLE : SUPER_ROLE);
 const statusOf = (row: Pick<AdminRow, 'status' | 'revokeReason' | 'lastLoginAt'>) => (row.status !== 'ACTIVE' ? 'revoked' : row.lastLoginAt ? 'active' : 'invited');
-const authRoleFor = (roleId: string) => (roleId === PLATFORM_ROLE ? 'PLATFORM_ADMIN' : 'SUPER_ADMIN');
+const authRoleFor = (roleId: string) => (roleId === PLATFORM_ROLE ? 'PLATFORM_ADMIN' : roleId === CONTENT_ROLE ? 'CONTENT_MANAGER' : 'SUPER_ADMIN');
+const ADMIN_DB_ROLES: ('SUPER_ADMIN' | 'PLATFORM_ADMIN' | 'CONTENT_MANAGER')[] = ['SUPER_ADMIN', 'PLATFORM_ADMIN', 'CONTENT_MANAGER'];
 const tempPassword = () => `${randomBytes(9).toString('base64url')}A1!`;
 
 function slugify(name: string) {
@@ -51,6 +52,12 @@ export class AccessService {
         data: DEFAULT_ROLES.map((role) => ({ ...role, permissions: role.permissions, updatedByName: 'System' })),
         skipDuplicates: true,
       });
+    }
+    await this.prisma.user.updateMany({ where: { adminRoleId: CONTENT_ROLE, role: { not: 'CONTENT_MANAGER' } }, data: { role: 'CONTENT_MANAGER' } });
+    const content = await this.prisma.adminRole.findUnique({ where: { id: CONTENT_ROLE }, select: { permissions: true } });
+    const stored = (content?.permissions as Permission[] | undefined) ?? [];
+    if (stored.includes('content.publish')) {
+      await this.prisma.adminRole.update({ where: { id: CONTENT_ROLE }, data: { permissions: stored.filter((key) => key !== 'content.publish') } });
     }
   }
 
@@ -80,7 +87,7 @@ export class AccessService {
     await this.ensureRoles();
     const [roles, members] = await Promise.all([
       this.prisma.adminRole.findMany({ orderBy: [{ system: 'desc' }, { createdAt: 'asc' }] }),
-      this.prisma.user.findMany({ where: { role: { in: ['SUPER_ADMIN', 'PLATFORM_ADMIN'] }, status: 'ACTIVE' }, select: { role: true, adminRoleId: true } }),
+      this.prisma.user.findMany({ where: { role: { in: ADMIN_DB_ROLES }, status: 'ACTIVE' }, select: { role: true, adminRoleId: true } }),
     ]);
     const counts = new Map<string, number>();
     for (const member of members) {
@@ -106,14 +113,14 @@ export class AccessService {
     if (!user) throw new NotFoundException('User not found.');
     const roleId = roleIdOf(user);
     const permissions = roleId === SUPER_ROLE ? [...PERMISSIONS] : ((user.adminRole?.permissions as Permission[] | undefined) ?? DEFAULT_ROLES.find((role) => role.id === roleId)?.permissions ?? []);
-    return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : 'Platform admin'), scope: user.adminScope, permissions };
+    return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : roleId === CONTENT_ROLE ? 'Content manager' : 'Platform admin'), scope: user.adminScope, permissions };
   }
 
   async list(query: AdminQueryDto, actor: AdminActor) {
     await this.ensureRoles();
     const rows = await this.prisma.user.findMany({
       where: {
-        role: { in: ['SUPER_ADMIN', 'PLATFORM_ADMIN'] },
+        role: { in: ADMIN_DB_ROLES },
         ...(query.q ? { OR: [{ name: { contains: query.q, mode: 'insensitive' } }, { email: { contains: query.q, mode: 'insensitive' } }] } : {}),
       },
       select: ADMIN_SELECT,
@@ -138,7 +145,7 @@ export class AccessService {
   }
 
   private async admin(id: string) {
-    const row = await this.prisma.user.findFirst({ where: { id, role: { in: ['SUPER_ADMIN', 'PLATFORM_ADMIN'] } }, select: ADMIN_SELECT });
+    const row = await this.prisma.user.findFirst({ where: { id, role: { in: ADMIN_DB_ROLES } }, select: ADMIN_SELECT });
     if (!row) throw new NotFoundException('Admin not found.');
     return row;
   }

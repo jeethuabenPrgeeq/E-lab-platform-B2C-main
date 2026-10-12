@@ -21,7 +21,7 @@ import type {
   UserStatusDto,
 } from './users.dto.js';
 
-type DbRole = 'LEARNER' | 'PLATFORM_ADMIN' | 'SUPER_ADMIN';
+type DbRole = 'LEARNER' | 'PLATFORM_ADMIN' | 'SUPER_ADMIN' | 'CONTENT_MANAGER';
 type DbStatus = 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED';
 
 const toDbRole = (role: RoleKey) => role.replace('-', '_').toUpperCase() as DbRole;

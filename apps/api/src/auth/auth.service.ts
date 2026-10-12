@@ -45,7 +45,7 @@ interface AuthEvent {
   outcome: 'success' | 'failure';
 }
 
-const ADMIN_ROLES = new Set(['SUPER_ADMIN', 'PLATFORM_ADMIN']);
+const ADMIN_ROLES = new Set(['SUPER_ADMIN', 'PLATFORM_ADMIN', 'CONTENT_MANAGER']);
 const MAX_FAILURES = 5;
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_TRACKED_KEYS = 5000;

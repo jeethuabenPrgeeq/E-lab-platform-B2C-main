@@ -31,6 +31,7 @@ enum UserRole {
   LEARNER
   PLATFORM_ADMIN
   SUPER_ADMIN
+  CONTENT_MANAGER
 }
 
 enum UserStatus {

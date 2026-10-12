@@ -1,4 +1,4 @@
-export type AdminRole = 'super-admin' | 'platform-admin';
+export type AdminRole = 'super-admin' | 'platform-admin' | 'content-manager';
 export type Tone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger';
 export type ValueFormat = 'number' | 'currency' | 'percent' | 'duration-ms' | 'duration-s';
 

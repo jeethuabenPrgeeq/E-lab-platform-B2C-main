@@ -8,6 +8,7 @@ export type PermissionKey =
   | 'content.view'
   | 'content.edit'
   | 'content.publish'
+  | 'content.review.approve'
   | 'billing.view'
   | 'billing.refund'
   | 'billing.plans'

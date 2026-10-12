@@ -9,7 +9,7 @@ import type { AssignDto, CreateTicketDto, EscalateDto, PriorityKey, ReplyDto, Ti
 
 const MIN = 60_000;
 export const SLA_MINUTES: Record<PriorityKey, number> = { urgent: 60, high: 240, normal: 480, low: 1440 };
-const ROLE_LABEL = { LEARNER: 'Learner', PLATFORM_ADMIN: 'Platform admin', SUPER_ADMIN: 'Super admin' } as const;
+const ROLE_LABEL = { LEARNER: 'Learner', PLATFORM_ADMIN: 'Platform admin', SUPER_ADMIN: 'Super admin', CONTENT_MANAGER: 'Content manager' } as const;
 const STATUS_EVENT: Record<TicketStatusKey, string> = {
   new: 'Changed status to new',
   open: 'Changed status to open',

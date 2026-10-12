@@ -25,6 +25,7 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
       { key: 'content.view', label: 'View catalog' },
       { key: 'content.edit', label: 'Create and edit content' },
       { key: 'content.publish', label: 'Publish and retire content' },
+      { key: 'content.review.approve', label: 'Review and approve other managers’ content' },
     ],
   },
   {

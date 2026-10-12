@@ -16,6 +16,11 @@ const PlatformAdminDashboard = dynamic(
   { ssr: false },
 );
 
+const ContentManagerDashboard = dynamic(
+  () => import('@/features/admin/dashboards/ContentManagerDashboard').then((mod) => mod.ContentManagerDashboard),
+  { ssr: false },
+);
+
 export default function DashboardPage() {
   const session = useSession();
 
@@ -33,6 +38,14 @@ export default function DashboardPage() {
     return (
       <AdminShell role="platform-admin" email={session.email}>
         <PlatformAdminDashboard />
+      </AdminShell>
+    );
+  }
+
+  if (session.role === 'content-manager') {
+    return (
+      <AdminShell role="content-manager" email={session.email}>
+        <ContentManagerDashboard />
       </AdminShell>
     );
   }

@@ -33,6 +33,8 @@ import { TestCasesService } from './test-cases/test-cases.service.js';
 import { CatalogService } from './content/catalog.service.js';
 import { ChallengesService } from './content/challenges.service.js';
 import { ContentController } from './content/content.controller.js';
+import { ContentDashboardController } from './content-manager/content-dashboard.controller.js';
+import { ContentDashboardService } from './content-manager/content-dashboard.service.js';
 import { PathsService } from './content/paths.service.js';
 import { CouponsService } from './revenue/coupons.service.js';
 import { PricesService } from './revenue/prices.service.js';
@@ -78,6 +80,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     UsersController,
     LearnersController,
     SuperDashboardController,
+    ContentDashboardController,
     ContentController,
     RevenueController,
     SupportController,
@@ -114,6 +117,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     UsersService,
     LearnersService,
     SuperDashboardService,
+    ContentDashboardService,
     CatalogService,
     PathsService,
     ChallengesService,

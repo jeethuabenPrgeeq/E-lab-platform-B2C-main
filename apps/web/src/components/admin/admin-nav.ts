@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Activity, BarChart3, Bell, Boxes, Bug, CreditCard, Cpu, FileCode2, FileText, FlaskConical, Gauge, Headphones, Layers, LayoutDashboard, Library, LifeBuoy, Receipt, Rocket, Route, ScrollText, Server, Settings, ShieldCheck, Siren, TicketPercent, Trophy, Upload, Users } from "lucide-react";
 import type { AdminRole } from "@/features/admin/types";
+import { CONTENT_MANAGER_CONFIG } from "./content-nav";
 
 export interface NavLeaf {
   label: string;
@@ -31,6 +32,7 @@ const SUPER = "";
 const PLATFORM = "";
 
 export const ROLE_CONFIG: Record<AdminRole, RoleConfig> = {
+  "content-manager": CONTENT_MANAGER_CONFIG,
   "super-admin": {
     role: "super-admin",
     label: "Super Admin",

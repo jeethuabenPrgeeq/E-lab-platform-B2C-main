@@ -9,7 +9,7 @@ import {
 
 import { PageQueryDto } from '../common/pagination.js';
 
-export const ROLES = ['learner', 'platform-admin', 'super-admin'] as const;
+export const ROLES = ['learner', 'platform-admin', 'super-admin', 'content-manager'] as const;
 export const STATUSES = ['active', 'suspended', 'deactivated'] as const;
 export type RoleKey = (typeof ROLES)[number];
 export type StatusKey = (typeof STATUSES)[number];

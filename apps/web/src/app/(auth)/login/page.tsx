@@ -14,6 +14,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   learner: "Learner",
   "super-admin": "Super admin",
   "platform-admin": "Platform admin",
+  "content-manager": "Content manager",
 };
 
 export default function LoginPage() {
