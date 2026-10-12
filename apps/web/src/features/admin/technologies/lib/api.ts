@@ -6,14 +6,14 @@ import type { Technology, TechnologyInput } from './types';
 
 export type MutationResult = { ok: true } | { ok: false; error: string };
 
-export function useTechnologies() {
+export function useTechnologies(path = '/admin/technologies') {
   const [items, setItems] = useState<Technology[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   const refresh = useCallback(async () => {
     try {
-      const data = await adminApi<Paged<Technology>>('/admin/technologies', { query: { pageSize: 100 } });
+      const data = await adminApi<Paged<Technology>>(path, { query: { pageSize: 100 } });
       setItems(data.items);
       setLoadError('');
     } catch (error) {
@@ -21,7 +21,7 @@ export function useTechnologies() {
     } finally {
       setLoaded(true);
     }
-  }, []);
+  }, [path]);
 
   useEffect(() => {
     void refresh();

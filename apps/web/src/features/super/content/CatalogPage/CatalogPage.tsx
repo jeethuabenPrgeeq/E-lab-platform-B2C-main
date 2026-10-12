@@ -7,6 +7,7 @@ import { useCatalog } from '../lib/api';
 import { DIFFICULTY_META, MAX_FEATURED, TECHNOLOGIES, TIERS, TIER_META, TYPE_META, VISIBILITY_META, cx, formatCount, needsAttention } from '../lib/shared';
 import type { AccessTier, ContentItem, ContentType } from '../lib/types';
 import { ContentDrawer } from '../ContentDrawer/ContentDrawer';
+import { OwnershipPanel } from '../OwnershipPanel/OwnershipPanel';
 import styles from '../ui/catalog.module.css';
 
 type Tab = 'all' | ContentType | 'attention';
@@ -27,6 +28,7 @@ export default function CatalogPage() {
   const paths = usePaths();
   const { items, loaded, refresh, error, clearError } = store;
   const [tab, setTab] = useState<Tab>('all');
+  const [view, setView] = useState<'catalog' | 'ownership'>('catalog');
   const [query, setQuery] = useState('');
   const [technology, setTechnology] = useState('');
   const [tier, setTier] = useState('');
@@ -151,6 +153,14 @@ export default function CatalogPage() {
           <p className={styles.subtitle}>What learners can see, and which plan unlocks it</p>
         </div>
         <div className={styles.headerActions}>
+          <div className={styles.segmented} role="tablist" aria-label="Catalog view">
+            <button type="button" role="tab" aria-selected={view === 'catalog'} className={cx(styles.segment, view === 'catalog' && styles.segmentActive)} onClick={() => setView('catalog')}>
+              Live catalog
+            </button>
+            <button type="button" role="tab" aria-selected={view === 'ownership'} className={cx(styles.segment, view === 'ownership' && styles.segmentActive)} onClick={() => setView('ownership')}>
+              Ownership
+            </button>
+          </div>
           <button type="button" className={styles.ghostButton} onClick={() => void refresh()}>
             <RotateCcw width={16} height={16} aria-hidden="true" />
             Refresh
@@ -167,6 +177,10 @@ export default function CatalogPage() {
       )}
       </div>
 
+      {view === 'ownership' ? (
+        <OwnershipPanel />
+      ) : (
+      <>
       <section className={styles.stats} aria-label="Summary">
         <div className={styles.statCard}>
           <span className={styles.statValue}>{loaded ? stats.live : '—'}</span>
@@ -431,6 +445,8 @@ export default function CatalogPage() {
           </>
         )}
       </div>
+      </>
+      )}
 
       {open && <ContentDrawer key={open.id} item={open} store={store} usedIn={paths.paths.filter((path) => path.steps.includes(open.id) && path.status !== 'archived')} onClose={() => setOpenId(null)} />}
     </div>

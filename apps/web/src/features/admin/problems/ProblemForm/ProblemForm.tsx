@@ -14,8 +14,15 @@ type Result = { ok: true } | { ok: false; error: string; issues: string[] };
 
 interface Props {
   problem?: ProblemDetail;
-  onUpdate?: (patch: Partial<ProblemInput>, reason?: string) => Promise<Result>;
+  onUpdate?: (patch: Partial<ProblemInput>, reason?: string, expectedUpdatedAt?: string) => Promise<Result>;
   onTransition?: (action: ProblemAction, note?: string) => Promise<Result>;
+  basePath?: string;
+  apiBase?: string;
+  technologiesPath?: string;
+  readOnly?: boolean;
+  guardConcurrency?: boolean;
+  showTestLinks?: boolean;
+  backLabel?: string;
 }
 
 const EMPTY: ProblemInput = {
@@ -54,9 +61,9 @@ function changedFields(before: ProblemInput, after: ProblemInput): Partial<Probl
   return patch;
 }
 
-export default function ProblemForm({ problem, onUpdate, onTransition }: Props) {
+export default function ProblemForm({ problem, onUpdate, onTransition, basePath = '/problems', apiBase, technologiesPath, readOnly = false, guardConcurrency = false, showTestLinks = true, backLabel = 'Back to all problems' }: Props) {
   const router = useRouter();
-  const { items: technologies } = useTechnologies();
+  const { items: technologies } = useTechnologies(technologiesPath);
   const [form, setForm] = useState<ProblemInput>(problem ? toInput(problem) : EMPTY);
   const [skillDraft, setSkillDraft] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
@@ -66,7 +73,7 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
   const [note, setNote] = useState('');
   const [versions, setVersions] = useState<ProblemVersion[] | null>(null);
 
-  const locked = problem?.status === 'deprecated';
+  const locked = problem?.status === 'deprecated' || readOnly;
   const versioned = problem?.status === 'published';
   const editable = !locked;
   const options = technologies.filter((t) => t.status !== 'disabled' || t.id === form.technologyId);
@@ -95,13 +102,13 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
 
     if (!problem) {
       setSaving(true);
-      const result = await createProblem(form);
+      const result = await createProblem(form, apiBase);
       setSaving(false);
       if (!result.ok) {
         setErrors(result.issues.length ? result.issues : [result.error]);
         return;
       }
-      router.push(`/problems/${result.id}`);
+      router.push(`${basePath}/${result.id}`);
       return;
     }
 
@@ -117,7 +124,7 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
     }
 
     setSaving(true);
-    const result = await onUpdate?.(patch, versioned ? reason.trim() : undefined);
+    const result = await onUpdate?.(patch, versioned ? reason.trim() : undefined, guardConcurrency ? problem.updatedAt : undefined);
     setSaving(false);
     if (result && !result.ok) {
       setErrors(result.issues.length ? result.issues : [result.error]);
@@ -150,7 +157,7 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
   async function showHistory() {
     if (!problem) return;
     try {
-      setVersions(await fetchVersions(problem.id));
+      setVersions(await fetchVersions(problem.id, apiBase));
     } catch {
       setErrors(['Could not load the version history.']);
     }
@@ -165,7 +172,9 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
           <h1 className={styles.title}>{problem ? problem.title : 'Create problem'}</h1>
           <p className={styles.subtitle}>
             {problem
-              ? locked
+              ? readOnly
+                ? `${STATUS_LABEL[problem.status]} · v${problem.version}. Only drafts can be edited here.`
+                : locked
                 ? 'This problem is deprecated and can no longer be edited.'
                 : versioned
                   ? `${STATUS_LABEL[problem.status]} · v${problem.version}. Changes create a new version and need a reason.`
@@ -173,8 +182,8 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
               : 'New problems start in Draft.'}
           </p>
         </div>
-        <Link href="/problems" className={cx(styles.button, styles.buttonGhost)}>
-          Back to all problems
+        <Link href={basePath} className={cx(styles.button, styles.buttonGhost)}>
+          {backLabel}
         </Link>
       </div>
 
@@ -357,12 +366,16 @@ export default function ProblemForm({ problem, onUpdate, onTransition }: Props) 
           <h2 className={styles.sectionTitle}>Test cases</h2>
           <div className={styles.testsRow}>
             <span>{`${problem.sampleTests} sample · ${problem.hiddenTests} hidden (enabled)`}</span>
-            <Link href="/test-cases/sample" className={styles.link} onClick={() => rememberProblem(problem.id)}>
-              Manage sample tests
-            </Link>
-            <Link href="/test-cases/hidden" className={styles.link} onClick={() => rememberProblem(problem.id)}>
-              Manage hidden tests
-            </Link>
+            {showTestLinks && (
+              <>
+                <Link href="/test-cases/sample" className={styles.link} onClick={() => rememberProblem(problem.id)}>
+                  Manage sample tests
+                </Link>
+                <Link href="/test-cases/hidden" className={styles.link} onClick={() => rememberProblem(problem.id)}>
+                  Manage hidden tests
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

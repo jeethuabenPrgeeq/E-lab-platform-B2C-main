@@ -16,8 +16,8 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
     {
       title: "Problems",
       items: [
-        { label: "Problem Library", href: `${CM}/problems`, icon: FileCode2 },
-        { label: "Create Problem", href: `${CM}/create`, icon: FilePlus2 },
+        { label: "Problem Library", href: `${CM}/problems`, icon: FileCode2, ready: true },
+        { label: "Create Problem", href: `${CM}/create`, icon: FilePlus2, ready: true },
         { label: "Bulk CSV Import", href: `${CM}/import/csv`, icon: Upload },
         { label: "AI Generation", href: `${CM}/import/ai`, icon: Sparkles },
         { label: "Test Case Preparation", href: `${CM}/test-cases`, icon: FlaskConical },

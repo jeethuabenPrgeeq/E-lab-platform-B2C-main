@@ -272,6 +272,7 @@ model User {
   problemsCreated   Problem[]          @relation("ProblemCreatedBy")
   problemsUpdated   Problem[]          @relation("ProblemUpdatedBy")
   problemsPublished Problem[]          @relation("ProblemPublishedBy")
+  problemsAssigned  Problem[]          @relation("ProblemAssignee")
   problemVersions   ProblemVersion[]
   auditLogs         TechnicalAuditLog[]
 
@@ -413,6 +414,9 @@ model Problem {
   updatedBy     User?     @relation("ProblemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   publishedById String?
   publishedBy   User?     @relation("ProblemPublishedBy", fields: [publishedById], references: [id], onDelete: SetNull)
+  assigneeId    String?
+  assignee      User?     @relation("ProblemAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  assignedAt    DateTime?
   publishedAt   DateTime?
 
   tier             AccessTier        @default(free)
@@ -432,6 +436,7 @@ model Problem {
   @@index([visibility])
   @@index([status])
   @@index([technologyId])
+  @@index([assigneeId])
   @@map("problems")
 }
 

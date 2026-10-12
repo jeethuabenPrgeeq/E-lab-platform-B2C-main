@@ -35,6 +35,10 @@ import { ChallengesService } from './content/challenges.service.js';
 import { ContentController } from './content/content.controller.js';
 import { ContentDashboardController } from './content-manager/content-dashboard.controller.js';
 import { ContentDashboardService } from './content-manager/content-dashboard.service.js';
+import { ContentProblemsController } from './content-manager/content-problems.controller.js';
+import { ContentProblemsService } from './content-manager/content-problems.service.js';
+import { OwnershipController } from './content-manager/ownership.controller.js';
+import { OwnershipService } from './content-manager/ownership.service.js';
 import { PathsService } from './content/paths.service.js';
 import { CouponsService } from './revenue/coupons.service.js';
 import { PricesService } from './revenue/prices.service.js';
@@ -81,6 +85,8 @@ import { TechSupportService } from './ops/tech-support.service.js';
     LearnersController,
     SuperDashboardController,
     ContentDashboardController,
+    ContentProblemsController,
+    OwnershipController,
     ContentController,
     RevenueController,
     SupportController,
@@ -118,6 +124,8 @@ import { TechSupportService } from './ops/tech-support.service.js';
     LearnersService,
     SuperDashboardService,
     ContentDashboardService,
+    ContentProblemsService,
+    OwnershipService,
     CatalogService,
     PathsService,
     ChallengesService,

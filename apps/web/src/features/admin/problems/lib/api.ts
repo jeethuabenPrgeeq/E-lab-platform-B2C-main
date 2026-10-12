@@ -64,36 +64,38 @@ export function useProblems(status?: ProblemStatus) {
   return { items, loaded, loadError, refresh, transition, remove };
 }
 
-export function useProblem(id: string) {
+export const ADMIN_PROBLEMS = '/admin/problems';
+
+export function useProblem(id: string, base = ADMIN_PROBLEMS) {
   const [problem, setProblem] = useState<ProblemDetail | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   const refresh = useCallback(async () => {
     try {
-      setProblem(await adminApi<ProblemDetail>(`/admin/problems/${id}`));
+      setProblem(await adminApi<ProblemDetail>(`${base}/${id}`));
       setLoadError('');
     } catch (error) {
       setLoadError(errorText(error));
     } finally {
       setLoaded(true);
     }
-  }, [id]);
+  }, [id, base]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   const update = useCallback(
-    async (patch: Partial<ProblemInput>, reason?: string): Promise<ActionResult> => {
+    async (patch: Partial<ProblemInput>, reason?: string, expectedUpdatedAt?: string): Promise<ActionResult> => {
       try {
-        setProblem(await adminApi<ProblemDetail>(`/admin/problems/${id}`, { method: 'PATCH', body: { ...patch, ...(reason ? { reason } : {}) } }));
+        setProblem(await adminApi<ProblemDetail>(`${base}/${id}`, { method: 'PATCH', body: { ...patch, ...(reason ? { reason } : {}), ...(expectedUpdatedAt ? { expectedUpdatedAt } : {}) } }));
         return { ok: true };
       } catch (error) {
         return failure(error);
       }
     },
-    [id],
+    [id, base],
   );
 
   const transition = useCallback(
@@ -111,9 +113,9 @@ export function useProblem(id: string) {
   return { problem, loaded, loadError, refresh, update, transition };
 }
 
-export async function createProblem(input: ProblemInput): Promise<{ ok: true; id: string } | { ok: false; error: string; issues: string[] }> {
+export async function createProblem(input: ProblemInput, base = ADMIN_PROBLEMS): Promise<{ ok: true; id: string } | { ok: false; error: string; issues: string[] }> {
   try {
-    const created = await adminApi<ProblemDetail>('/admin/problems', { method: 'POST', body: input });
+    const created = await adminApi<ProblemDetail>(base, { method: 'POST', body: input });
     return { ok: true, id: created.id };
   } catch (error) {
     const result = failure(error);
@@ -121,8 +123,8 @@ export async function createProblem(input: ProblemInput): Promise<{ ok: true; id
   }
 }
 
-export async function fetchVersions(id: string) {
-  const data = await adminApi<{ items: ProblemVersion[] }>(`/admin/problems/${id}/versions`);
+export async function fetchVersions(id: string, base = ADMIN_PROBLEMS) {
+  const data = await adminApi<{ items: ProblemVersion[] }>(`${base}/${id}/versions`);
   return data.items;
 }
 

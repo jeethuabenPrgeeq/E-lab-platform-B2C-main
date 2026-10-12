@@ -28,7 +28,7 @@ export class ContentDashboardService {
     const now = new Date();
     const since = filters.days ? new Date(now.getTime() - filters.days * DAY) : null;
     const mine: Prisma.ProblemWhereInput = {
-      OR: [{ createdById: actor.id }, { updatedById: actor.id }],
+      OR: [{ createdById: actor.id }, { assigneeId: actor.id }],
       ...(filters.technologyId ? { technologyId: filters.technologyId } : {}),
       ...(since ? { updatedAt: { gte: since } } : {}),
     };
@@ -58,7 +58,7 @@ export class ContentDashboardService {
       filters: { technologyId: filters.technologyId ?? null, days: filters.days ?? null },
       technologies,
       summary: [
-        { key: 'assigned', label: 'My problems', value: total, tone: 'primary' },
+        { key: 'assigned', label: 'Created or assigned to me', value: total, tone: 'primary' },
         { key: 'draft', label: 'Drafts', value: count('draft'), tone: 'neutral' },
         { key: 'review', label: 'Awaiting review', value: count('review'), tone: 'warning' },
         { key: 'published', label: 'Published', value: count('published'), tone: 'success' },
