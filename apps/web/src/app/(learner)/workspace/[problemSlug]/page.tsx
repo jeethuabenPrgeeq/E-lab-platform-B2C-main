@@ -11,6 +11,8 @@ import KubernetesLiveWorkspace from '../../../../components/workspace/Kubernetes
 import CicdLiveWorkspace from '../../../../components/workspace/CicdLiveWorkspace';
 import { getProblemBySlug } from "@/features/problem-engine";
 import { markProblemSolved } from "@/features/progress/local-progress";
+import { apiFetch } from "@/features/auth/apiFetch";
+
 import styles from "./workspace.module.css";
 
 /* =========================================================
@@ -297,7 +299,7 @@ export default function CodingWorkspacePage() {
     setOutput("Compiling and running your code...");
 
     try {
-      const response = await fetch(`${API_URL}/executions/run`, {
+      const response = await apiFetch(`${API_URL}/executions/run`, {
         method: "POST",
 
         headers: {
@@ -417,7 +419,7 @@ export default function CodingWorkspacePage() {
     setOutput("Submitting solution and running hidden test cases...");
 
     try {
-      const response = await fetch(`${API_URL}/submissions`, {
+      const response = await apiFetch(`${API_URL}/submissions`, {
         method: "POST",
 
         headers: {

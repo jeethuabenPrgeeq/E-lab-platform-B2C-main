@@ -1,26 +1,14 @@
-import {
-  Module,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import {
-  ExecutionsController,
-} from './executions.controller.js';
-
-import {
-  ExecutionsService,
-} from './executions.service.js';
+import { AuthModule } from '../auth/auth.module.js';
+import { JudgeModule } from '../judge/judge.module.js';
+import { ExecutionsController } from './executions.controller.js';
+import { ExecutionsService } from './executions.service.js';
 
 @Module({
-  controllers: [
-    ExecutionsController,
-  ],
-
-  providers: [
-    ExecutionsService,
-  ],
-
-  exports: [
-    ExecutionsService,
-  ],
+  imports: [AuthModule, JudgeModule],
+  controllers: [ExecutionsController],
+  providers: [ExecutionsService],
+  exports: [ExecutionsService],
 })
 export class ExecutionsModule {}

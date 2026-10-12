@@ -52,3 +52,12 @@ generated/
 # Prisma local databases if ever used
 *.db
 *.db-journal
+*.zip
+*.tsbuildinfo
+apps/api/users.csv
+cj.txt
+.env
+.env.*
+!.env.example
+
+apps/api/scripts/smoke-*.ps1

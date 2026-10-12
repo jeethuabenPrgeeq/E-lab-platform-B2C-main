@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-
+import { apiFetch } from "@/features/auth/apiFetch";
 import { ArrowLeft, GitBranch, Loader2, Send } from "lucide-react";
 
 import styles from "../../app/(learner)/workspace/[problemSlug]/workspace.module.css";
@@ -78,7 +78,7 @@ export default function GitLiveWorkspace({ problem, onBack }: GitLiveWorkspacePr
       let setupResponse: Response;
 
       try {
-        setupResponse = await fetch(`${API_URL}/submissions/git-setup/${problem.slug}`);
+        setupResponse = await apiFetch(`${API_URL}/submissions/git-setup/${problem.slug}`);
       } catch {
         if (!cancelled) {
           term.write("Unable to connect to the server. Please refresh.\r\n");
@@ -179,7 +179,7 @@ export default function GitLiveWorkspace({ problem, onBack }: GitLiveWorkspacePr
     setCheckOutput("Checking your solution...");
 
     try {
-      const response = await fetch(`${API_URL}/submissions/git-check/${problem.slug}`, {
+      const response = await apiFetch(`${API_URL}/submissions/git-check/${problem.slug}`, {
         method: "POST",
 
         headers: {

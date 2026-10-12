@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { CurrentUser, type AuthenticatedUser } from '../auth/current-user.decorator.js';
 import { SubmissionsService } from './submissions.service.js';
 
 /* =========================================================
@@ -19,6 +21,7 @@ type SubmissionRequest = Parameters<SubmissionsService['submit']>[0];
 ========================================================= */
 
 @Controller('submissions')
+@UseGuards(JwtAuthGuard)
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
@@ -43,8 +46,9 @@ export class SubmissionsController {
   submit(
     @Body()
     body: SubmissionRequest,
+    @CurrentUser() user?: AuthenticatedUser,
   ) {
-    return this.submissionsService.submit(body);
+    return this.submissionsService.submit(body, user?.id ?? null);
   }
 
   @Get('git-setup/:problemSlug')

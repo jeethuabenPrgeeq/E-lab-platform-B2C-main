@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 
 import { FitAddon } from "@xterm/addon-fit";
+import { apiFetch } from "@/features/auth/apiFetch";
 
 const PROBLEM_SLUG = "git-push-to-remote";
 
@@ -169,7 +170,7 @@ export default function TerminalTestPage() {
     setChecking(true);
 
     try {
-      const response = await fetch(`${API_URL}/submissions/git-check/${PROBLEM_SLUG}`, {
+      const response = await apiFetch(`${API_URL}/submissions/git-check/${PROBLEM_SLUG}`, {
         method: "POST",
 
         headers: {

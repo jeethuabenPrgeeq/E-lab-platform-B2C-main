@@ -1,0 +1,183 @@
+.figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ad-text);
+}
+
+.legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ad-muted);
+}
+
+.swatch {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.plot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.svg:focus-visible {
+  outline: 2px solid var(--ad-primary);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.grid {
+  stroke: rgba(90, 95, 116, 0.16);
+  stroke-width: 1;
+}
+
+.baseline {
+  stroke: rgba(90, 95, 116, 0.4);
+  stroke-width: 1;
+}
+
+.axisY,
+.axisX {
+  fill: var(--ad-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.axisY {
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+.axisX {
+  text-anchor: middle;
+}
+
+.axisX[data-edge='start'] {
+  text-anchor: start;
+}
+
+.axisX[data-edge='end'] {
+  text-anchor: end;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.area {
+  opacity: 0.12;
+}
+
+.reference {
+  stroke: var(--ad-danger);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.referenceLabel {
+  fill: var(--ad-danger);
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: end;
+}
+
+.crosshair {
+  stroke: var(--ad-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.dot {
+  stroke: var(--ad-bg);
+  stroke-width: 2;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ad-bg);
+  box-shadow: var(--ad-raised-sm);
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tooltipTime {
+  font-weight: 700;
+  color: var(--ad-text);
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ad-muted);
+}
+
+.tooltipLabel {
+  flex: 1;
+}
+
+.tooltipRow strong {
+  color: var(--ad-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.srOnly {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

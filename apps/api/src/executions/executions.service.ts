@@ -2,8 +2,11 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  OnModuleInit,
 } from '@nestjs/common';
 
+import { JudgeGateway, type JobPayload, type RunRecord } from '../judge/judge-gateway.service.js';
+import type { JudgeLimits } from '../judge/judge-settings.service.js';
 import { getGitTestCases } from '../submissions/git-test-cases.js';
 
 /* =========================================================
@@ -79,13 +82,27 @@ const SUPPORTED_LANGUAGES = [
   'git',
 ] as const;
 
+const OUTCOME: Record<JudgeResponse['status'], string> = {
+  SUCCESS: 'ok',
+  COMPILATION_ERROR: 'ce',
+  RUNTIME_ERROR: 're',
+  TIME_LIMIT_EXCEEDED: 'tle',
+  UNSUPPORTED_LANGUAGE: 'sandbox',
+  INVALID_REQUEST: 'sandbox',
+  INTERNAL_ERROR: 'sandbox',
+};
+
 /* =========================================================
    SERVICE
 ========================================================= */
 
 @Injectable()
-export class ExecutionsService {
-  private readonly judgeUrl = process.env.JUDGE_URL ?? 'http://127.0.0.1:4100';
+export class ExecutionsService implements OnModuleInit {
+  constructor(private readonly gateway: JudgeGateway) {}
+
+  onModuleInit() {
+    this.gateway.register('run', (job, judgeUrl, limits) => this.judge(job, judgeUrl, limits));
+  }
 
   /* =======================================================
      NORMALIZE LANGUAGE
@@ -105,7 +122,7 @@ export class ExecutionsService {
      RUN
   ======================================================= */
 
-  async run(body: ExecutionRequest) {
+  async run(body: ExecutionRequest, userId: string | null = null) {
     /* =====================================================
        VALIDATE PROBLEM
     ===================================================== */
@@ -168,12 +185,45 @@ export class ExecutionsService {
       );
     }
 
-    /* =====================================================
-       SEND TO JUDGE
-    ===================================================== */
+    const { response } = await this.gateway.execute({
+      kind: 'run',
+      userId,
+      problemSlug: body.problemSlug,
+      language,
+      workspaceType: body.workspaceType ?? '',
+      code: body.code,
+      input: body.input ?? '',
+    });
+
+    /* ===================================================
+       RETURN RESULT TO EDITOR
+    =================================================== */
+
+    return {
+      problemSlug: body.problemSlug,
+
+      language,
+
+      workspaceType: body.workspaceType,
+
+      context: body.context,
+
+      ...(response as Record<string, unknown>),
+    };
+  }
+
+  /* =======================================================
+     SEND TO JUDGE
+  ======================================================= */
+
+  private async judge(job: JobPayload, judgeUrl: string, limits: JudgeLimits): Promise<{ response: unknown; record: RunRecord }> {
+    const language = job.language;
+
+    const gitTestCase =
+      language === 'git' ? getGitTestCases(job.problemSlug)[0] : undefined;
 
     try {
-      const response = await fetch(`${this.judgeUrl}/run`, {
+      const response = await fetch(`${judgeUrl}/run`, {
         method: 'POST',
 
         headers: {
@@ -188,7 +238,9 @@ export class ExecutionsService {
 
           language,
 
-          code: body.code,
+          code: job.code,
+
+          limits,
 
           ...(language === 'git'
             ? {
@@ -197,7 +249,7 @@ export class ExecutionsService {
                 verifyScript: gitTestCase!.verifyScript,
               }
             : {
-                input: body.input ?? '',
+                input: job.input ?? '',
               }),
         }),
       });
@@ -218,28 +270,24 @@ export class ExecutionsService {
         );
       }
 
-      /* ===================================================
-         RETURN RESULT TO EDITOR
-      =================================================== */
-
       return {
-        problemSlug: body.problemSlug,
+        response: {
+          status: result.status,
 
-        language,
+          output: result.output ?? '',
 
-        workspaceType: body.workspaceType,
+          stderr: result.stderr ?? '',
 
-        context: body.context,
+          exitCode: result.exitCode ?? null,
 
-        status: result.status,
-
-        output: result.output ?? '',
-
-        stderr: result.stderr ?? '',
-
-        exitCode: result.exitCode ?? null,
-
-        message: result.message,
+          message: result.message,
+        },
+        record: {
+          outcome: OUTCOME[result.status] ?? 'sandbox',
+          exitCode: result.exitCode ?? null,
+          stdout: result.output ?? '',
+          stderr: result.stderr ?? result.message ?? '',
+        },
       };
     } catch (error) {
       if (error instanceof BadGatewayException) {

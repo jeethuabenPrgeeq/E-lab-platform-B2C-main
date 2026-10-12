@@ -1,26 +1,14 @@
-import {
-  Module,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import {
-  SubmissionsController,
-} from './submissions.controller.js';
-
-import {
-  SubmissionsService,
-} from './submissions.service.js';
+import { AuthModule } from '../auth/auth.module.js';
+import { JudgeModule } from '../judge/judge.module.js';
+import { SubmissionsController } from './submissions.controller.js';
+import { SubmissionsService } from './submissions.service.js';
 
 @Module({
-  controllers: [
-    SubmissionsController,
-  ],
-
-  providers: [
-    SubmissionsService,
-  ],
-
-  exports: [
-    SubmissionsService,
-  ],
+  imports: [AuthModule, JudgeModule],
+  controllers: [SubmissionsController],
+  providers: [SubmissionsService],
+  exports: [SubmissionsService],
 })
 export class SubmissionsModule {}

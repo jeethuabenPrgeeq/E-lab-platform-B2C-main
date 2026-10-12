@@ -2,6 +2,7 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  OnModuleInit,
 } from '@nestjs/common';
 
 import { getCTestCases } from './c-test-cases.js';
@@ -17,6 +18,8 @@ import { getLinuxTestCases } from './linux-test-cases.js';
 import { getDockerTestCases } from './docker-test-cases.js';
 import { getKubernetesTestCases } from './kubernetes-test-cases.js';
 import { getCicdTestCases } from './cicd-test-cases.js';
+import { JudgeGateway, type RunRecord } from '../judge/judge-gateway.service.js';
+import type { JudgeLimits } from '../judge/judge-settings.service.js';
 
 /* =========================================================
    TYPES
@@ -69,6 +72,22 @@ type JudgeResponse = {
   message?: string;
 };
 
+const VERDICT: Record<string, string> = {
+  ACCEPTED: 'ac',
+  WRONG_ANSWER: 'wa',
+  TIME_LIMIT_EXCEEDED: 'tle',
+  RUNTIME_ERROR: 're',
+  COMPILATION_ERROR: 'ce',
+};
+
+const VERDICT_OUTCOME: Record<string, string> = {
+  ac: 'ok',
+  wa: 'wrong',
+  tle: 'tle',
+  re: 're',
+  ce: 'ce',
+};
+
 /* =========================================================
    SUPPORTED SUBMISSION LANGUAGES
 ========================================================= */
@@ -94,7 +113,114 @@ const SUPPORTED_LANGUAGES = [
 ========================================================= */
 
 @Injectable()
-export class SubmissionsService {
+export class SubmissionsService implements OnModuleInit {
+  constructor(private readonly gateway: JudgeGateway) {}
+
+  onModuleInit() {
+    this.gateway.register('submit', async (job, judgeUrl, limits) => {
+      const result = await this.evaluate(
+        {
+          problemSlug: job.problemSlug,
+          language: job.language,
+          code: job.code,
+        },
+        judgeUrl,
+        limits,
+      );
+      return { response: result, record: this.toRecord(result) };
+    });
+  }
+
+  private toRecord(
+    result: Awaited<ReturnType<SubmissionsService['evaluate']>>,
+  ): RunRecord {
+    const verdict = VERDICT[result.status] ?? 'wa';
+    return {
+      outcome: VERDICT_OUTCOME[verdict],
+      verdict,
+      testsPassed: result.passedTests,
+      testsTotal: result.totalTests,
+      stdout: result.results
+        .map((item) => item.output)
+        .filter(Boolean)
+        .join('\n')
+        .slice(0, 2000),
+      stderr: result.results
+        .map((item) => item.stderr)
+        .filter(Boolean)
+        .join('\n')
+        .slice(0, 2000),
+      results: result.results.map((item) => ({
+        testNumber: item.testNumber,
+        passed: item.passed,
+        status: item.status,
+        output: (item.output ?? '').slice(0, 500),
+        expectedOutput: (item.expectedOutput ?? '').slice(0, 500),
+      })),
+    };
+  }
+
+  async submit(body: SubmissionRequest, userId: string | null = null) {
+    const language = this.validate(body);
+    const { response } = await this.gateway.execute({
+      kind: 'submit',
+      userId,
+      problemSlug: body.problemSlug,
+      language,
+      workspaceType: '',
+      code: body.code,
+    });
+    return { ...(response as Record<string, unknown>), context: body.context };
+  }
+
+  async rejudge(
+    run: {
+      id: string;
+      userId: string | null;
+      problemSlug: string;
+      language: string;
+      code: string;
+    },
+    rejudgeJobId: string,
+  ) {
+    const { response } = await this.gateway.execute({
+      kind: 'submit',
+      userId: run.userId,
+      problemSlug: run.problemSlug,
+      language: run.language,
+      workspaceType: '',
+      code: run.code,
+      rejudgeJobId,
+      rejudgeOfId: run.id,
+    });
+    return this.toRecord(
+      response as Awaited<ReturnType<SubmissionsService['evaluate']>>,
+    );
+  }
+
+  private validate(body: SubmissionRequest) {
+    if (!body.problemSlug || !body.problemSlug.trim())
+      throw new BadRequestException('Problem slug is required.');
+    if (!body.language || !body.language.trim())
+      throw new BadRequestException('Language is required.');
+    if (!body.code || !body.code.trim())
+      throw new BadRequestException('Code is required.');
+    const language = this.normalizeLanguage(body.language);
+    if (
+      !SUPPORTED_LANGUAGES.includes(
+        language as (typeof SUPPORTED_LANGUAGES)[number],
+      )
+    )
+      throw new BadRequestException(
+        `Unsupported submission language: ${body.language}`,
+      );
+    if (this.getHiddenTests(language, body.problemSlug).length === 0)
+      throw new BadRequestException(
+        `No hidden test cases configured for ${body.problemSlug}.`,
+      );
+    return language;
+  }
+
   private readonly judgeUrl = process.env.JUDGE_URL ?? 'http://127.0.0.1:4100';
 
   /* =======================================================
@@ -223,7 +349,11 @@ export class SubmissionsService {
      SUBMIT
   ======================================================= */
 
-  async submit(body: SubmissionRequest) {
+  private async evaluate(
+    body: SubmissionRequest,
+    judgeUrl: string,
+    limits: JudgeLimits,
+  ) {
     /* =====================================================
        VALIDATE PROBLEM
     ===================================================== */
@@ -302,7 +432,7 @@ export class SubmissionsService {
     for (let index = 0; index < testCases.length; index += 1) {
       const testCase = testCases[index];
 
-      const response = await this.fetchJudgeWithRetry(`${this.judgeUrl}/run`, {
+      const response = await this.fetchJudgeWithRetry(`${judgeUrl}/run`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +441,7 @@ export class SubmissionsService {
         body: JSON.stringify({
           language,
           code: body.code,
-
+          limits,
           ...(language === 'git' ||
           language === 'linux' ||
           language === 'docker' ||
@@ -594,11 +724,13 @@ export class SubmissionsService {
     };
   }
 
-    getKubernetesSetupScript(problemSlug: string) {
+  getKubernetesSetupScript(problemSlug: string) {
     const testCases = getKubernetesTestCases(problemSlug);
     const testCase = testCases[0];
     if (!testCase) {
-      throw new BadRequestException(`No kubernetes task configured for ${problemSlug}.`);
+      throw new BadRequestException(
+        `No kubernetes task configured for ${problemSlug}.`,
+      );
     }
     return { setupScript: testCase.setupScript };
   }
@@ -607,28 +739,40 @@ export class SubmissionsService {
     const testCases = getKubernetesTestCases(problemSlug);
     const testCase = testCases[0];
     if (!testCase) {
-      throw new BadRequestException(`No kubernetes task configured for ${problemSlug}.`);
+      throw new BadRequestException(
+        `No kubernetes task configured for ${problemSlug}.`,
+      );
     }
     const response = await this.fetchJudgeWithRetry(
       `${this.judgeUrl}/verify-session-kubernetes`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ containerName, verifyScript: testCase.verifyScript }),
+        body: JSON.stringify({
+          containerName,
+          verifyScript: testCase.verifyScript,
+        }),
       },
     );
     const judgeResult = await response.json();
     const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
     const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
-    const passed = judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
-    return { status: passed ? 'ACCEPTED' : 'WRONG_ANSWER', output: actualOutput, expectedOutput };
+    const passed =
+      judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+    return {
+      status: passed ? 'ACCEPTED' : 'WRONG_ANSWER',
+      output: actualOutput,
+      expectedOutput,
+    };
   }
 
   getCicdSetupScript(problemSlug: string) {
     const testCases = getCicdTestCases(problemSlug);
     const testCase = testCases[0];
     if (!testCase) {
-      throw new BadRequestException(`No cicd task configured for ${problemSlug}.`);
+      throw new BadRequestException(
+        `No cicd task configured for ${problemSlug}.`,
+      );
     }
     return { setupScript: testCase.setupScript };
   }
@@ -637,21 +781,31 @@ export class SubmissionsService {
     const testCases = getCicdTestCases(problemSlug);
     const testCase = testCases[0];
     if (!testCase) {
-      throw new BadRequestException(`No cicd task configured for ${problemSlug}.`);
+      throw new BadRequestException(
+        `No cicd task configured for ${problemSlug}.`,
+      );
     }
     const response = await this.fetchJudgeWithRetry(
       `${this.judgeUrl}/verify-session-cicd`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ containerName, verifyScript: testCase.verifyScript }),
+        body: JSON.stringify({
+          containerName,
+          verifyScript: testCase.verifyScript,
+        }),
       },
     );
     const judgeResult = await response.json();
     const actualOutput = this.normalizeOutput(judgeResult.output ?? '');
     const expectedOutput = this.normalizeOutput(testCase.expectedOutput);
-    const passed = judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
-    return { status: passed ? 'ACCEPTED' : 'WRONG_ANSWER', output: actualOutput, expectedOutput };
+    const passed =
+      judgeResult.status === 'SUCCESS' && actualOutput === expectedOutput;
+    return {
+      status: passed ? 'ACCEPTED' : 'WRONG_ANSWER',
+      output: actualOutput,
+      expectedOutput,
+    };
   }
 
   /* =======================================================
