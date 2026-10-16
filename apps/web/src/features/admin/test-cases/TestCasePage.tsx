@@ -6,6 +6,7 @@ import { recalledProblem, rememberProblem, useCoverage, useProblemTests } from '
 import { capitalize, cx, DIFFICULTY_CLASS, MASK } from './shared';
 import { TestCaseModal, type TestCaseDraft } from './TestCaseModal';
 import type { TestCaseItem, Visibility } from './types';
+import { useTestCaseScope } from './scope';
 import { TestCaseTabs } from './TestCaseTabs/TestCaseTabs';
 import styles from './test-cases.module.css';
 
@@ -29,6 +30,7 @@ const COPY: Record<Visibility, { title: string; pill: string; subtitle: string; 
 export function TestCasePage({ visibility }: { visibility: Visibility }) {
   const isHidden = visibility === 'hidden';
   const copy = COPY[visibility];
+  const scope = useTestCaseScope();
   const { problems, ready, loadError, refresh: refreshCoverage } = useCoverage();
   const [technology, setTechnology] = useState('All');
   const [problemId, setProblemId] = useState('');
@@ -158,7 +160,7 @@ export function TestCasePage({ visibility }: { visibility: Visibility }) {
         </section>
       ) : !selected ? (
         <section className={styles.card}>
-          <p className={styles.empty}>{problems.length === 0 ? 'No problems yet. Create one in Problem Management.' : 'No problems found for this technology.'}</p>
+          <p className={styles.empty}>{problems.length === 0 ? scope.empty : 'No problems found for this technology.'}</p>
         </section>
       ) : (
         <section className={styles.card} aria-labelledby="tc-card-title">

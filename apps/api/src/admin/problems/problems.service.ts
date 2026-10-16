@@ -28,12 +28,12 @@ import type {
   UpdateProblemDto,
 } from './problems.dto.js';
 
-const TO_DB_DIFFICULTY: Record<string, ProblemDifficulty> = {
+export const TO_DB_DIFFICULTY: Record<string, ProblemDifficulty> = {
   easy: 'Easy',
   medium: 'Medium',
   hard: 'Hard',
 };
-const CATEGORY_WORKSPACE: Record<string, WorkspaceType> = {
+export const CATEGORY_WORKSPACE: Record<string, WorkspaceType> = {
   language: 'code',
   framework: 'framework',
   database: 'database',
@@ -475,10 +475,10 @@ export class ProblemsService {
     return this.get(id, organizationId);
   }
 
-  async transition(id: string, dto: TransitionDto, actor: AdminActor) {
+  async transition(id: string, dto: TransitionDto, actor: AdminActor, organizationId: string | null = null) {
     const rule = RULES[dto.action];
     const problem = await this.prisma.problem.findFirst({
-      where: { id, organizationId: null },
+      where: { id, organizationId },
       include: { technology: true },
     });
     if (!problem) throw new NotFoundException('Problem not found.');
@@ -559,7 +559,7 @@ export class ProblemsService {
       });
     });
 
-    return this.get(id);
+    return this.get(id, organizationId);
   }
 
   async versions(id: string, organizationId: string | null = null) {

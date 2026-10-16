@@ -31,6 +31,7 @@ import { ProblemsService } from './problems/problems.service.js';
 import { TechnologiesController } from './technologies/technologies.controller.js';
 import { TechnologiesService } from './technologies/technologies.service.js';
 import { TestCasesController } from './test-cases/test-cases.controller.js';
+import { InstituteTestCasesController } from './test-cases/institute-test-cases.controller.js';
 import { TestCasesService } from './test-cases/test-cases.service.js';
 import { CatalogService } from './content/catalog.service.js';
 import { ChallengesService } from './content/challenges.service.js';
@@ -39,6 +40,9 @@ import { ContentDashboardController } from './content-manager/content-dashboard.
 import { ContentDashboardService } from './content-manager/content-dashboard.service.js';
 import { ContentProblemsController } from './content-manager/content-problems.controller.js';
 import { ContentProblemsService } from './content-manager/content-problems.service.js';
+import { InstituteUploadService } from './content-manager/institute-upload.service.js';
+import { ContentBatchesController } from './content-manager/content-batches.controller.js';
+import { ContentBatchesService } from './content-manager/content-batches.service.js';
 import { OwnershipController } from './content-manager/ownership.controller.js';
 import { OwnershipService } from './content-manager/ownership.service.js';
 import { PathsService } from './content/paths.service.js';
@@ -83,11 +87,13 @@ import { TechSupportService } from './ops/tech-support.service.js';
     TechnologiesController,
     ProblemsController,
     TestCasesController,
+    InstituteTestCasesController,
     UsersController,
     LearnersController,
     SuperDashboardController,
     ContentDashboardController,
     ContentProblemsController,
+    ContentBatchesController,
     OwnershipController,
     ContentController,
     RevenueController,
@@ -130,6 +136,8 @@ import { TechSupportService } from './ops/tech-support.service.js';
     SuperDashboardService,
     ContentDashboardService,
     ContentProblemsService,
+    InstituteUploadService,
+    ContentBatchesService,
     OwnershipService,
     CatalogService,
     PathsService,

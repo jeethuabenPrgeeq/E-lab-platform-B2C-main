@@ -90,7 +90,10 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
 
 export const INSTITUTION_PERMISSION_ITEMS: { key: InstitutionPermissionKey; label: string; description: string }[] = [
   { key: 'inst.content.view', label: 'View institution content', description: 'Dashboard, content library, organization, review queue and reports' },
-  { key: 'inst.content.create', label: 'Create and edit content', description: 'Create problems, edit drafts and duplicate problems' },
+  { key: 'inst.content.create', label: 'Create and edit content', description: 'Create, upload and duplicate problems, edit drafts and submit them for review' },
+  { key: 'inst.content.publish', label: 'Review and publish content', description: 'Approve, send back, publish and deprecate institution problems' },
+  { key: 'inst.tests.manage', label: 'Manage test cases', description: 'Sample and hidden test cases and source checks' },
+  { key: 'inst.batches.manage', label: 'Manage content batches', description: 'Create and edit batches of institution problems' },
 ];
 
 export const INSTITUTION_PERMISSION_LABEL = Object.fromEntries(INSTITUTION_PERMISSION_ITEMS.map((item) => [item.key, item.label])) as Record<InstitutionPermissionKey, string>;

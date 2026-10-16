@@ -5,7 +5,7 @@ import type { SaveDraftsDto } from './dto/save-drafts.dto.js';
 import { MAX_CELL_LENGTH, PRACTICE_COLUMNS } from './practice-columns.js';
 import { validateRows, type ExistingKeys } from './practice-validation.js';
 
-function normalizeRow(raw: Record<string, unknown>): Record<string, string> {
+export function normalizeRow(raw: Record<string, unknown>): Record<string, string> {
   const values: Record<string, string> = {};
 
   for (const column of PRACTICE_COLUMNS) {

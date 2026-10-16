@@ -23,6 +23,7 @@ interface Props {
   readOnly?: boolean;
   guardConcurrency?: boolean;
   showTestLinks?: boolean;
+  testsPath?: string;
   backLabel?: string;
   embedded?: boolean;
   editPermission?: PermissionRequirement;
@@ -65,7 +66,7 @@ function changedFields(before: ProblemInput, after: ProblemInput): Partial<Probl
   return patch;
 }
 
-export default function ProblemForm({ problem, onUpdate, onTransition, basePath = "/problems", apiBase, technologiesPath, readOnly = false, guardConcurrency = false, showTestLinks = true, backLabel = "Back to all problems", embedded = false, editPermission = "problems.manage", transitionPermission = "content.validate" }: Props) {
+export default function ProblemForm({ problem, onUpdate, onTransition, basePath = "/problems", apiBase, technologiesPath, readOnly = false, guardConcurrency = false, showTestLinks = true, testsPath = "/test-cases", backLabel = "Back to all problems", embedded = false, editPermission = "problems.manage", transitionPermission = "content.validate" }: Props) {
   const editGate = usePermissionGate(editPermission);
   const transitionGate = usePermissionGate(transitionPermission);
   const router = useRouter();
@@ -334,10 +335,10 @@ export default function ProblemForm({ problem, onUpdate, onTransition, basePath 
             <span>{`${problem.sampleTests} sample · ${problem.hiddenTests} hidden (enabled)`}</span>
             {showTestLinks && (
               <>
-                <Link href="/test-cases/sample" className={styles.link} onClick={() => rememberProblem(problem.id)}>
+                <Link href={`${testsPath}/sample`} className={styles.link} onClick={() => rememberProblem(problem.id)}>
                   Manage sample tests
                 </Link>
-                <Link href="/test-cases/hidden" className={styles.link} onClick={() => rememberProblem(problem.id)}>
+                <Link href={`${testsPath}/hidden`} className={styles.link} onClick={() => rememberProblem(problem.id)}>
                   Manage hidden tests
                 </Link>
               </>

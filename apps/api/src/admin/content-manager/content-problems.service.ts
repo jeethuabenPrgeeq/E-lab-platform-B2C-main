@@ -3,15 +3,26 @@ import { ConflictException, ForbiddenException, Injectable, NotFoundException } 
 import { Prisma } from '../../../generated/prisma/client/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
+import type { AnyPermission, InstitutionPermission } from '../access/permissions.js';
 import type { AdminActor } from '../common/admin-actor.decorator.js';
 import { pageArgs } from '../common/pagination.js';
-import type { CreateProblemDto } from '../problems/problems.dto.js';
+import type { CreateProblemDto, ProblemAction, TransitionDto } from '../problems/problems.dto.js';
 import { ProblemsService } from '../problems/problems.service.js';
 import type { ContentProblemQueryDto, ContentUpdateProblemDto } from './content-problems.dto.js';
 
 const TO_DB_DIFFICULTY = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
 const EDITABLE = new Set(['draft']);
 const PERSON = { select: { id: true, name: true } } as const;
+const ACTION_PERMISSION: Record<ProblemAction, InstitutionPermission> = {
+  submit: 'inst.content.create',
+  approve: 'inst.content.publish',
+  sendBack: 'inst.content.publish',
+  publish: 'inst.content.publish',
+  moveBack: 'inst.content.publish',
+  unpublish: 'inst.content.publish',
+  deprecate: 'inst.content.publish',
+};
+const NONE: ReadonlySet<AnyPermission> = new Set();
 
 @Injectable()
 export class ContentProblemsService {
@@ -84,13 +95,13 @@ export class ContentProblemsService {
     };
   }
 
-  async get(id: string, organizationId: string) {
+  async get(id: string, organizationId: string, granted: ReadonlySet<AnyPermission> = NONE) {
     const row = await this.owned(id, organizationId);
     const [detail, extra] = await Promise.all([
       this.problems.get(id, organizationId),
       this.prisma.problem.findUnique({ where: { id }, select: { assignee: PERSON, assignedAt: true } }),
     ]);
-    return { ...detail, nextActions: [], assignee: extra?.assignee ?? null, assignedAt: extra?.assignedAt ?? null, editable: EDITABLE.has(row.status) };
+    return { ...detail, nextActions: detail.nextActions.filter((next) => granted.has(ACTION_PERMISSION[next.action])), assignee: extra?.assignee ?? null, assignedAt: extra?.assignedAt ?? null, editable: EDITABLE.has(row.status) };
   }
 
   async versions(id: string, organizationId: string) {
@@ -98,12 +109,20 @@ export class ContentProblemsService {
     return this.problems.versions(id, organizationId);
   }
 
-  async create(dto: CreateProblemDto, actor: AdminActor, organizationId: string) {
+  async create(dto: CreateProblemDto, actor: AdminActor, organizationId: string, granted: ReadonlySet<AnyPermission> = NONE) {
     const created = await this.problems.create(dto, actor, organizationId);
-    return this.get(created.id, organizationId);
+    return this.get(created.id, organizationId, granted);
   }
 
-  async update(id: string, dto: ContentUpdateProblemDto, actor: AdminActor, organizationId: string) {
+  async transition(id: string, dto: TransitionDto, actor: AdminActor, organizationId: string, granted: ReadonlySet<AnyPermission>) {
+    const needed = ACTION_PERMISSION[dto.action];
+    if (!granted.has(needed)) throw new ForbiddenException(`Your role does not include "${needed}".`);
+    await this.owned(id, organizationId);
+    await this.problems.transition(id, dto, actor, organizationId);
+    return this.get(id, organizationId, granted);
+  }
+
+  async update(id: string, dto: ContentUpdateProblemDto, actor: AdminActor, organizationId: string, granted: ReadonlySet<AnyPermission> = NONE) {
     const row = await this.owned(id, organizationId);
     if (!EDITABLE.has(row.status)) throw new ForbiddenException(`This problem is ${row.status}. Only drafts can be edited for now.`);
     const { expectedUpdatedAt, ...fields } = dto;
@@ -111,10 +130,10 @@ export class ContentProblemsService {
       throw new ConflictException('Someone else saved this problem after you opened it. Reload to see their changes before editing.');
     }
     await this.problems.update(id, fields, actor, organizationId);
-    return this.get(id, organizationId);
+    return this.get(id, organizationId, granted);
   }
 
-  async duplicate(id: string, actor: AdminActor, organizationId: string) {
+  async duplicate(id: string, actor: AdminActor, organizationId: string, granted: ReadonlySet<AnyPermission> = NONE) {
     await this.owned(id, organizationId);
     const source = await this.prisma.problem.findUniqueOrThrow({ where: { id }, include: { testCases: { orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] } } });
     let slug = `${source.slug}-copy`;
@@ -159,7 +178,7 @@ export class ContentProblemsService {
       await this.audit.record(tx, actor, { action: 'problem.duplicate', entityType: 'problem', entityId: copy.id, summary: `Duplicated ${source.title} as a new draft` });
       return copy.id;
     });
-    return this.get(createdId, organizationId);
+    return this.get(createdId, organizationId, granted);
   }
 
   async technologies() {

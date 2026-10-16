@@ -8,7 +8,7 @@ import { ConfigureStep, DEFAULT_MIX, configCountError, configTotal, type Generat
 import { DraftEditor } from "@/features/admin/practice-upload/ai/DraftEditor";
 import { DraftTable, type DraftFilter, type DraftView } from "@/features/admin/practice-upload/ai/DraftTable";
 import { buildTemplateRowsCsv, csvFileName, downloadCsv } from "@/features/admin/practice-upload/ai/export";
-import { savePracticeDrafts } from "@/features/admin/practice-upload/api";
+import { useUploadScope } from "@/features/admin/practice-upload/scope";
 import { SourceStep } from "@/features/admin/practice-upload/ai/SourceStep";
 import { cx, plural, readJson, removeKey, writeJson } from "@/features/admin/practice-upload/ai/helpers";
 import styles from "@/features/admin/practice-upload/ai/ai.module.css";
@@ -87,6 +87,7 @@ function sourceLabelOf(state: WizardState) {
 }
 
 export default function AiGeneratePage() {
+  const scope = useUploadScope();
   const [technology, setTechnology] = useState("");
   const [state, setState] = useState<WizardState>(EMPTY_STATE);
   const [file, setFile] = useState<File | null>(null);
@@ -306,7 +307,7 @@ export default function AiGeneratePage() {
     setSaveError("");
     try {
       const rows = selectedViews.map((view) => view.values);
-      const result = await savePracticeDrafts({
+      const result = await scope.save({
         technology: state.request.technology,
         method: "ai",
         source: state.request.sourceLabel,
@@ -349,7 +350,7 @@ export default function AiGeneratePage() {
         <section className={cx(styles.card, styles.success)} aria-live="polite">
           <CircleCheck width={40} height={40} aria-hidden="true" />
           <h2 className={styles.successTitle}>{`Saved ${plural(savedRows.length, "problem")} as Draft`}</h2>
-          <p className={styles.successText}>{`They were added to ${state.request?.technology ?? technology} practice and are waiting for technical review.${savedBatchId ? ` Batch ${savedBatchId}.` : ""}`}</p>
+          <p className={styles.successText}>{`${scope.savedMany(state.request?.technology ?? technology)}${savedBatchId ? ` Batch ${savedBatchId}.` : ""}`}</p>
           <div className={styles.successActions}>
             <button type="button" className={styles.secondaryButton} onClick={() => exportRows(savedRows)}>
               <FileDown width={16} height={16} aria-hidden="true" />
@@ -568,10 +569,11 @@ export default function AiGeneratePage() {
 }
 
 function PageHeader({ technology, disabled, onTechnology }: { technology: string; disabled: boolean; onTechnology: (value: string) => void }) {
+  const scope = useUploadScope();
   return (
     <header className={styles.header}>
       <div className={styles.headerText}>
-        <h1 className={styles.title}>Upload to Practice</h1>
+        <h1 className={styles.title}>{scope.title}</h1>
         <div className={styles.meta}>
           <span className={styles.pill}>AI generate</span>
           <span>Generate problems from a PDF, Word file, web page, text or a prompt</span>

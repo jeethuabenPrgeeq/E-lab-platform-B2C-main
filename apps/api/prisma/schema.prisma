@@ -44,6 +44,12 @@ enum OrganizationType {
   government
 }
 
+enum ContentBatchType {
+  regular_practice
+  stack_section
+  real_time_challenge
+}
+
 enum OrganizationStatus {
   active
   suspended
@@ -291,6 +297,7 @@ model User {
   problemsUpdated   Problem[]          @relation("ProblemUpdatedBy")
   problemsPublished Problem[]          @relation("ProblemPublishedBy")
   problemsAssigned  Problem[]          @relation("ProblemAssignee")
+  contentBatches    ContentBatch[]
   problemVersions   ProblemVersion[]
   auditLogs         TechnicalAuditLog[]
 
@@ -326,13 +333,50 @@ model Organization {
   permissions   Json               @default("[]")
   createdByName String?
 
-  users    User[]
-  problems Problem[]
+  users          User[]
+  problems       Problem[]
+  contentBatches ContentBatch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("organizations")
+}
+
+model ContentBatch {
+  id             String           @id @default(cuid())
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  description    String           @default("")
+  type           ContentBatchType @default(regular_practice)
+  focus          String           @default("")
+  easyTarget     Int              @default(0)
+  mediumTarget   Int              @default(0)
+  hardTarget     Int              @default(0)
+  createdById    String?
+  createdBy      User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items          ContentBatchItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@map("content_batches")
+}
+
+model ContentBatchItem {
+  id        String       @id @default(cuid())
+  batchId   String
+  batch     ContentBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  problemId String
+  problem   Problem      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  position  Int
+
+  @@unique([batchId, problemId])
+  @@index([batchId, position])
+  @@index([problemId])
+  @@map("content_batch_items")
 }
 
 model RefreshSession {
@@ -470,6 +514,7 @@ model Problem {
   versions       ProblemVersion[]
   pathSteps      LearningPathStep[]
   challengeItems ChallengeProblem[]
+  batchItems     ContentBatchItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

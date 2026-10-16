@@ -5,10 +5,12 @@ import { Info, LoaderCircle, Play } from 'lucide-react';
 import { recalledProblem, rememberProblem, useCoverage, useProblemTests } from './api';
 import type { CheckRun, CheckStatus } from './types';
 import { capitalize, cx, DIFFICULTY_CLASS } from './shared';
+import { useTestCaseScope } from './scope';
 import { TestCaseTabs } from './TestCaseTabs/TestCaseTabs';
 import styles from './test-cases.module.css';
 
 export function SourceChecksPage() {
+  const scope = useTestCaseScope();
   const { problems, ready, loadError } = useCoverage();
   const [checks, setChecks] = useState<Record<string, CheckRun>>({});
   const [technology, setTechnology] = useState('All');
@@ -67,7 +69,7 @@ export function SourceChecksPage() {
 
       <div className={styles.notice} role="note">
         <Info width={16} height={16} aria-hidden="true" />
-        <span>Results are simulated. Running the reference solution on the judge is not connected yet.</span>
+        <span>{scope.simulatedRuns ? 'Results are simulated. Running the reference solution on the judge is not connected yet.' : 'Running the reference solution on the judge is not connected yet, so checks cannot be run here.'}</span>
       </div>
 
       <section className={styles.filters} aria-label="Choose a problem">
@@ -139,7 +141,7 @@ export function SourceChecksPage() {
               </p>
             </div>
             <div className={styles.cardActions}>
-              <button type="button" className={styles.primaryButton} disabled={busy || ordered.length === 0} onClick={start}>
+              <button type="button" className={styles.primaryButton} disabled={!scope.simulatedRuns || busy || ordered.length === 0} title={scope.simulatedRuns ? undefined : 'Judge integration is not connected yet'} onClick={start}>
                 {busy ? (
                   <LoaderCircle className={styles.spin} width={16} height={16} aria-hidden="true" />
                 ) : (

@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { EyeOff, FlaskConical, Hourglass, RefreshCw, Search } from 'lucide-react';
+import { CheckCircle2, EyeOff, FlaskConical, Hourglass, RefreshCw, Search } from 'lucide-react';
+import { usePermissionGate } from '@/features/admin/permissions/PermissionsProvider';
 import { PageHeader, Panel, StatCard } from '@/components/admin/widgets/AdminWidgets';
-import { CM_ROUTE, useLibrary, type LibraryFilters, type LibraryScope } from '../lib/api';
+import { CM_ROUTE, transitionLibraryProblem, useLibrary, type LibraryFilters, type LibraryScope } from '../lib/api';
 import { SCOPE_OPTIONS, useInstitutionLabel } from '../lib/useInstitutionLabel';
 import styles from '../ui/institute.module.css';
 
@@ -15,13 +16,27 @@ export default function ReviewQueuePage() {
   const filters = useMemo<LibraryFilters>(() => ({ scope, status: 'review', difficulty: '', technologyId: '', q: search.trim() }), [scope, search]);
   const { data, loaded, error, refresh } = useLibrary(filters);
   const rows = data?.items ?? [];
+  const publishGate = usePermissionGate('inst.content.publish');
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+
+  const approve = async (id: string, title: string) => {
+    setBusyId(id);
+    setNotice(null);
+    const result = await transitionLibraryProblem(id, 'approve');
+    setBusyId(null);
+    if (result.ok) {
+      setNotice({ tone: 'ok', text: `${title} approved and moved to Ready.` });
+      await refresh();
+    } else setNotice({ tone: 'error', text: result.error });
+  };
 
   return (
     <div className={styles.page}>
       <PageHeader
         title="Review Queue"
         pill={institution}
-        meta="Institution problems waiting in review. Read-only until review actions are added."
+        meta="Institution problems waiting in review. Approve here, or open a problem to send it back with a note."
         actions={
           <button className={styles.ghostButton} type="button" onClick={() => void refresh()}>
             <RefreshCw size={16} aria-hidden="true" />
@@ -55,6 +70,11 @@ export default function ReviewQueuePage() {
             {`Unable to load review problems: ${error}`}
           </p>
         )}
+        {notice && (
+          <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
+            {notice.text}
+          </p>
+        )}
         {!loaded ? (
           <p className={styles.empty}>Loading review queue…</p>
         ) : rows.length === 0 ? (
@@ -76,6 +96,9 @@ export default function ReviewQueuePage() {
                   <th>Sample</th>
                   <th>Hidden</th>
                   <th>Ownership</th>
+                  <th>
+                    <span className={styles.srOnly}>Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -92,6 +115,23 @@ export default function ReviewQueuePage() {
                     <td>{p.sampleTests}</td>
                     <td>{p.hiddenTests}</td>
                     <td>{p.mine ? 'Created by me' : 'Institution'}</td>
+                    <td>
+                      <span className={styles.rowActions}>
+                        <button
+                          type="button"
+                          className={styles.ghostButton}
+                          disabled={!publishGate.allowed || busyId !== null}
+                          title={publishGate.title}
+                          onClick={() => void approve(p.id, p.title)}
+                        >
+                          <CheckCircle2 size={16} aria-hidden="true" />
+                          {busyId === p.id ? 'Approving…' : 'Approve'}
+                        </button>
+                        <Link href={`${CM_ROUTE}/${p.id}`} className={styles.textLink}>
+                          Open
+                        </Link>
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -100,7 +140,7 @@ export default function ReviewQueuePage() {
         )}
       </Panel>
 
-      <p className={styles.note}>Approve, reject and return-for-changes actions arrive with the review workflow. Counts for missing tests cover the problems shown.</p>
+      <p className={styles.note}>Approving needs at least one sample and one hidden test. Sending back needs a note, so it lives on the problem page. Counts for missing tests cover the problems shown.</p>
     </div>
   );
 }

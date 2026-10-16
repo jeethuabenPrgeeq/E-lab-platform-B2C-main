@@ -4,10 +4,12 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { rememberProblem, useCoverage } from './api';
 import { capitalize, cx, DIFFICULTY_CLASS } from './shared';
+import { useTestCaseScope } from './scope';
 import { TestCaseTabs } from './TestCaseTabs/TestCaseTabs';
 import styles from './test-cases.module.css';
 
 export function OverviewPage() {
+  const scope = useTestCaseScope();
   const { problems, ready, loadError } = useCoverage();
   const [technology, setTechnology] = useState('All');
 
@@ -33,7 +35,7 @@ export function OverviewPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.title}>Test Case Management</h1>
+          <h1 className={styles.title}>{scope.title}</h1>
           <p className={styles.subtitle}>Sample and hidden test coverage for every problem</p>
         </div>
       </header>
@@ -78,7 +80,7 @@ export function OverviewPage() {
         ) : loadError ? (
           <p className={styles.empty}>{loadError}</p>
         ) : rows.length === 0 ? (
-          <p className={styles.empty}>{problems.length === 0 ? 'No problems yet. Create one in Problem Management.' : 'No problems found for this technology.'}</p>
+          <p className={styles.empty}>{problems.length === 0 ? scope.empty : 'No problems found for this technology.'}</p>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -122,13 +124,13 @@ export function OverviewPage() {
                       </td>
                       <td className={styles.actionsCell}>
                         <span className={styles.rowActions}>
-                          <Link href="/test-cases/sample" className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
+                          <Link href={`${scope.basePath}/sample`} className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
                             Sample
                           </Link>
-                          <Link href="/test-cases/hidden" className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
+                          <Link href={`${scope.basePath}/hidden`} className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
                             Hidden
                           </Link>
-                          <Link href="/test-cases/source-checks" className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
+                          <Link href={`${scope.basePath}/source-checks`} className={styles.linkButton} onClick={() => rememberProblem(problem.id)}>
                             Checks
                           </Link>
                         </span>

@@ -1,3 +1,5 @@
+import { adminApi, errorText } from '../lib/api';
+
 export type UploadMethod = 'manual' | 'csv' | 'ai';
 
 export interface SaveDraftsInput {
@@ -96,6 +98,15 @@ async function saveToApi(input: SaveDraftsInput): Promise<SaveDraftsResult> {
 export async function savePracticeDrafts(input: SaveDraftsInput): Promise<SaveDraftsResult> {
   if (input.rows.length === 0) throw new Error('Nothing to save');
   return API_BASE ? saveToApi(input) : saveToMock(input);
+}
+
+export async function saveInstitutionUpload(input: SaveDraftsInput): Promise<SaveDraftsResult> {
+  if (input.rows.length === 0) throw new Error('Nothing to save');
+  try {
+    return await adminApi<SaveDraftsResult>('/institute/uploads', { method: 'POST', body: input });
+  } catch (error) {
+    throw new Error(errorText(error));
+  }
 }
 
 export function readSavedBatches(): SavedBatch[] {

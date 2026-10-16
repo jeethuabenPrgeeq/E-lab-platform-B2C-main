@@ -32,7 +32,7 @@ export type PermissionKey =
   | 'incidents.manage'
   | 'releases.manage';
 
-export type InstitutionPermissionKey = 'inst.content.view' | 'inst.content.create';
+export type InstitutionPermissionKey = 'inst.content.view' | 'inst.content.create' | 'inst.content.publish' | 'inst.tests.manage' | 'inst.batches.manage';
 
 export type AnyPermissionKey = PermissionKey | InstitutionPermissionKey;
 

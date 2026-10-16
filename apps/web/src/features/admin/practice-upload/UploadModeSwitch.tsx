@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import { FileSpreadsheet, PencilLine, Sparkles } from "lucide-react";
+import { useUploadScope } from "./scope";
 import styles from "./UploadModeSwitch.module.css";
 
 type UploadMode = "manual" | "csv" | "ai";
@@ -12,8 +13,10 @@ interface UploadModeSwitchProps {
 
 export function UploadModeSwitch({
   active,
-  basePath = "/content-import",
+  basePath: basePathProp,
 }: UploadModeSwitchProps) {
+  const scope = useUploadScope();
+  const basePath = basePathProp ?? scope.basePath;
   const modes = [
     {
       key: "manual",

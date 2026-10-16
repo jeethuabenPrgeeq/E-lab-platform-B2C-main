@@ -7,7 +7,7 @@ import { MAX_FILE_BYTES, PRACTICE_COLUMNS, STORAGE_KEYS } from "@/features/admin
 import { TechnologyPicker, technologyFromUrl } from "@/features/admin/practice-upload/TechnologyPicker";
 import { validateRows, type PreviewRow, type ValidationSummary } from "@/features/admin/practice-upload/validate";
 import { UploadModeSwitch } from "@/features/admin/practice-upload/UploadModeSwitch";
-import { savePracticeDrafts } from "@/features/admin/practice-upload/api";
+import { useUploadScope } from "@/features/admin/practice-upload/scope";
 import styles from "./page.module.css";
 
 type Phase = "idle" | "parsing" | "invalid" | "ready" | "importing" | "imported";
@@ -49,6 +49,7 @@ function cx(...classes: Array<string | false | undefined>) {
 }
 
 export default function UploadToPracticePage() {
+  const scope = useUploadScope();
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
   const runId = useRef(0);
@@ -195,7 +196,7 @@ export default function UploadToPracticePage() {
     setSaveError("");
     setPhase("importing");
     try {
-      await savePracticeDrafts({
+      await scope.save({
         technology,
         method: "csv",
         source: summary.fileName,
@@ -279,7 +280,7 @@ export default function UploadToPracticePage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.title}>Upload to Practice</h1>
+          <h1 className={styles.title}>{scope.title}</h1>
           <div className={styles.meta}>
             <span className={styles.pill}>CSV bulk upload</span>
             <span>{PRACTICE_COLUMNS.length} columns</span>
@@ -419,7 +420,7 @@ export default function UploadToPracticePage() {
               )}
               {phase === "imported" && importResult && (
                 <p className={cx(styles.banner, styles.bannerSuccess)}>
-                  {`Uploaded ${plural(importResult.imported, "problem")} as draft for technical review.`}
+                  {scope.uploaded(plural(importResult.imported, "problem"))}
                   {importResult.skipped > 0 && ` Skipped ${plural(importResult.skipped, "row")} with errors.`}
                 </p>
               )}

@@ -6,12 +6,13 @@ import { FileSpreadsheet, PencilLine, Plus, Sparkles, X } from 'lucide-react';
 import { useTechnologies } from '../technologies/lib/api';
 import { TechnologyModal } from '../technologies/TechnologyModal/TechnologyModal';
 import type { TechnologyInput } from '../technologies/lib/types';
+import { useUploadScope } from './scope';
 import styles from './TechnologyPicker.module.css';
 
 const METHODS = [
-  { key: 'manual', label: 'Manual entry', hint: 'Fill in one problem at a time', href: '/content-import', icon: PencilLine },
-  { key: 'csv', label: 'CSV upload', hint: 'Import many problems from a template', href: '/content-import/csv', icon: FileSpreadsheet },
-  { key: 'ai', label: 'AI generate', hint: 'Draft problems from a file, page or prompt', href: '/content-import/ai', icon: Sparkles },
+  { key: 'manual', label: 'Manual entry', hint: 'Fill in one problem at a time', path: '', icon: PencilLine },
+  { key: 'csv', label: 'CSV upload', hint: 'Import many problems from a template', path: '/csv', icon: FileSpreadsheet },
+  { key: 'ai', label: 'AI generate', hint: 'Draft problems from a file, page or prompt', path: '/ai', icon: Sparkles },
 ] as const;
 
 export function technologyFromUrl(): string | null {
@@ -31,7 +32,8 @@ interface TechnologyPickerProps {
 
 export function TechnologyPicker({ value, onChange, disabled, wrapClassName, labelClassName, selectClassName }: TechnologyPickerProps) {
   const router = useRouter();
-  const { items, loaded, loadError, create } = useTechnologies();
+  const scope = useUploadScope();
+  const { items, loaded, loadError, create } = useTechnologies(scope.technologiesPath);
   const [adding, setAdding] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
 
@@ -81,10 +83,12 @@ export function TechnologyPicker({ value, onChange, disabled, wrapClassName, lab
             ))}
           </select>
         </label>
-        <button type="button" className={styles.addButton} disabled={disabled} onClick={() => setAdding(true)}>
-          <Plus width={16} height={16} aria-hidden="true" />
-          New technology
-        </button>
+        {scope.canCreateTechnology && (
+          <button type="button" className={styles.addButton} disabled={disabled} onClick={() => setAdding(true)}>
+            <Plus width={16} height={16} aria-hidden="true" />
+            New technology
+          </button>
+        )}
       </div>
 
       {adding && <TechnologyModal initial={null} items={items} lockedStatus="active" onCancel={() => setAdding(false)} onSubmit={submit} />}
@@ -109,8 +113,8 @@ export function TechnologyPicker({ value, onChange, disabled, wrapClassName, lab
               </button>
             </div>
             <div className={styles.methods}>
-              {METHODS.map(({ key, label, hint, href, icon: Icon }) => (
-                <button key={key} type="button" className={styles.method} onClick={() => choose(href)}>
+              {METHODS.map(({ key, label, hint, path, icon: Icon }) => (
+                <button key={key} type="button" className={styles.method} onClick={() => choose(`${scope.basePath}${path}`)}>
                   <span className={styles.methodIcon}>
                     <Icon width={20} height={20} aria-hidden="true" />
                   </span>

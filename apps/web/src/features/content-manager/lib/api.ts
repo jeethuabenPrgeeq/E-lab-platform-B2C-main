@@ -2,13 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError, adminApi, errorText, type Paged } from '@/features/admin/lib/api';
-import type { ProblemDetail, ProblemItem, ProblemStatus } from '@/features/admin/problems/lib/types';
+import type { ProblemAction, ProblemDetail, ProblemItem, ProblemStatus } from '@/features/admin/problems/lib/types';
 
 export const CM_PROBLEMS = '/institute/problems';
 export const CM_TECHNOLOGIES = '/institute/technologies';
 export const CM_ROUTE = '/content-library';
 
 export type LibraryScope = 'all' | 'created' | 'assigned';
+
+export async function transitionLibraryProblem(id: string, action: ProblemAction, note?: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await adminApi(`${CM_PROBLEMS}/${id}/transition`, { method: 'POST', body: { action, ...(note ? { note } : {}) } });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
 
 export interface PersonRef {
   id: string;

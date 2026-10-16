@@ -6,7 +6,7 @@ import { HIDDEN_TEST_SLOTS, PRACTICE_COLUMNS, STORAGE_KEYS } from "@/features/ad
 import { TechnologyPicker, technologyFromUrl } from "@/features/admin/practice-upload/TechnologyPicker";
 import { UploadModeSwitch } from "@/features/admin/practice-upload/UploadModeSwitch";
 import { validateRows } from "@/features/admin/practice-upload/validate";
-import { savePracticeDrafts } from "@/features/admin/practice-upload/api";
+import { useUploadScope } from "@/features/admin/practice-upload/scope";
 import styles from "./page.module.css";
 
 type Values = Record<string, string>;
@@ -90,6 +90,7 @@ function cx(...classes: Array<string | false | undefined>) {
 }
 
 export default function ManualEntryPage() {
+  const scope = useUploadScope();
   const formRef = useRef<HTMLFormElement>(null);
   const [technology, setTechnology] = useState("");
   const [values, setValues] = useState<Values>(emptyValues);
@@ -166,7 +167,7 @@ export default function ManualEntryPage() {
     setSaveError("");
     setPhase("saving");
     try {
-      await savePracticeDrafts({ technology, method: "manual", source: "Manual entry", rows: [row] });
+      await scope.save({ technology, method: "manual", source: "Manual entry", rows: [row] });
       setSavedTitle(row.title);
       setPhase("saved");
     } catch (cause) {
@@ -245,7 +246,7 @@ export default function ManualEntryPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.title}>Upload to Practice</h1>
+          <h1 className={styles.title}>{scope.title}</h1>
           <div className={styles.meta}>
             <span className={styles.pill}>Manual entry</span>
             <span>One problem at a time</span>
@@ -261,7 +262,7 @@ export default function ManualEntryPage() {
           <CircleCheck width={40} height={40} aria-hidden="true" />
           <h2 className={styles.successTitle}>Saved as Draft</h2>
           <p className={styles.successText}>
-            “{savedTitle}” was added to {technology} practice and is waiting for technical review.
+            {scope.savedOne(savedTitle, technology)}
           </p>
           <button type="button" className={styles.primaryButton} onClick={reset}>
             <Plus width={16} height={16} aria-hidden="true" />
@@ -332,7 +333,7 @@ export default function ManualEntryPage() {
 
           <div className={styles.footer}>
             <p className={cx(styles.footerStatus, (errorCount > 0 || saveError) && styles.footerError)} aria-live="polite">
-              {saveError ? saveError : errorCount > 0 ? `Fix ${errorCount} field${errorCount === 1 ? "" : "s"} to save` : Object.keys(warnings).length > 0 ? Object.values(warnings)[0] : "Saved problems go to Draft for technical review"}
+              {saveError ? saveError : errorCount > 0 ? `Fix ${errorCount} field${errorCount === 1 ? "" : "s"} to save` : Object.keys(warnings).length > 0 ? Object.values(warnings)[0] : scope.saveHint}
             </p>
             <div className={styles.footerActions}>
               <button type="button" className={styles.secondaryButton} disabled={!dirty || phase === "saving"} onClick={reset}>

@@ -1,18 +1,148 @@
-"use client";
+'use client';
+
 import Link from 'next/link';
-import {useEffect,useState} from 'react';
-import {Layers,Plus,Trash2,RefreshCw} from 'lucide-react';
-import {readBatches,removeBatch,type Batch} from './store';
-import styles from './Batches.module.css';
-export default function BatchesPage(){
- const [batches,setBatches]=useState<Batch[]>([]); const [search,setSearch]=useState('');
- function refresh(){setBatches(readBatches());}
- useEffect(()=>{refresh();},[]);
- function discard(id:string){if(window.confirm('Delete this browser-only draft?')){removeBatch(id);refresh();}}
- const filtered=batches.filter(b=>b.name.toLowerCase().includes(search.toLowerCase()));
- return <main className={styles.page}><header className={styles.header}><div><p className={styles.eyebrow}>CONTENT MANAGEMENT</p><h1>Content Batches</h1><p className={styles.subtitle}>Prepare problem batches using your real Content Library records.</p></div><Link className={styles.primary} href="/batches/new"><Plus size={17}/> Create Batch</Link></header>
- <div className={styles.notice}>Frontend phase: drafts are saved only in this browser, not in PostgreSQL or the E-Lab API. They are not submitted or published.</div>
- <div className={styles.stats}><div><strong>{batches.length}</strong><span>Browser drafts</span></div><div><strong>{batches.reduce((n,b)=>n+b.problemIds.length,0)}</strong><span>Selected problem references</span></div><div><strong>0</strong><span>Submitted batches</span></div></div>
- <section className={styles.card}><div className={styles.cardHead}><h2>Batch drafts</h2><button type="button" className={styles.secondary} onClick={refresh}><RefreshCw size={15}/> Refresh</button></div><input className={styles.input} aria-label="Search batches" placeholder="Search batch name" value={search} onChange={e=>setSearch(e.target.value)}/>
- {filtered.length===0?<div className={styles.empty}><Layers size={30}/><h3>{batches.length?'No matching batches':'No batches created yet'}</h3><p>Start a browser-only draft, then select problems from your Content Library.</p><Link href="/batches/new" className={styles.primary}>Create first batch</Link></div>:<div className={styles.rows}>{filtered.map(b=><div key={b.id} className={styles.batchRow}><div><Link href={`/batches/${encodeURIComponent(b.id)}`} className={styles.batchName}>{b.name}</Link><p>{b.type} · {b.problemIds.length} problems · Draft (browser only)</p></div><button type="button" className={styles.secondary} onClick={()=>discard(b.id)} aria-label={`Delete ${b.name}`}><Trash2 size={16}/></button></div>)}</div>}</section></main>;
+import { useState } from 'react';
+import { CheckCircle2, Layers, ListChecks, Plus, RefreshCw, Search, Trash2, TriangleAlert } from 'lucide-react';
+import { PageHeader, Panel, StatCard } from '@/components/admin/widgets/AdminWidgets';
+import { formatDate } from '@/features/admin/problems/lib/shared';
+import { useInstitutionLabel } from '../lib/useInstitutionLabel';
+import styles from '../ui/institute.module.css';
+import { BATCH_ROUTE, BATCH_TYPE_LABEL, batchApi, meetsTargets, useBatches } from './api';
+
+export default function BatchesPage() {
+  const institution = useInstitutionLabel();
+  const [search, setSearch] = useState('');
+  const { items, loaded, error, refresh } = useBatches(search.trim());
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const problems = items.reduce((sum, batch) => sum + batch.problemCount, 0);
+  const onTarget = items.filter((batch) => batch.problemCount > 0 && meetsTargets(batch)).length;
+  const gaps = items.filter((batch) => batch.withoutSample + batch.withoutHidden > 0).length;
+
+  const remove = async (id: string, name: string) => {
+    setBusyId(id);
+    const result = await batchApi.remove(id);
+    setBusyId(null);
+    setConfirmId(null);
+    if (result.ok) {
+      setNotice({ tone: 'ok', text: `${name} was deleted.` });
+      await refresh();
+    } else setNotice({ tone: 'error', text: result.error });
+  };
+
+  return (
+    <div className={styles.page}>
+      <PageHeader
+        title="Content Batches"
+        pill={institution}
+        meta="Group institution problems into batches with difficulty targets"
+        actions={
+          <>
+            <button className={styles.ghostButton} type="button" onClick={() => void refresh()}>
+              <RefreshCw size={16} aria-hidden="true" />
+              Refresh
+            </button>
+            <Link className={styles.primaryButton} href={`${BATCH_ROUTE}/new`}>
+              <Plus size={16} aria-hidden="true" />
+              New batch
+            </Link>
+          </>
+        }
+      />
+
+      <section className={styles.statGrid} aria-label="Batch summary">
+        <StatCard metric={{ key: 'batches', label: 'Batches', value: items.length, tone: 'primary' }} icon={Layers} />
+        <StatCard metric={{ key: 'problems', label: 'Problems in batches', value: problems, tone: 'neutral' }} icon={ListChecks} />
+        <StatCard metric={{ key: 'target', label: 'Matching their targets', value: onTarget, tone: 'success' }} icon={CheckCircle2} />
+        <StatCard metric={{ key: 'gaps', label: 'With test-case gaps', value: gaps, tone: gaps ? 'warning' : 'neutral' }} icon={TriangleAlert} />
+      </section>
+
+      <Panel title="Batches">
+        <div className={styles.toolbar}>
+          <label className={styles.searchField}>
+            <Search className={styles.searchIcon} size={16} aria-hidden="true" />
+            <input className={styles.input} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search batch name" aria-label="Search batches" />
+          </label>
+        </div>
+        {error && (
+          <p className={styles.error} role="alert">
+            {`Unable to load batches: ${error}`}
+          </p>
+        )}
+        {notice && (
+          <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
+            {notice.text}
+          </p>
+        )}
+        {!loaded ? (
+          <p className={styles.empty}>Loading batches…</p>
+        ) : items.length === 0 ? (
+          <div className={styles.empty}>
+            <Layers size={30} aria-hidden="true" />
+            <strong>{search ? 'No matching batches' : 'No batches yet'}</strong>
+            <p>Create a batch, then pick problems from your Content Library.</p>
+            <Link href={`${BATCH_ROUTE}/new`} className={styles.textLink}>
+              Create a batch
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Batch</th>
+                  <th>Type</th>
+                  <th>Problems</th>
+                  <th>Easy · Medium · Hard</th>
+                  <th>Test cases</th>
+                  <th>Updated</th>
+                  <th>
+                    <span className={styles.srOnly}>Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((batch) => (
+                  <tr key={batch.id}>
+                    <td>
+                      <Link href={`${BATCH_ROUTE}/${batch.id}`} className={styles.rowTitle}>
+                        {batch.name}
+                      </Link>
+                      {batch.focus && <span className={styles.rowMeta}>{batch.focus}</span>}
+                    </td>
+                    <td>{BATCH_TYPE_LABEL[batch.type]}</td>
+                    <td>{batch.problemCount}</td>
+                    <td>
+                      {`${batch.difficulty.easy} · ${batch.difficulty.medium} · ${batch.difficulty.hard}`}
+                      <span className={styles.rowMeta}>{meetsTargets(batch) ? 'Matches targets' : `Targets ${batch.targets.easy} · ${batch.targets.medium} · ${batch.targets.hard}`}</span>
+                    </td>
+                    <td>{batch.withoutSample + batch.withoutHidden === 0 ? 'Complete' : `${batch.withoutHidden} without hidden, ${batch.withoutSample} without sample`}</td>
+                    <td>{formatDate(batch.updatedAt)}</td>
+                    <td>
+                      {confirmId === batch.id ? (
+                        <span className={styles.rowActions}>
+                          <button type="button" className={styles.dangerButton} disabled={busyId !== null} onClick={() => void remove(batch.id, batch.name)}>
+                            {busyId === batch.id ? 'Deleting…' : 'Delete'}
+                          </button>
+                          <button type="button" className={styles.textButton} onClick={() => setConfirmId(null)}>
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button type="button" className={styles.iconButton} aria-label={`Delete ${batch.name}`} title="Delete batch" onClick={() => setConfirmId(batch.id)}>
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+      <p className={styles.note}>Batches are not shown to learners yet. Assigning batches to learners arrives with the learner workflow.</p>
+    </div>
+  );
 }

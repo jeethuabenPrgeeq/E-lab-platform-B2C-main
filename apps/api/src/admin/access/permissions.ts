@@ -59,7 +59,7 @@ export function isPermission(value: unknown): value is Permission {
   return typeof value === 'string' && (PERMISSIONS as readonly string[]).includes(value);
 }
 
-export const INSTITUTION_PERMISSIONS = ['inst.content.view', 'inst.content.create'] as const;
+export const INSTITUTION_PERMISSIONS = ['inst.content.view', 'inst.content.create', 'inst.content.publish', 'inst.tests.manage', 'inst.batches.manage'] as const;
 
 export type InstitutionPermission = (typeof INSTITUTION_PERMISSIONS)[number];
 

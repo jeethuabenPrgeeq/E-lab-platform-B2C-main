@@ -109,6 +109,7 @@
 }
 
 .tableWrap {
+  position: relative;
   overflow-x: auto;
   border-radius: var(--ad-radius-sm);
   box-shadow: var(--ad-inset-sm);
@@ -192,6 +193,235 @@
   color: var(--ad-danger);
   font-size: 14px;
   font-weight: 600;
+}
+
+.success {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: var(--ad-radius-sm);
+  box-shadow: var(--ad-inset-sm);
+  color: var(--ad-success);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ghostButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--ad-radius-sm);
+  background: var(--ad-danger);
+  box-shadow: var(--ad-raised-sm);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.textButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ad-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ad-bg);
+  box-shadow: var(--ad-raised-sm);
+  color: var(--ad-primary);
+  cursor: pointer;
+}
+
+.iconButton:active {
+  box-shadow: var(--ad-inset-sm);
+}
+
+.iconButton:disabled,
+.primaryButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.iconButton:focus-visible,
+.dangerButton:focus-visible,
+.textButton:focus-visible {
+  outline: 2px solid var(--ad-primary);
+  outline-offset: 3px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-bottom: -16px;
+  color: var(--ad-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.label {
+  color: var(--ad-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--ad-radius-sm);
+  background: var(--ad-bg);
+  box-shadow: var(--ad-inset-sm);
+  color: var(--ad-text);
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--ad-primary);
+  outline-offset: 2px;
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.pickList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 460px;
+  margin: 16px 0 0;
+  padding: 8px;
+  overflow-y: auto;
+  border-radius: var(--ad-radius-sm);
+  box-shadow: var(--ad-inset-sm);
+  list-style: none;
+}
+
+.pickRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.pickRow:hover {
+  box-shadow: var(--ad-raised-sm);
+}
+
+.pickText {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.pickText strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.position {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  box-shadow: var(--ad-inset-sm);
+  color: var(--ad-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.checkOk,
+.checkWarn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkOk svg {
+  color: var(--ad-success);
+}
+
+.checkWarn svg {
+  color: var(--ad-warning);
 }
 
 .note {
@@ -329,6 +559,18 @@
 @media (max-width: 559px) {
   .page {
     gap: 24px;
+  }
+
+  .splitGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pickRow {
+    flex-wrap: wrap;
+  }
+
+  .pickRow .rowActions {
+    margin-left: auto;
   }
 
   .barRow {

@@ -101,13 +101,13 @@ export function useProblem(id: string, base = ADMIN_PROBLEMS) {
   const transition = useCallback(
     async (action: ProblemAction, note?: string): Promise<ActionResult> => {
       try {
-        setProblem(await adminApi<ProblemDetail>(`/admin/problems/${id}/transition`, { method: 'POST', body: { action, ...(note ? { note } : {}) } }));
+        setProblem(await adminApi<ProblemDetail>(`${base}/${id}/transition`, { method: 'POST', body: { action, ...(note ? { note } : {}) } }));
         return { ok: true };
       } catch (error) {
         return failure(error);
       }
     },
-    [id],
+    [id, base],
   );
 
   return { problem, loaded, loadError, refresh, update, transition };
