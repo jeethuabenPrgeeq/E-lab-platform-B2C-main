@@ -1,72 +1,78 @@
-"use client";
+'use client';
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { Download, FileUp, FolderPlus, RefreshCw, Search, Trash2, UserCheck, UserPlus, UserX, Users } from "lucide-react";
-import { PageHeader, Panel, StatCard } from "@/components/admin/widgets/AdminWidgets";
-import { formatDate } from "@/features/admin/problems/lib/shared";
-import { useInstitutionLabel } from "../lib/useInstitutionLabel";
-import styles from "../ui/institute.module.css";
-import { credentialsCsv, learnerApi, parseLearnerRows, useLearners, type Credential, type ImportResult } from "./api";
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { Download, FileUp, FolderPlus, RefreshCw, Search, Trash2, UserCheck, UserPlus, UserX, Users } from 'lucide-react';
+import { PageHeader, Panel, StatCard } from '@/components/admin/widgets/AdminWidgets';
+import { formatDate } from '@/features/admin/problems/lib/shared';
+import { usePermissions } from '@/features/admin/permissions/PermissionsProvider';
+import { useInstitutionLabel } from '../lib/useInstitutionLabel';
+import styles from '../ui/institute.module.css';
+import { credentialsCsv, learnerApi, parseLearnerRows, useLearners, type Credential, type ImportResult } from './api';
 
 const MAX_ROWS = 100;
 
 export default function LearnersPage() {
   const institution = useInstitutionLabel();
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState<"" | "active" | "revoked">("");
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState<'' | 'active' | 'revoked'>('');
   const { items, groups, counts, loaded, error, refresh } = useLearners(q.trim(), status);
-  const [groupName, setGroupName] = useState("");
+  const { has } = usePermissions();
+  const owner = has('inst.staff.manage');
+  const [addGroup, setAddGroup] = useState('');
+  const targetGroup = addGroup || (owner ? '' : (groups[0]?.id ?? ''));
+  const needsGroup = !owner && !targetGroup;
+  const [groupName, setGroupName] = useState('');
   const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [bulk, setBulk] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [bulk, setBulk] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [skipped, setSkipped] = useState<ImportResult["skipped"]>([]);
+  const [skipped, setSkipped] = useState<ImportResult['skipped']>([]);
   const [revokingId, setRevokingId] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
   const bulkRows = parseLearnerRows(bulk);
 
   const invite = async (event: FormEvent) => {
     event.preventDefault();
-    setBusy("invite");
+    setBusy('invite');
     setNotice(null);
-    const result = await learnerApi.invite(name.trim(), email.trim());
+    const result = await learnerApi.invite(name.trim(), email.trim(), targetGroup || null);
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
     setCredentials([{ name: result.data.learner.name, email: result.data.learner.email, temporaryPassword: result.data.temporaryPassword }]);
     setSkipped([]);
-    setName("");
-    setEmail("");
-    setNotice({ tone: "ok", text: `${result.data.learner.name} was added.` });
+    setName('');
+    setEmail('');
+    setNotice({ tone: 'ok', text: `${result.data.learner.name} was added.` });
     await refresh();
   };
 
   const importRows = async () => {
-    setBusy("import");
+    setBusy('import');
     setNotice(null);
-    const result = await learnerApi.import(bulkRows);
+    const result = await learnerApi.import(bulkRows, targetGroup || null);
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
     setCredentials(result.data.created);
     setSkipped(result.data.skipped);
-    setBulk("");
-    setNotice({ tone: "ok", text: `${result.data.created.length} learner${result.data.created.length === 1 ? "" : "s"} added${result.data.skipped.length ? `, ${result.data.skipped.length} skipped` : ""}.` });
+    setBulk('');
+    setNotice({ tone: 'ok', text: `${result.data.created.length} learner${result.data.created.length === 1 ? '' : 's'} added${result.data.skipped.length ? `, ${result.data.skipped.length} skipped` : ''}.` });
     await refresh();
   };
 
   const loadFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    event.target.value = "";
+    event.target.value = '';
     if (file) setBulk(await file.text());
   };
 
   const download = () => {
-    const url = URL.createObjectURL(new Blob([credentialsCsv(credentials)], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
+    const url = URL.createObjectURL(new Blob([credentialsCsv(credentials)], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
     link.href = url;
-    link.download = "learner-credentials.csv";
+    link.download = 'learner-credentials.csv';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -75,21 +81,21 @@ export default function LearnersPage() {
     setBusy(id);
     const result = await learnerApi.revoke(id, reason.trim());
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
     setRevokingId(null);
-    setReason("");
-    setNotice({ tone: "ok", text: `${result.data.name} was revoked and signed out.` });
+    setReason('');
+    setNotice({ tone: 'ok', text: `${result.data.name} was revoked and signed out.` });
     await refresh();
   };
 
   const createGroup = async (event: FormEvent) => {
     event.preventDefault();
-    setBusy("group");
+    setBusy('group');
     const result = await learnerApi.createGroup(groupName.trim());
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
-    setGroupName("");
-    setNotice({ tone: "ok", text: `Group ${result.data.name} was created.` });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
+    setGroupName('');
+    setNotice({ tone: 'ok', text: `Group ${result.data.name} was created.` });
     await refresh();
   };
 
@@ -98,8 +104,8 @@ export default function LearnersPage() {
     const result = await learnerApi.deleteGroup(id);
     setBusy(null);
     setDeletingGroupId(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
-    setNotice({ tone: "ok", text: `Group ${name} was deleted. Its learners are now ungrouped.` });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
+    setNotice({ tone: 'ok', text: `Group ${name} was deleted. Its learners are now ungrouped.` });
     await refresh();
   };
 
@@ -107,7 +113,7 @@ export default function LearnersPage() {
     setBusy(id);
     const result = await learnerApi.setGroup(id, groupId || null);
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
     await refresh();
   };
 
@@ -115,8 +121,8 @@ export default function LearnersPage() {
     setBusy(id);
     const result = await learnerApi.restore(id);
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: "error", text: result.error });
-    setNotice({ tone: "ok", text: `${result.data.name} can sign in again.` });
+    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
+    setNotice({ tone: 'ok', text: `${result.data.name} can sign in again.` });
     await refresh();
   };
 
@@ -125,7 +131,7 @@ export default function LearnersPage() {
       <PageHeader
         title="Learners"
         pill={institution}
-        meta="Learners see your institution’s published problems and the batches you assign"
+        meta={owner ? 'Learners see your institution’s published problems and the batches you assign' : 'Learners in the groups assigned to you'}
         actions={
           <button className={styles.ghostButton} type="button" onClick={() => void refresh()}>
             <RefreshCw size={16} aria-hidden="true" />
@@ -135,13 +141,13 @@ export default function LearnersPage() {
       />
 
       <section className={styles.statGrid} aria-label="Learner summary">
-        <StatCard metric={{ key: "active", label: "Active learners", value: counts.active, tone: "primary" }} icon={Users} />
-        <StatCard metric={{ key: "never", label: "Never signed in", value: counts.neverSignedIn, tone: counts.neverSignedIn ? "warning" : "neutral" }} icon={UserPlus} />
-        <StatCard metric={{ key: "revoked", label: "Revoked", value: counts.revoked, tone: "neutral" }} icon={UserX} />
+        <StatCard metric={{ key: 'active', label: 'Active learners', value: counts.active, tone: 'primary' }} icon={Users} />
+        <StatCard metric={{ key: 'never', label: 'Never signed in', value: counts.neverSignedIn, tone: counts.neverSignedIn ? 'warning' : 'neutral' }} icon={UserPlus} />
+        <StatCard metric={{ key: 'revoked', label: 'Revoked', value: counts.revoked, tone: 'neutral' }} icon={UserX} />
       </section>
 
       {notice && (
-        <p className={notice.tone === "error" ? styles.error : styles.success} role={notice.tone === "error" ? "alert" : "status"}>
+        <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
           {notice.text}
         </p>
       )}
@@ -155,7 +161,8 @@ export default function LearnersPage() {
               <Download size={16} aria-hidden="true" />
               Download CSV
             </button>
-          }>
+          }
+        >
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
@@ -191,11 +198,26 @@ export default function LearnersPage() {
             {skipped.map((row) => (
               <li key={`${row.row}-${row.email}`} className={styles.checkWarn}>
                 <UserX size={18} aria-hidden="true" />
-                <span>{`Row ${row.row}${row.email ? ` (${row.email})` : ""}: ${row.reason}`}</span>
+                <span>{`Row ${row.row}${row.email ? ` (${row.email})` : ''}: ${row.reason}`}</span>
               </li>
             ))}
           </ul>
         </Panel>
+      )}
+
+      {(owner ? groups.length > 0 : true) && (
+        <label className={`${styles.field} ${styles.fieldNarrow}`}>
+          <span className={styles.label}>Add new learners to</span>
+          <select id="learner-target-group" className={styles.select} value={targetGroup} onChange={(e) => setAddGroup(e.target.value)} disabled={!owner && groups.length === 0}>
+            {owner && <option value="">No group</option>}
+            {!owner && groups.length === 0 && <option value="">No groups assigned to you</option>}
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
 
       <div className={styles.splitGrid}>
@@ -210,9 +232,9 @@ export default function LearnersPage() {
               <input id="learner-email" type="email" className={styles.input} value={email} maxLength={160} onChange={(e) => setEmail(e.target.value)} placeholder="asha@student.edu" required />
             </label>
             <div className={`${styles.field} ${styles.fieldWide}`}>
-              <button type="submit" className={styles.primaryButton} disabled={busy !== null}>
+              <button type="submit" className={styles.primaryButton} disabled={busy !== null || needsGroup}>
                 <UserPlus size={16} aria-hidden="true" />
-                {busy === "invite" ? "Adding…" : "Add learner"}
+                {busy === 'invite' ? 'Adding…' : 'Add learner'}
               </button>
             </div>
           </form>
@@ -222,7 +244,7 @@ export default function LearnersPage() {
           <div className={styles.formGrid}>
             <label className={`${styles.field} ${styles.fieldWide}`}>
               <span className={styles.label}>Learners</span>
-              <textarea id="learner-bulk" className={styles.textarea} rows={5} value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder={"Asha Menon, asha@student.edu\nRahul Das, rahul@student.edu"} />
+              <textarea id="learner-bulk" className={styles.textarea} rows={5} value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder={'Asha Menon, asha@student.edu\nRahul Das, rahul@student.edu'} />
             </label>
             <div className={`${styles.field} ${styles.fieldWide}`}>
               <span className={styles.rowActions}>
@@ -231,8 +253,8 @@ export default function LearnersPage() {
                   Load CSV file
                   <input type="file" accept=".csv,text/csv,text/plain" className={styles.srOnly} onChange={(e) => void loadFile(e)} />
                 </label>
-                <button type="button" className={styles.primaryButton} disabled={busy !== null || bulkRows.length === 0 || bulkRows.length > MAX_ROWS} onClick={() => void importRows()}>
-                  {busy === "import" ? "Importing…" : bulkRows.length ? `Import ${bulkRows.length} learner${bulkRows.length === 1 ? "" : "s"}` : "Import learners"}
+                <button type="button" className={styles.primaryButton} disabled={busy !== null || needsGroup || bulkRows.length === 0 || bulkRows.length > MAX_ROWS} onClick={() => void importRows()}>
+                  {busy === 'import' ? 'Importing…' : bulkRows.length ? `Import ${bulkRows.length} learner${bulkRows.length === 1 ? '' : 's'}` : 'Import learners'}
                 </button>
               </span>
               {bulkRows.length > MAX_ROWS && <span className={styles.rowMeta}>{`Split the list: ${bulkRows.length} rows is more than ${MAX_ROWS}.`}</span>}
@@ -241,23 +263,25 @@ export default function LearnersPage() {
         </Panel>
       </div>
 
-      <Panel title="Groups" subtitle="Assign a batch to one group instead of every learner. A learner can be in one group.">
-        <form className={styles.rowActions} onSubmit={(event) => void createGroup(event)}>
-          <input id="group-name" className={styles.input} value={groupName} maxLength={60} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Batch A, 2026" aria-label="New group name" />
-          <button type="submit" className={styles.ghostButton} disabled={busy !== null || groupName.trim().length < 2}>
-            <FolderPlus size={16} aria-hidden="true" />
-            Create group
-          </button>
-        </form>
+      <Panel title={owner ? 'Groups' : 'Your groups'} subtitle={owner ? 'Assign a batch to one group instead of every learner. A learner can be in one group.' : 'Only the Institute Admin can create or delete groups.'}>
+        {owner && (
+          <form className={styles.rowActions} onSubmit={(event) => void createGroup(event)}>
+            <input id="group-name" className={styles.input} value={groupName} maxLength={60} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Batch A, 2026" aria-label="New group name" />
+            <button type="submit" className={styles.ghostButton} disabled={busy !== null || groupName.trim().length < 2}>
+              <FolderPlus size={16} aria-hidden="true" />
+              Create group
+            </button>
+          </form>
+        )}
         {groups.length > 0 && (
           <ul className={styles.pickList}>
             {groups.map((group) => (
               <li key={group.id} className={styles.pickRow}>
                 <span className={styles.pickText}>
                   <strong>{group.name}</strong>
-                  <span className={styles.rowMeta}>{`${group.learners} active learner${group.learners === 1 ? "" : "s"}`}</span>
+                  <span className={styles.rowMeta}>{`${group.learners} active learner${group.learners === 1 ? '' : 's'}`}</span>
                 </span>
-                {deletingGroupId === group.id ? (
+                {!owner ? null : deletingGroupId === group.id ? (
                   <span className={styles.rowActions}>
                     <button type="button" className={styles.dangerButton} disabled={busy !== null} onClick={() => void deleteGroup(group.id, group.name)}>
                       Delete
@@ -283,7 +307,7 @@ export default function LearnersPage() {
             <Search className={styles.searchIcon} size={16} aria-hidden="true" />
             <input className={styles.input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or email" aria-label="Search learners" />
           </label>
-          <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as "" | "active" | "revoked")} aria-label="Status">
+          <select className={styles.select} value={status} onChange={(e) => setStatus(e.target.value as '' | 'active' | 'revoked')} aria-label="Status">
             <option value="">All statuses</option>
             <option value="active">Active</option>
             <option value="revoked">Revoked</option>
@@ -299,7 +323,7 @@ export default function LearnersPage() {
         ) : items.length === 0 ? (
           <div className={styles.empty}>
             <Users size={30} aria-hidden="true" />
-            <strong>{q || status ? "No matching learners" : "No learners yet"}</strong>
+            <strong>{q || status ? 'No matching learners' : 'No learners yet'}</strong>
             <p>Invite learners one at a time or import a list.</p>
           </div>
         ) : (
@@ -325,12 +349,12 @@ export default function LearnersPage() {
                       <span className={styles.rowMeta}>{learner.email}</span>
                     </td>
                     <td>
-                      {learner.status === "active" ? "Active" : "Revoked"}
+                      {learner.status === 'active' ? 'Active' : 'Revoked'}
                       {learner.revokeReason && <span className={styles.rowMeta}>{learner.revokeReason}</span>}
                     </td>
                     <td>
-                      <select className={styles.select} value={learner.group?.id ?? ""} disabled={busy !== null || groups.length === 0} onChange={(e) => void moveToGroup(learner.id, e.target.value)} aria-label={`Group for ${learner.name}`}>
-                        <option value="">No group</option>
+                      <select className={styles.select} value={learner.group?.id ?? ''} disabled={busy !== null || groups.length === 0} onChange={(e) => void moveToGroup(learner.id, e.target.value)} aria-label={`Group for ${learner.name}`}>
+                        {(owner || !learner.group) && <option value="">No group</option>}
                         {groups.map((group) => (
                           <option key={group.id} value={group.id}>
                             {group.name}
@@ -338,13 +362,13 @@ export default function LearnersPage() {
                         ))}
                       </select>
                     </td>
-                    <td>{learner.lastLoginAt ? formatDate(learner.lastLoginAt) : "Never"}</td>
+                    <td>{learner.lastLoginAt ? formatDate(learner.lastLoginAt) : 'Never'}</td>
                     <td>
                       {formatDate(learner.createdAt)}
                       {learner.invitedByName && <span className={styles.rowMeta}>{`by ${learner.invitedByName}`}</span>}
                     </td>
                     <td>
-                      {learner.status === "revoked" ? (
+                      {learner.status === 'revoked' ? (
                         <button type="button" className={styles.ghostButton} disabled={busy !== null} onClick={() => void restore(learner.id)}>
                           <UserCheck size={16} aria-hidden="true" />
                           Restore

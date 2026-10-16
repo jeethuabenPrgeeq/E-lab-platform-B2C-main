@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext, ForbiddenException, SetMetadata } from '@nestjs/common';
 
-import type { PermissionRequest } from './effective-permissions.js';
+import type { PermissionRequest, StaffScope } from './effective-permissions.js';
 import type { AnyPermission } from './permissions.js';
 
 export const PERMISSION_KEY = 'required_permission';
@@ -24,3 +24,6 @@ export const InstitutionId = createParamDecorator((_data: unknown, context: Exec
   if (!id) throw new ForbiddenException('Your account is not linked to an active institution.');
   return id;
 });
+
+
+export const Scope = createParamDecorator((_data: unknown, context: ExecutionContext): StaffScope | null => context.switchToHttp().getRequest<PermissionRequest>().staffScope ?? null);

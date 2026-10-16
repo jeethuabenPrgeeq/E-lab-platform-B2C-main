@@ -40,7 +40,8 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [assignment, setAssignment] = useState<Pick<BatchDetail, "assignedAt" | "assignedByName" | "assignedGroup" | "progress"> | null>(null);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
-  const [targetGroup, setTargetGroup] = useState("");
+  const [targetGroup, setTargetGroup] = useState('');
+  const [scoped, setScoped] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const filters = useMemo<LibraryFilters>(() => ({ scope: "all", status: "", difficulty: "", technologyId: "", q: query.trim() }), [query]);
   const library = useLibrary(filters);
@@ -50,7 +51,10 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
     if (!batchId) return;
     let alive = true;
     void batchApi.groups().then((result) => {
-      if (alive && result.ok) setGroups(result.data.items);
+           if (!alive || !result.ok) return;
+      setGroups(result.data.items);
+      setScoped(result.data.scoped);
+      if (result.data.scoped && result.data.items[0]) setTargetGroup(result.data.items[0].id);
     });
     void batchApi.get(batchId).then((result) => {
       if (!alive) return;
@@ -276,7 +280,8 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
             <span className={styles.rowActions}>
               {!assignment.assignedAt && (
                 <select className={styles.select} value={targetGroup} onChange={(e) => setTargetGroup(e.target.value)} aria-label="Assign to">
-                  <option value="">All learners</option>
+                                  {!scoped && <option value="">All learners</option>}
+                {scoped && groups.length === 0 && <option value="">No groups assigned to you</option>}
                   {groups.map((group) => (
                     <option key={group.id} value={group.id}>
                       {group.name}
@@ -284,7 +289,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
                   ))}
                 </select>
               )}
-              <button type="button" className={assignment.assignedAt ? styles.ghostButton : styles.primaryButton} disabled={saving || (!assignment.assignedAt && (unsaved || selected.length === 0))} title={!assignment.assignedAt && unsaved ? "Save your changes before assigning" : undefined} onClick={() => void toggleAssignment()}>
+              <button type="button" className={assignment.assignedAt ? styles.ghostButton : styles.primaryButton}               disabled={saving || (!assignment.assignedAt && (unsaved || selected.length === 0 || (scoped && !targetGroup)))} title={!assignment.assignedAt && unsaved ? "Save your changes before assigning" : undefined} onClick={() => void toggleAssignment()}>
                 {assignment.assignedAt ? <Undo2 size={16} aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
                 {assignment.assignedAt ? "Withdraw" : targetGroup ? "Assign to group" : "Assign to all learners"}
               </button>

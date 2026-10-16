@@ -1,6 +1,6 @@
 import type { AuthenticatedRequest } from '../../auth/current-user.decorator.js';
 import type { PrismaService } from '../../prisma/prisma.service.js';
-import { AUTHORING_PERMISSIONS, isInstitutionPermission, isPermission, SUPER_PERMISSIONS, SUPER_ROLE, type AnyPermission } from './permissions.js';
+import { AUTHORING_PERMISSIONS, INSTITUTE_OWNER_PERMISSION, isInstitutionPermission, isPermission, SUPER_PERMISSIONS, SUPER_ROLE, type AnyPermission } from './permissions.js';
 
 export interface PermissionSubject {
   role: string;
@@ -9,6 +9,13 @@ export interface PermissionSubject {
   adminRole: { permissions: unknown } | null;
   organizationId?: string | null;
   organization?: { status: string; permissions: unknown } | null;
+  staffTitle?: string | null;
+  staffPermissions?: string[];
+  staffGroups?: { id: string }[];
+}
+
+export interface StaffScope {
+  groupIds: string[];
 }
 
 export const PERMISSION_SUBJECT_SELECT = {
@@ -18,6 +25,9 @@ export const PERMISSION_SUBJECT_SELECT = {
   adminRole: { select: { permissions: true } },
   organizationId: true,
   organization: { select: { status: true, permissions: true } },
+  staffTitle: true,
+  staffPermissions: true,
+  staffGroups: { select: { id: true } },
 } as const;
 
 const AUTHORING_DB_ROLES = new Set(['PLATFORM_ADMIN']);
@@ -26,8 +36,10 @@ export function resolvePermissions(subject: PermissionSubject | null): AnyPermis
   if (!subject || subject.status !== 'ACTIVE') return [];
   if (subject.role === 'INSTITUTE_ADMIN') {
     if (!subject.organization || subject.organization.status !== 'active') return [];
-    const keys = Array.isArray(subject.organization.permissions) ? (subject.organization.permissions as unknown[]).filter(isInstitutionPermission) : [];
-    return [...new Set(keys)].sort();
+    const keys: AnyPermission[] = Array.isArray(subject.organization.permissions) ? (subject.organization.permissions as unknown[]).filter(isInstitutionPermission) : [];
+    if (subject.staffTitle == null) return [...new Set<AnyPermission>([...keys, INSTITUTE_OWNER_PERMISSION])].sort();
+    const own = new Set(subject.staffPermissions ?? []);
+    return [...new Set(keys.filter((key) => own.has(key)))].sort();
   }
   if (subject.role === 'SUPER_ADMIN' && (!subject.adminRoleId || subject.adminRoleId === SUPER_ROLE)) return [...SUPER_PERMISSIONS].sort();
   const stored = Array.isArray(subject.adminRole?.permissions) ? (subject.adminRole.permissions as unknown[]).filter(isPermission) : [];
@@ -35,7 +47,7 @@ export function resolvePermissions(subject: PermissionSubject | null): AnyPermis
   return [...new Set(allowed)].sort();
 }
 
-export type PermissionRequest = AuthenticatedRequest & { grantedPermissions?: ReadonlySet<AnyPermission>; institutionId?: string | null };
+export type PermissionRequest = AuthenticatedRequest & { grantedPermissions?: ReadonlySet<AnyPermission>; institutionId?: string | null; staffScope?: StaffScope | null };
 
 export async function grantedPermissions(prisma: PrismaService, request: PermissionRequest): Promise<ReadonlySet<AnyPermission>> {
   if (request.grantedPermissions) return request.grantedPermissions;
@@ -44,5 +56,6 @@ export async function grantedPermissions(prisma: PrismaService, request: Permiss
   const granted = new Set(resolvePermissions(subject));
   request.grantedPermissions = granted;
   request.institutionId = subject?.role === 'INSTITUTE_ADMIN' && granted.size > 0 ? (subject.organizationId ?? null) : null;
+  request.staffScope = subject?.role === 'INSTITUTE_ADMIN' && subject.staffTitle != null ? { groupIds: (subject.staffGroups ?? []).map((group) => group.id) } : null;
   return granted;
 }

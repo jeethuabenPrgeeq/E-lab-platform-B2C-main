@@ -22,11 +22,13 @@ interface MyPermissions {
   roleName: string;
   permissions: AnyPermissionKey[];
   institution: MyInstitution | null;
+  staff?: boolean;
 }
 
 interface PermissionsValue {
   status: Status;
   roleName: string;
+  staff: boolean;
   institution: MyInstitution | null;
   error: string;
   has: (requirement?: PermissionRequirement) => boolean;
@@ -36,6 +38,7 @@ interface PermissionsValue {
 const PermissionsContext = createContext<PermissionsValue>({
   status: 'ready',
   roleName: '',
+  staff: false,
   institution: null,
   error: '',
   has: () => true,
@@ -44,7 +47,7 @@ const PermissionsContext = createContext<PermissionsValue>({
 
 const toList = (requirement: PermissionRequirement): readonly AnyPermissionKey[] => (typeof requirement === 'string' ? [requirement] : requirement);
 
-const labelOf = (key: AnyPermissionKey) => (key.startsWith('inst.') ? INSTITUTION_PERMISSION_LABEL[key as InstitutionPermissionKey] : PERMISSION_LABEL[key as PermissionKey]) ?? key;
+const labelOf = (key: AnyPermissionKey) => (key === 'inst.staff.manage' ? 'Manage staff' : key.startsWith('inst.') ? INSTITUTION_PERMISSION_LABEL[key as InstitutionPermissionKey] : PERMISSION_LABEL[key as PermissionKey]) ?? key;
 
 export function permissionLabel(requirement: PermissionRequirement) {
   return toList(requirement)
@@ -92,6 +95,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     return {
       status,
       roleName: data?.roleName ?? '',
+      staff: data?.staff ?? false,
       institution: data?.institution ?? null,
       error,
       has: (requirement) => !requirement || toList(requirement).some((key) => granted.has(key)),

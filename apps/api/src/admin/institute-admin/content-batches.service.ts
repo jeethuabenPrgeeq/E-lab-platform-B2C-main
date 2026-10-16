@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import type { Prisma } from '../../../generated/prisma/client/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import type { StaffScope } from '../access/effective-permissions.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AdminActor } from '../common/admin-actor.decorator.js';
 import type { BatchQueryDto, CreateBatchDto, UpdateBatchDto } from './content-batches.dto.js';
@@ -93,8 +94,13 @@ export class ContentBatchesService {
     };
   }
 
-  private async owned(id: string, organizationId: string, db: Db = this.prisma) {
-    const batch = await db.contentBatch.findFirst({ where: { id, organizationId }, include: BATCH_INCLUDE });
+  private visible(scope: StaffScope | null, actorId?: string): Prisma.ContentBatchWhereInput {
+    if (!scope) return {};
+    return { OR: [{ assignedGroupId: { in: scope.groupIds } }, ...(actorId ? [{ createdById: actorId }] : [])] };
+  }
+
+  private async owned(id: string, organizationId: string, db: Db = this.prisma, scope: StaffScope | null = null, actorId?: string) {
+    const batch = await db.contentBatch.findFirst({ where: { id, organizationId, ...this.visible(scope, actorId) }, include: BATCH_INCLUDE });
     if (!batch) throw new NotFoundException('Batch not found in your institution.');
     return batch;
   }
@@ -120,8 +126,10 @@ export class ContentBatchesService {
     if (unpublished > 0) throw new BadRequestException(`${unpublished} problem${unpublished === 1 ? ' is' : 's are'} not published yet. Learners can only open published problems.`);
   }
 
-    async assign(id: string, actor: AdminActor, organizationId: string, groupId: string | null = null) {
-    const batch = await this.owned(id, organizationId);
+  async assign(id: string, actor: AdminActor, organizationId: string, groupId: string | null = null, scope: StaffScope | null = null) {
+    const batch = await this.owned(id, organizationId, this.prisma, scope, actor.id);
+    if (scope && !groupId) throw new BadRequestException('Choose one of your learner groups.');
+    if (scope && groupId && !scope.groupIds.includes(groupId)) throw new ForbiddenException('That group is not assigned to you.');
     if (batch.items.length === 0) throw new BadRequestException('Add problems before assigning the batch.');
     await this.assertPublished(batch.items.map((item) => item.problem.id));
     const group = groupId ? await this.prisma.learnerGroup.findFirst({ where: { id: groupId, organizationId }, select: { id: true, name: true } }) : null;
@@ -129,13 +137,13 @@ export class ContentBatchesService {
     const assigner = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { name: true } });
     await this.prisma.$transaction(async (tx) => {
       await tx.contentBatch.update({ where: { id }, data: { assignedAt: new Date(), assignedByName: assigner?.name ?? 'Institute admin', assignedGroupId: group?.id ?? null } });
-            await this.audit.record(tx, actor, { action: 'content_batch.assign', entityType: 'content_batch', entityId: id, summary: `Assigned batch ${batch.name} to ${group ? `group ${group.name}` : 'all learners'}` });
+      await this.audit.record(tx, actor, { action: 'content_batch.assign', entityType: 'content_batch', entityId: id, summary: `Assigned batch ${batch.name} to ${group ? `group ${group.name}` : 'all learners'}` });
     });
-    return this.get(id, organizationId);
+    return this.get(id, organizationId, scope, actor.id);
   }
 
-  async unassign(id: string, actor: AdminActor, organizationId: string) {
-    const batch = await this.owned(id, organizationId);
+  async unassign(id: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const batch = await this.owned(id, organizationId, this.prisma, scope, actor.id);
     if (batch.assignedAt) {
       await this.prisma.$transaction(async (tx) => {
         await tx.contentBatch.update({ where: { id }, data: { assignedAt: null, assignedByName: null, assignedGroupId: null } });
@@ -155,10 +163,10 @@ export class ContentBatchesService {
     if (deprecated > 0) throw new BadRequestException(`Remove ${deprecated} deprecated problem${deprecated === 1 ? '' : 's'} from the batch.`);
   }
 
-  async list(query: BatchQueryDto, organizationId: string) {
+  async list(query: BatchQueryDto, organizationId: string, scope: StaffScope | null = null, actorId?: string) {
     const q = query.q?.trim();
     const batches = await this.prisma.contentBatch.findMany({
-      where: { organizationId, ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}) },
+      where: { organizationId, ...this.visible(scope, actorId), ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}) },
       orderBy: { updatedAt: 'desc' },
       include: BATCH_INCLUDE,
     });
@@ -166,9 +174,9 @@ export class ContentBatchesService {
     return { items: batches.map((batch) => this.shape(batch, counts, false)) };
   }
 
-  async assignedProgress(organizationId: string) {
+  async assignedProgress(organizationId: string, scope: StaffScope | null = null) {
     const batches = await this.prisma.contentBatch.findMany({
-      where: { organizationId, assignedAt: { not: null } },
+      where: { organizationId, assignedAt: { not: null }, ...(scope ? { assignedGroupId: { in: scope.groupIds } } : {}) },
       orderBy: { assignedAt: 'desc' },
       take: 20,
       select: { id: true, name: true, assignedAt: true, assignedGroupId: true, assignedGroup: { select: { name: true } }, items: { select: { problem: { select: { slug: true } } } } },
@@ -186,13 +194,13 @@ export class ContentBatchesService {
     return { items };
   }
 
-  async groups(organizationId: string) {
-    const rows = await this.prisma.learnerGroup.findMany({ where: { organizationId }, orderBy: { name: 'asc' }, select: { id: true, name: true } });
-    return { items: rows };
+  async groups(organizationId: string, scope: StaffScope | null = null) {
+    const rows = await this.prisma.learnerGroup.findMany({ where: { organizationId, ...(scope ? { id: { in: scope.groupIds } } : {}) }, orderBy: { name: 'asc' }, select: { id: true, name: true } });
+    return { items: rows, scoped: scope !== null };
   }
 
-  async get(id: string, organizationId: string) {
-    const batch = await this.owned(id, organizationId);
+  async get(id: string, organizationId: string, scope: StaffScope | null = null, actorId?: string) {
+    const batch = await this.owned(id, organizationId, this.prisma, scope, actorId);
     const [counts, progress] = await Promise.all([
       this.testCounts(batch.items.map((item) => item.problem.id)),
       this.progress(organizationId, batch.items.map((item) => item.problem.slug), batch.assignedGroupId),
@@ -229,8 +237,8 @@ export class ContentBatchesService {
     return this.get(id, organizationId);
   }
 
-  async update(id: string, dto: UpdateBatchDto, actor: AdminActor, organizationId: string) {
-    const existing = await this.owned(id, organizationId);
+  async update(id: string, dto: UpdateBatchDto, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const existing = await this.owned(id, organizationId, this.prisma, scope, actor.id);
     if (dto.problemIds) {
       await this.checkProblems(dto.problemIds, organizationId);
       if (existing.assignedAt) await this.assertPublished(dto.problemIds);
@@ -246,7 +254,7 @@ export class ContentBatchesService {
       .map(([key, value]) => ({ field: FIELD_LABELS[key] ?? key, before: (existing as Record<string, unknown>)[key], after: value }));
     const beforeIds = existing.items.map((item) => item.problem.id);
     const itemsChanged = Boolean(problemIds) && JSON.stringify(beforeIds) !== JSON.stringify(problemIds);
-    if (changes.length === 0 && !itemsChanged) return this.get(id, organizationId);
+    if (changes.length === 0 && !itemsChanged) return this.get(id, organizationId, scope, actor.id);
 
     await this.prisma.$transaction(async (tx) => {
       await tx.contentBatch.update({ where: { id }, data: { ...fields, updatedAt: new Date() } });
@@ -267,11 +275,11 @@ export class ContentBatchesService {
         },
       });
     });
-    return this.get(id, organizationId);
+    return this.get(id, organizationId, scope, actor.id);
   }
 
-  async remove(id: string, actor: AdminActor, organizationId: string) {
-    const existing = await this.owned(id, organizationId);
+  async remove(id: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const existing = await this.owned(id, organizationId, this.prisma, scope, actor.id);
     await this.prisma.$transaction(async (tx) => {
       await tx.contentBatch.delete({ where: { id } });
       await this.audit.record(tx, actor, {

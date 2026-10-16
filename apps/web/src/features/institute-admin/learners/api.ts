@@ -51,8 +51,8 @@ async function attempt<T>(task: () => Promise<T>): Promise<Outcome<T>> {
 }
 
 export const learnerApi = {
-  invite: (name: string, email: string) => attempt(() => adminApi<{ learner: Learner; temporaryPassword: string }>(LEARNERS, { method: 'POST', body: { name, email } })),
-  import: (rows: { name: string; email: string }[]) => attempt(() => adminApi<ImportResult>(`${LEARNERS}/import`, { method: 'POST', body: { rows } })),
+  invite: (name: string, email: string, groupId: string | null = null) => attempt(() => adminApi<{ learner: Learner; temporaryPassword: string }>(LEARNERS, { method: 'POST', body: { name, email, groupId } })),
+  import: (rows: { name: string; email: string }[], groupId: string | null = null) => attempt(() => adminApi<ImportResult>(`${LEARNERS}/import`, { method: 'POST', body: { rows, groupId } })),
   revoke: (id: string, reason: string) => attempt(() => adminApi<Learner>(`${LEARNERS}/${id}/revoke`, { method: 'POST', body: { reason } })),
   createGroup: (name: string) => attempt(() => adminApi<LearnerGroup>(`${LEARNERS}/groups`, { method: 'POST', body: { name } })),
   deleteGroup: (id: string) => attempt(() => adminApi<{ deleted: boolean }>(`${LEARNERS}/groups/${id}`, { method: 'DELETE' })),

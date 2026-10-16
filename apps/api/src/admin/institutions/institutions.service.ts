@@ -98,7 +98,7 @@ export class InstitutionsService {
   async get(id: string) {
     const row = await this.institution(id);
     const [admins, problems, learners] = await Promise.all([
-      this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: id }, orderBy: { createdAt: 'asc' }, select: ADMIN_SELECT }),
+            this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: id, staffTitle: null }, orderBy: { createdAt: 'asc' }, select: ADMIN_SELECT }),
       this.prisma.problem.groupBy({ by: ['status'], where: { organizationId: id }, _count: { _all: true } }),
       this.prisma.user.groupBy({ by: ['status'], where: { role: 'LEARNER', organizationId: id }, _count: { _all: true } }),
     ]);

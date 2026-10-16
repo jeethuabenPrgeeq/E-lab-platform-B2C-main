@@ -296,6 +296,10 @@ model User {
   learnerGroupId String?
   learnerGroup   LearnerGroup? @relation(fields: [learnerGroupId], references: [id], onDelete: SetNull)
 
+  staffTitle       String?
+  staffPermissions String[]       @default([])
+  staffGroups      LearnerGroup[] @relation("StaffGroups")
+
   problemsCreated   Problem[]          @relation("ProblemCreatedBy")
   problemsUpdated   Problem[]          @relation("ProblemUpdatedBy")
   problemsPublished Problem[]          @relation("ProblemPublishedBy")
@@ -352,6 +356,7 @@ model LearnerGroup {
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   name           String
   learners       User[]
+  staff          User[]         @relation("StaffGroups")
   batches        ContentBatch[]
   createdAt      DateTime       @default(now())
 

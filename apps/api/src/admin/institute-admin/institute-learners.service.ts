@@ -1,33 +1,15 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 
 import type { Prisma } from '../../../generated/prisma/client/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import type { StaffScope } from '../access/effective-permissions.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AdminActor } from '../common/admin-actor.decorator.js';
-import type {
-  ImportLearnersDto,
-  InviteLearnerDto,
-  LearnerQueryDto,
-} from './institute-learners.dto.js';
+import type { ImportLearnersDto, InviteLearnerDto, LearnerQueryDto } from './institute-learners.dto.js';
 
-const LEARNER_SELECT = {
-  id: true,
-  name: true,
-  email: true,
-  status: true,
-  lastLoginAt: true,
-  invitedByName: true,
-  revokeReason: true,
-  createdAt: true,
-  learnerGroup: { select: { id: true, name: true } },
-} as const;
+const LEARNER_SELECT = { id: true, name: true, email: true, status: true, lastLoginAt: true, invitedByName: true, revokeReason: true, createdAt: true, learnerGroup: { select: { id: true, name: true } } } as const;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type LearnerRow = Prisma.UserGetPayload<{ select: typeof LEARNER_SELECT }>;
@@ -54,43 +36,40 @@ export class InstituteLearnersService {
   ) {}
 
   private async inviter(actor: AdminActor) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: actor.id },
-      select: { name: true },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { name: true } });
     return user?.name ?? 'Institute admin';
   }
 
-  private async learner(organizationId: string, userId: string) {
-    const row = await this.prisma.user.findFirst({
-      where: { id: userId, organizationId, role: 'LEARNER' },
-      select: LEARNER_SELECT,
-    });
-    if (!row)
-      throw new NotFoundException('Learner not found in your institution.');
+  private inScope(scope: StaffScope | null): Prisma.UserWhereInput {
+    return scope ? { learnerGroupId: { in: scope.groupIds } } : {};
+  }
+
+  private async targetGroup(organizationId: string, groupId: string | null | undefined, scope: StaffScope | null) {
+    if (!groupId) {
+      if (scope) throw new BadRequestException('Choose one of your learner groups.');
+      return null;
+    }
+    if (scope && !scope.groupIds.includes(groupId)) throw new ForbiddenException('That group is not assigned to you.');
+    const group = await this.prisma.learnerGroup.findFirst({ where: { id: groupId, organizationId }, select: { id: true } });
+    if (!group) throw new BadRequestException('That group is not in your institution.');
+    return group.id;
+  }
+
+  private async learner(organizationId: string, userId: string, scope: StaffScope | null = null) {
+    const row = await this.prisma.user.findFirst({ where: { id: userId, organizationId, role: 'LEARNER', ...this.inScope(scope) }, select: LEARNER_SELECT });
+    if (!row) throw new NotFoundException('Learner not found in your institution.');
     return row;
   }
 
-  async list(query: LearnerQueryDto, organizationId: string) {
+  async list(query: LearnerQueryDto, organizationId: string, scope: StaffScope | null = null) {
     const q = query.q?.trim();
-    const base: Prisma.UserWhereInput = { organizationId, role: 'LEARNER' };
+    const base: Prisma.UserWhereInput = { organizationId, role: 'LEARNER', ...this.inScope(scope) };
     const [rows, active, revoked, neverSignedIn, groups] = await Promise.all([
       this.prisma.user.findMany({
         where: {
           ...base,
-          ...(query.status === 'active'
-            ? { status: 'ACTIVE' }
-            : query.status === 'revoked'
-              ? { status: { not: 'ACTIVE' } }
-              : {}),
-          ...(q
-            ? {
-                OR: [
-                  { name: { contains: q, mode: 'insensitive' } },
-                  { email: { contains: q, mode: 'insensitive' } },
-                ],
-              }
-            : {}),
+          ...(query.status === 'active' ? { status: 'ACTIVE' } : query.status === 'revoked' ? { status: { not: 'ACTIVE' } } : {}),
+          ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }] } : {}),
         },
         orderBy: { createdAt: 'desc' },
         take: 500,
@@ -98,9 +77,9 @@ export class InstituteLearnersService {
       }),
       this.prisma.user.count({ where: { ...base, status: 'ACTIVE' } }),
       this.prisma.user.count({ where: { ...base, status: { not: 'ACTIVE' } } }),
-            this.prisma.user.count({ where: { ...base, status: 'ACTIVE', lastLoginAt: null } }),
+      this.prisma.user.count({ where: { ...base, status: 'ACTIVE', lastLoginAt: null } }),
       this.prisma.learnerGroup.findMany({
-        where: { organizationId },
+        where: { organizationId, ...(scope ? { id: { in: scope.groupIds } } : {}) },
         orderBy: { name: 'asc' },
         select: { id: true, name: true, _count: { select: { learners: { where: { status: 'ACTIVE' } } } } },
       }),
@@ -109,6 +88,7 @@ export class InstituteLearnersService {
       items: rows.map(shape),
       counts: { active, revoked, neverSignedIn },
       groups: groups.map((group) => ({ id: group.id, name: group.name, learners: group._count.learners })),
+      scoped: scope !== null,
     };
   }
 
@@ -135,62 +115,35 @@ export class InstituteLearnersService {
     return { deleted: true };
   }
 
-  async setGroup(userId: string, groupId: string | null, actor: AdminActor, organizationId: string) {
-    const row = await this.learner(organizationId, userId);
-    if (groupId && !(await this.prisma.learnerGroup.findFirst({ where: { id: groupId, organizationId }, select: { id: true } }))) {
-      throw new BadRequestException('That group is not in your institution.');
-    }
+  async setGroup(userId: string, groupId: string | null, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const row = await this.learner(organizationId, userId, scope);
+    await this.targetGroup(organizationId, groupId, scope);
     await this.prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: userId }, data: { learnerGroupId: groupId } });
       await this.audit.record(tx, actor, { action: 'learner.group', entityType: 'user', entityId: userId, summary: groupId ? `Moved ${row.name} to a learner group` : `Removed ${row.name} from their group` });
     });
-    return shape(await this.learner(organizationId, userId));
+    return shape(await this.learner(organizationId, userId, scope));
   }
 
-  async invite(
-    dto: InviteLearnerDto,
-    actor: AdminActor,
-    organizationId: string,
-  ) {
+  async invite(dto: InviteLearnerDto, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
     const email = dto.email.trim().toLowerCase();
-    if (
-      await this.prisma.user.findUnique({
-        where: { email },
-        select: { id: true },
-      })
-    )
-      throw new ConflictException(`${email} already has an account.`);
+    const learnerGroupId = await this.targetGroup(organizationId, dto.groupId, scope);
+    if (await this.prisma.user.findUnique({ where: { email }, select: { id: true } })) throw new ConflictException(`${email} already has an account.`);
     const password = tempPassword();
     const invitedByName = await this.inviter(actor);
     const learner = await this.prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: {
-          email,
-          name: dto.name.trim(),
-          role: 'LEARNER',
-          organizationId,
-          passwordHash: await bcrypt.hash(password, 12),
-          mustChangePassword: true,
-          invitedByName,
-        },
+        data: { email, name: dto.name.trim(), role: 'LEARNER', organizationId, learnerGroupId, passwordHash: await bcrypt.hash(password, 12), mustChangePassword: true, invitedByName },
         select: LEARNER_SELECT,
       });
-      await this.audit.record(tx, actor, {
-        action: 'learner.invite',
-        entityType: 'user',
-        entityId: created.id,
-        summary: `Invited learner ${created.name} (${email})`,
-      });
+      await this.audit.record(tx, actor, { action: 'learner.invite', entityType: 'user', entityId: created.id, summary: `Invited learner ${created.name} (${email})` });
       return created;
     });
     return { learner: shape(learner), temporaryPassword: password };
   }
 
-  async import(
-    dto: ImportLearnersDto,
-    actor: AdminActor,
-    organizationId: string,
-  ) {
+  async import(dto: ImportLearnersDto, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const learnerGroupId = await this.targetGroup(organizationId, dto.groupId, scope);
     const skipped: { row: number; email: string; reason: string }[] = [];
     const seen = new Set<string>();
     const candidates: { row: number; name: string; email: string }[] = [];
@@ -198,39 +151,24 @@ export class InstituteLearnersService {
       const row = index + 1;
       const name = raw.name.trim();
       const email = raw.email.trim().toLowerCase();
-      if (name.length < 2 || name.length > 80)
-        skipped.push({ row, email, reason: 'Name must be 2-80 characters' });
-      else if (!EMAIL.test(email) || email.length > 160)
-        skipped.push({ row, email, reason: 'Not a valid email address' });
-      else if (seen.has(email))
-        skipped.push({ row, email, reason: 'Duplicate email in this import' });
+      if (name.length < 2 || name.length > 80) skipped.push({ row, email, reason: 'Name must be 2-80 characters' });
+      else if (!EMAIL.test(email) || email.length > 160) skipped.push({ row, email, reason: 'Not a valid email address' });
+      else if (seen.has(email)) skipped.push({ row, email, reason: 'Duplicate email in this import' });
       else {
         seen.add(email);
         candidates.push({ row, name, email });
       }
     });
     const existing = new Set(
-      (
-        await this.prisma.user.findMany({
-          where: { email: { in: candidates.map((c) => c.email) } },
-          select: { email: true },
-        })
-      ).map((u) => u.email),
+      (await this.prisma.user.findMany({ where: { email: { in: candidates.map((c) => c.email) } }, select: { email: true } })).map((u) => u.email),
     );
     const fresh = candidates.filter((c) => {
       if (!existing.has(c.email)) return true;
-      skipped.push({
-        row: c.row,
-        email: c.email,
-        reason: 'Already has an account',
-      });
+      skipped.push({ row: c.row, email: c.email, reason: 'Already has an account' });
       return false;
     });
     if (fresh.length === 0) {
-      throw new BadRequestException({
-        message: 'No learners could be imported.',
-        issues: skipped.slice(0, 20).map((s) => `Row ${s.row}: ${s.reason}.`),
-      });
+      throw new BadRequestException({ message: 'No learners could be imported.', issues: skipped.slice(0, 20).map((s) => `Row ${s.row}: ${s.reason}.`) });
     }
     const invitedByName = await this.inviter(actor);
     const prepared = await Promise.all(
@@ -242,15 +180,7 @@ export class InstituteLearnersService {
     await this.prisma.$transaction(
       async (tx) => {
         await tx.user.createMany({
-          data: prepared.map((item) => ({
-            email: item.email,
-            name: item.name,
-            role: 'LEARNER' as const,
-            organizationId,
-            passwordHash: item.hash,
-            mustChangePassword: true,
-            invitedByName,
-          })),
+          data: prepared.map((item) => ({ email: item.email, name: item.name, role: 'LEARNER' as const, organizationId, learnerGroupId, passwordHash: item.hash, mustChangePassword: true, invitedByName })),
         });
         await this.audit.record(tx, actor, {
           action: 'learner.import',
@@ -262,58 +192,29 @@ export class InstituteLearnersService {
       { timeout: 60_000 },
     );
     return {
-      created: prepared.map((item) => ({
-        name: item.name,
-        email: item.email,
-        temporaryPassword: item.password,
-      })),
+      created: prepared.map((item) => ({ name: item.name, email: item.email, temporaryPassword: item.password })),
       skipped: skipped.sort((a, b) => a.row - b.row),
     };
   }
 
-  async revoke(
-    userId: string,
-    reason: string,
-    actor: AdminActor,
-    organizationId: string,
-  ) {
-    const row = await this.learner(organizationId, userId);
+  async revoke(userId: string, reason: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const row = await this.learner(organizationId, userId, scope);
     if (row.status === 'ACTIVE') {
       await this.prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: userId },
-          data: { status: 'DEACTIVATED', revokeReason: reason.trim() },
-        });
-        await tx.refreshSession.updateMany({
-          where: { userId, revokedAt: null },
-          data: { revokedAt: new Date() },
-        });
-        await this.audit.record(tx, actor, {
-          action: 'learner.revoke',
-          entityType: 'user',
-          entityId: userId,
-          summary: `Revoked learner ${row.name}`,
-          changes: { reason: reason.trim() },
-        });
+        await tx.user.update({ where: { id: userId }, data: { status: 'DEACTIVATED', revokeReason: reason.trim() } });
+        await tx.refreshSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+        await this.audit.record(tx, actor, { action: 'learner.revoke', entityType: 'user', entityId: userId, summary: `Revoked learner ${row.name}`, changes: { reason: reason.trim() } });
       });
     }
     return shape(await this.learner(organizationId, userId));
   }
 
-  async restore(userId: string, actor: AdminActor, organizationId: string) {
-    const row = await this.learner(organizationId, userId);
+  async restore(userId: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
+    const row = await this.learner(organizationId, userId, scope);
     if (row.status !== 'ACTIVE') {
       await this.prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: userId },
-          data: { status: 'ACTIVE', revokeReason: null },
-        });
-        await this.audit.record(tx, actor, {
-          action: 'learner.restore',
-          entityType: 'user',
-          entityId: userId,
-          summary: `Restored learner ${row.name}`,
-        });
+        await tx.user.update({ where: { id: userId }, data: { status: 'ACTIVE', revokeReason: null } });
+        await this.audit.record(tx, actor, { action: 'learner.restore', entityType: 'user', entityId: userId, summary: `Restored learner ${row.name}` });
       });
     }
     return shape(await this.learner(organizationId, userId));

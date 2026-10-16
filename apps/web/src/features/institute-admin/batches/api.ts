@@ -79,7 +79,7 @@ export const batchApi = {
   create: (input: BatchInput) => attempt(() => adminApi<BatchDetail>(BATCHES, { method: 'POST', body: input })),
   update: (id: string, input: Partial<BatchInput>) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}`, { method: 'PATCH', body: input })),
   assign: (id: string, groupId: string | null) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}/assign`, { method: 'POST', body: { groupId } })),
-  groups: () => attempt(() => adminApi<{ items: { id: string; name: string }[] }>(`${BATCHES}/groups`)),
+  groups: () => attempt(() => adminApi<{ items: { id: string; name: string }[]; scoped: boolean }>(`${BATCHES}/groups`)),
   unassign: (id: string) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}/unassign`, { method: 'POST' })),
   remove: (id: string) => attempt(() => adminApi<{ deleted: boolean }>(`${BATCHES}/${id}`, { method: 'DELETE' })),
 };

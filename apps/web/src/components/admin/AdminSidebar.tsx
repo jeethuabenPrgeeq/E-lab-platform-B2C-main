@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { usePermissions } from '@/features/admin/permissions/PermissionsProvider';
-import { DASHBOARD, filterNavByPermission, filterNavSections, isNavActive, isWithin, type NavItem, type NavLeaf, type RoleConfig } from './admin-nav';
-import styles from './AdminShell.module.css';
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import { usePermissions } from "@/features/admin/permissions/PermissionsProvider";
+import { DASHBOARD, filterNavByPermission, filterNavSections, isNavActive, isWithin, type NavItem, type NavLeaf, type RoleConfig } from "./admin-nav";
+import styles from "./AdminShell.module.css";
 
 interface AdminSidebarProps {
   config: RoleConfig;
@@ -17,7 +17,7 @@ interface AdminSidebarProps {
 }
 
 function cx(...classes: Array<string | false | undefined>) {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 function initialOpenGroups(config: RoleConfig, pathname: string) {
@@ -32,7 +32,8 @@ function initialOpenGroups(config: RoleConfig, pathname: string) {
 
 export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, onRequestExpand }: AdminSidebarProps) {
   const [openGroups, setOpenGroups] = useState(() => initialOpenGroups(config, pathname));
-  const { has } = usePermissions();
+  const { has, staff, roleName } = usePermissions();
+  const label = staff && roleName ? roleName : config.label;
   const permitted = useMemo(() => filterNavByPermission(config.sections, has), [config.sections, has]);
   const sections = useMemo(() => filterNavSections(permitted, query), [permitted, query]);
   const searching = query.trim().length > 0;
@@ -51,7 +52,7 @@ export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, o
     });
   };
 
-  const renderLeaf = (leaf: NavLeaf, className: string, icon?: NavItem['icon']) => {
+  const renderLeaf = (leaf: NavLeaf, className: string, icon?: NavItem["icon"]) => {
     const Icon = icon;
     const active = isNavActive(pathname, leaf.href, config.basePath);
     const content = (
@@ -70,13 +71,7 @@ export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, o
     }
 
     return (
-      <Link
-        href={leaf.href}
-        className={cx(className, active && styles.itemActive)}
-        aria-current={active ? 'page' : undefined}
-        title={collapsed ? leaf.label : undefined}
-        onClick={onNavigate}
-      >
+      <Link href={leaf.href} className={cx(className, active && styles.itemActive)} aria-current={active ? "page" : undefined} title={collapsed ? leaf.label : undefined} onClick={onNavigate}>
         {content}
       </Link>
     );
@@ -90,7 +85,7 @@ export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, o
         </span>
         <span className={styles.brandText}>
           <span className={styles.brandName}>eLab</span>
-          <span className={styles.brandRole}>{config.label}</span>
+          <span className={styles.brandRole}>{label}</span>
         </span>
       </Link>
 
@@ -106,20 +101,13 @@ export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, o
                 }
 
                 const Icon = item.icon;
-                const groupId = `nav-group-${item.href.replace(/[^a-z0-9]+/gi, '-')}`;
+                const groupId = `nav-group-${item.href.replace(/[^a-z0-9]+/gi, "-")}`;
                 const open = searching || openGroups.has(item.href);
                 const active = isWithin(pathname, item.href);
 
                 return (
                   <li key={item.href}>
-                    <button
-                      type="button"
-                      className={cx(styles.item, active && collapsed && styles.itemActive)}
-                      aria-expanded={open && !collapsed}
-                      aria-controls={groupId}
-                      title={collapsed ? item.label : undefined}
-                      onClick={() => toggleGroup(item.href)}
-                    >
+                    <button type="button" className={cx(styles.item, active && collapsed && styles.itemActive)} aria-expanded={open && !collapsed} aria-controls={groupId} title={collapsed ? item.label : undefined} onClick={() => toggleGroup(item.href)}>
                       <Icon className={styles.itemIcon} aria-hidden="true" />
                       <span className={styles.itemLabel}>{item.label}</span>
                       <ChevronRight className={cx(styles.chevron, open && styles.chevronOpen)} aria-hidden="true" />

@@ -12,6 +12,7 @@ export class LearnerQueryDto {
 export class InviteLearnerDto {
   @IsString() @MinLength(2) @MaxLength(80) name!: string;
   @IsEmail() @MaxLength(160) email!: string;
+  @IsOptional() @IsString() @MaxLength(60) groupId?: string | null;
 }
 
 export class ImportLearnerRowDto {
@@ -26,6 +27,8 @@ export class ImportLearnersDto {
   @ValidateNested({ each: true })
   @Type(() => ImportLearnerRowDto)
   rows!: ImportLearnerRowDto[];
+
+  @IsOptional() @IsString() @MaxLength(60) groupId?: string | null;
 }
 
 export class CreateGroupDto {

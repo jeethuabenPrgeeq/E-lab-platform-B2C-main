@@ -578,6 +578,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.fieldNarrow {
+  max-width: 360px;
+}
+
 @media (max-width: 767px) {
   .toolbar {
     grid-template-columns: minmax(0, 1fr);

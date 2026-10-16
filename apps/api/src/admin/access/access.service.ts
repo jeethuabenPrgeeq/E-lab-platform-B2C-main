@@ -113,7 +113,7 @@ export class AccessService {
     const permissions = resolvePermissions(user);
     if (user.role === 'INSTITUTE_ADMIN') {
       const institution = user.organization ? { id: user.organization.id, name: user.organization.name, code: user.organization.code, type: user.organization.type, status: user.organization.status } : null;
-      return { roleId, roleName: 'Institute admin', scope: institution?.name ?? 'Not linked to an institution', permissions, institution };
+        return { roleId, roleName: user.staffTitle ?? 'Institute admin', scope: institution?.name ?? 'Not linked to an institution', permissions, institution, staff: user.staffTitle != null };
     }
     return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : 'Platform admin'), scope: user.adminScope, permissions, institution: null };
   }

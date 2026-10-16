@@ -63,7 +63,14 @@ export const INSTITUTION_PERMISSIONS = ['inst.content.view', 'inst.content.creat
 
 export type InstitutionPermission = (typeof INSTITUTION_PERMISSIONS)[number];
 
-export type AnyPermission = Permission | InstitutionPermission;
+export const INSTITUTE_OWNER_PERMISSION = 'inst.staff.manage';
+
+export type AnyPermission = Permission | InstitutionPermission | typeof INSTITUTE_OWNER_PERMISSION;
+
+export const STAFF_PRESETS: Record<'lead' | 'staff', InstitutionPermission[]> = {
+  lead: ['inst.content.view', 'inst.content.create', 'inst.tests.manage', 'inst.batches.manage', 'inst.learners.manage'],
+  staff: ['inst.content.view', 'inst.tests.manage', 'inst.batches.manage'],
+};
 
 export const DEFAULT_INSTITUTION_PERMISSIONS: InstitutionPermission[] = ['inst.content.view', 'inst.content.create'];
 

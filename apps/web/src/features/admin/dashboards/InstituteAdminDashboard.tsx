@@ -66,7 +66,8 @@ export function InstituteAdminDashboard() {
   const [error, setError] = useState("");
   const [technologyId, setTechnologyId] = useState("");
   const [days, setDays] = useState("");
-  const { status: accessStatus, institution, has } = usePermissions();
+  const { status: accessStatus, institution, has, staff, roleName } = usePermissions();
+  const pill = staff && roleName ? roleName : "Institute Admin";
   const allowed = accessStatus === "ready" && Boolean(institution) && has("inst.content.view");
   const canSeeBatches = allowed && has("inst.batches.manage");
   const [assigned, setAssigned] = useState<AssignedBatch[] | null>(null);
@@ -113,7 +114,7 @@ export function InstituteAdminDashboard() {
       <div className={styles.page}>
         <PageHeader title={title} pill="Institute Admin" />
         <Panel title={institution ? "No access to institution content" : "Not linked to an institution"}>
-          <p className={styles.notice}>{institution ? (institution.status === "suspended" ? "Your institution is suspended. Contact the eLab team to reactivate it." : "Your institution does not include the “View institution content” permission. Ask a Super Admin to grant it.") : "Your account is not linked to an institution yet. Ask a Super Admin to link you from the Institutions page."}</p>
+          <p className={styles.notice}>{institution ? (institution.status === "suspended" ? "Your institution is suspended. Contact the eLab team to reactivate it." : staff ? "Your account does not include the “View institution content” permission. Ask your Institute Admin to grant it." : "Your institution does not include the “View institution content” permission. Ask a Super Admin to grant it.") : "Your account is not linked to an institution yet. Ask a Super Admin to link you from the Institutions page."}</p>
         </Panel>
       </div>
     );

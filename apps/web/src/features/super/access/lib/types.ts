@@ -34,7 +34,7 @@ export type PermissionKey =
 
 export type InstitutionPermissionKey = 'inst.content.view' | 'inst.content.create' | 'inst.content.publish' | 'inst.tests.manage' | 'inst.batches.manage' | 'inst.learners.manage';
 
-export type AnyPermissionKey = PermissionKey | InstitutionPermissionKey;
+export type AnyPermissionKey = PermissionKey | InstitutionPermissionKey | 'inst.staff.manage';
 
 export interface AdminRole {
   id: string;

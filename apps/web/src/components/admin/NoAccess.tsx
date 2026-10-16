@@ -8,7 +8,7 @@ import { DASHBOARD } from './admin-nav';
 import styles from './NoAccess.module.css';
 
 export function RouteGate({ requirement, unavailable = false, children }: { requirement?: PermissionRequirement; unavailable?: boolean; children: ReactNode }) {
-  const { status, has, error, reload, roleName } = usePermissions();
+  const { status, has, error, reload, roleName, staff } = usePermissions();
   if (unavailable) {
     return (
       <section className={styles.panel} aria-labelledby="unavailable-title">
@@ -52,7 +52,7 @@ export function RouteGate({ requirement, unavailable = false, children }: { requ
         You don’t have access to this page
       </h1>
       <p className={styles.text}>
-        {`Your role${roleName ? ` (${roleName})` : ''} does not include the “${permissionLabel(requirement)}” permission. Ask a super admin to grant it.`}
+        {`Your role${roleName ? ` (${roleName})` : ''} does not include the “${permissionLabel(requirement)}” permission. ${staff ? 'Ask your Institute Admin' : 'Ask a super admin'} to grant it.`}
       </p>
       <Link href={DASHBOARD} className={styles.button}>
         Back to dashboard

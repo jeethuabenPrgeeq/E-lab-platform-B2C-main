@@ -1,14 +1,4 @@
-import {
-  ClipboardCheck,
-  FlaskConical,
-  Gauge,
-  Layers,
-  Library,
-  LineChart,
-  Tags,
-  Upload,
-  Users,
-} from "lucide-react";
+import { ClipboardCheck, FlaskConical, Gauge, Layers, Library, LineChart, Tags, Upload, UserCog, Users } from "lucide-react";
 
 import type { RoleConfig } from "./admin-nav";
 
@@ -84,6 +74,13 @@ export const INSTITUTE_ADMIN_CONFIG: RoleConfig = {
           icon: Users,
           ready: true,
           permission: "inst.learners.manage",
+        },
+        {
+          label: "Staff",
+          href: "/staff",
+          icon: UserCog,
+          ready: true,
+          permission: "inst.staff.manage",
         },
       ],
     },
