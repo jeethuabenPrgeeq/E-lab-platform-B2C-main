@@ -1,7 +1,5 @@
-﻿
 import {
   ClipboardCheck,
-  FileCode2,
   FlaskConical,
   Gauge,
   Layers,
@@ -13,11 +11,12 @@ import {
 
 import type { RoleConfig } from "./admin-nav";
 
-export const CONTENT_MANAGER_CONFIG: RoleConfig = {
-  role: "content-manager",
-  label: "Content Manager",
-  initials: "CM",
+export const INSTITUTE_ADMIN_CONFIG: RoleConfig = {
+  role: "institute-admin",
+  label: "Institute Admin",
+  initials: "IA",
   basePath: "/dashboard",
+  routes: [{ href: "/create", permission: "inst.content.create" }],
   sections: [
     {
       title: "Main",
@@ -31,25 +30,32 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
       ],
     },
     {
-      title: "Problems",
+      title: "Content",
       items: [
-        {
-          label: "Upload Content",
-          href: "/upload-content",
-          icon: Upload,
-          ready: true,
-        },
-        {
-          label: "Test Case Preparation",
-          href: "/test-case-preparation",
-          icon: FlaskConical,
-          ready: true,
-        },
         {
           label: "Content Library",
           href: "/content-library",
           icon: Library,
           ready: true,
+          permission: "inst.content.view",
+        },
+        {
+          label: "Upload Content",
+          href: "/upload-content",
+          icon: Upload,
+          ready: false,
+        },
+        {
+          label: "Test Case Preparation",
+          href: "/test-case-preparation",
+          icon: FlaskConical,
+          ready: false,
+        },
+        {
+          label: "Content Batches",
+          href: "/batches",
+          icon: Layers,
+          ready: false,
         },
       ],
     },
@@ -61,12 +67,7 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
           href: "/taxonomy",
           icon: Tags,
           ready: true,
-        },
-        {
-          label: "Content Batches",
-          href: "/batches",
-          icon: Layers,
-          ready: true,
+          permission: "inst.content.view",
         },
       ],
     },
@@ -78,6 +79,7 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
           href: "/review",
           icon: ClipboardCheck,
           ready: true,
+          permission: "inst.content.view",
         },
       ],
     },
@@ -89,9 +91,9 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
           href: "/content-reports",
           icon: LineChart,
           ready: true,
+          permission: "inst.content.view",
         },
       ],
     },
   ],
 };
-

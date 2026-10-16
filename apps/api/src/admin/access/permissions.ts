@@ -3,6 +3,7 @@ export const PERMISSIONS = [
   'users.manage',
   'users.suspend',
   'admins.manage',
+  'institutions.manage',
   'content.view',
   'content.edit',
   'content.publish',
@@ -50,13 +51,26 @@ export const SUPER_PERMISSIONS: readonly Permission[] = PERMISSIONS.filter((key)
 
 export const SUPER_ROLE = 'super_admin';
 export const PLATFORM_ROLE = 'platform_admin';
-export const CONTENT_ROLE = 'content_manager';
 export const ALL_SCOPE = 'All institutions';
 
-export const AUTHORING_ROLES: readonly string[] = [PLATFORM_ROLE, CONTENT_ROLE];
+export const AUTHORING_ROLES: readonly string[] = [PLATFORM_ROLE];
 
 export function isPermission(value: unknown): value is Permission {
   return typeof value === 'string' && (PERMISSIONS as readonly string[]).includes(value);
+}
+
+export const INSTITUTION_PERMISSIONS = ['inst.content.view', 'inst.content.create'] as const;
+
+export type InstitutionPermission = (typeof INSTITUTION_PERMISSIONS)[number];
+
+export type AnyPermission = Permission | InstitutionPermission;
+
+export const DEFAULT_INSTITUTION_PERMISSIONS: InstitutionPermission[] = ['inst.content.view', 'inst.content.create'];
+
+export const INSTITUTE_ROLE = 'institute_admin';
+
+export function isInstitutionPermission(value: unknown): value is InstitutionPermission {
+  return typeof value === 'string' && (INSTITUTION_PERMISSIONS as readonly string[]).includes(value);
 }
 
 export interface RoleSeed {
@@ -71,7 +85,6 @@ export interface RoleSeed {
 export const DEFAULT_ROLES: RoleSeed[] = [
   { id: SUPER_ROLE, name: 'Super admin', description: 'Full business access to every part of eLab. Does not author content. Cannot be edited.', system: true, locked: true, permissions: [...SUPER_PERMISSIONS] },
   { id: PLATFORM_ROLE, name: 'Platform admin', description: 'Authors problems and tests, runs the judge, runtimes, incidents and releases.', system: true, locked: false, permissions: ['users.view', 'content.view', 'analytics.view', 'support.respond', 'audit.view', ...TECHNICAL_PERMISSIONS] },
-  { id: CONTENT_ROLE, name: 'Content manager', description: 'Creates, imports and organizes coding problems and submits them for review.', system: true, locked: false, permissions: ['content.view', 'content.edit', 'analytics.view'] },
   { id: 'billing_manager', name: 'Billing manager', description: 'Handles subscriptions, refunds, plans and coupons.', system: true, locked: false, permissions: ['users.view', 'billing.view', 'billing.refund', 'billing.plans', 'coupons.manage', 'analytics.view', 'reports.export'] },
   { id: 'support_agent', name: 'Support agent', description: 'Answers learner tickets and can look up accounts.', system: true, locked: false, permissions: ['users.view', 'billing.view', 'support.respond'] },
 ];

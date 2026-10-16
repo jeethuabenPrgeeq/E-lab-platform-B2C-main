@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { PermissionsProvider } from '@/features/admin/permissions/PermissionsProvider';
 import type { AdminRole } from '@/features/admin/types';
-import { ROLE_CONFIG, routePermission } from './admin-nav';
+import { ROLE_CONFIG, routeAccess } from './admin-nav';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminTopbar } from './AdminTopbar';
 import { RouteGate } from './NoAccess';
@@ -68,7 +68,7 @@ export function AdminShell({ role, email, children }: AdminShellProps) {
             navExpanded={drawerOpen || !collapsed}
           />
           <main id="admin-content" className={styles.content}>
-            <RouteGate requirement={routePermission(config, pathname)}>{children}</RouteGate>
+            <RouteGate {...routeAccess(config, pathname)}>{children}</RouteGate>
           </main>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { CheckCircle2, ClipboardList, FilePen, FileCode2, Hourglass, Rocket } fr
 import { ShareBar } from '@/components/admin/charts/Charts';
 import { MetricStrip, PageHeader, Panel, Section, StatCard } from '@/components/admin/widgets/AdminWidgets';
 import { adminApi, errorText } from '@/features/admin/lib/api';
+import { usePermissions } from '@/features/admin/permissions/PermissionsProvider';
 import type { DistributionItem, Metric } from '@/features/admin/types';
 import styles from './ContentManagerDashboard.module.css';
 
@@ -53,11 +54,15 @@ export function ContentManagerDashboard() {
   const [error, setError] = useState('');
   const [technologyId, setTechnologyId] = useState('');
   const [days, setDays] = useState('');
+  const { status: accessStatus, institution, has } = usePermissions();
+  const allowed = accessStatus === 'ready' && Boolean(institution) && has('inst.content.view');
+  const title = institution?.name ?? 'Institute Dashboard';
 
   useEffect(() => {
+    if (!allowed) return;
     let alive = true;
     const load = () =>
-      adminApi<ContentDashboardData>('/content-manager/dashboard', { query: { technologyId, days } })
+      adminApi<ContentDashboardData>('/institute/dashboard', { query: { technologyId, days } })
         .then((next) => {
           if (!alive) return;
           setData(next);
@@ -72,12 +77,29 @@ export function ContentManagerDashboard() {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [technologyId, days]);
+  }, [technologyId, days, allowed]);
+
+  if (accessStatus === 'ready' && !allowed) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title={title} pill="Institute Admin" />
+        <Panel title={institution ? 'No access to institution content' : 'Not linked to an institution'}>
+          <p className={styles.notice}>
+            {institution
+              ? institution.status === 'suspended'
+                ? 'Your institution is suspended. Contact the eLab team to reactivate it.'
+                : 'Your institution does not include the “View institution content” permission. Ask a Super Admin to grant it.'
+              : 'Your account is not linked to an institution yet. Ask a Super Admin to link you from the Institutions page.'}
+          </p>
+        </Panel>
+      </div>
+    );
+  }
 
   if (!data) {
     return (
       <div className={styles.page}>
-        <PageHeader title="Content Dashboard" pill="Content workspace" meta={error || 'Loading live data…'} />
+        <PageHeader title={title} pill="Institute Admin" meta={error || 'Loading live data…'} />
       </div>
     );
   }
@@ -104,16 +126,16 @@ export function ContentManagerDashboard() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Content Dashboard" pill="Content workspace" meta={error ? `Showing data from ${data.updatedAt} · ${error}` : `Updated ${data.updatedAt}`} actions={filters} />
+      <PageHeader title={title} pill="Institute Admin" meta={error ? `Showing data from ${data.updatedAt} · ${error}` : `Updated ${data.updatedAt}`} actions={filters} />
 
-      <Section title="My work">
+      <Section title="Institution content">
         <div className={styles.statGrid}>
           {data.summary.map((metric) => (
             <StatCard key={metric.key} metric={metric} icon={SUMMARY_ICONS[metric.key as keyof typeof SUMMARY_ICONS]} />
           ))}
         </div>
         <div className={styles.split}>
-          <Panel title="Recently edited" subtitle="Problems you created or last changed">
+          <Panel title="Recently edited" subtitle="Latest changes across your institution">
             {data.recent.length ? (
               <ul className={styles.list}>
                 {data.recent.map((item) => (
@@ -130,8 +152,8 @@ export function ContentManagerDashboard() {
               <p className={styles.empty}>No problems yet. Problems you create will appear here.</p>
             )}
           </Panel>
-          <Panel title="Pipeline" subtitle="Your problems by stage">
-            <ShareBar title="Your problems by stage" items={data.pipeline} />
+          <Panel title="Pipeline" subtitle="Institution problems by stage">
+            <ShareBar title="Institution problems by stage" items={data.pipeline} />
           </Panel>
         </div>
         <MetricStrip label="Needs attention" items={data.attention} icons={ATTENTION_ICONS} minItemWidth={200} />

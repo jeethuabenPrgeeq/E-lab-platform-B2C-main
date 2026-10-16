@@ -15,7 +15,7 @@ const typeBlock = typesSource.slice(typesSource.indexOf('export type PermissionK
 const web = new Set(keysIn(typeBlock));
 
 const sharedSource = read('../../web/src/features/super/access/lib/shared.ts');
-const groupBlock = sharedSource.slice(sharedSource.indexOf('export const PERMISSION_GROUPS'), sharedSource.indexOf('export const AUTHORING_PERMISSIONS'));
+const groupBlock = sharedSource.slice(sharedSource.indexOf('export const PERMISSION_GROUPS'), sharedSource.indexOf('export const INSTITUTION_PERMISSION_ITEMS'));
 const grouped = new Set([...groupBlock.matchAll(/key: '([^']+)'/g)].map((match) => match[1]));
 
 const problems = [];
@@ -27,8 +27,19 @@ compare('In web PermissionKey but missing from the API', web, api);
 compare('In the API but missing from the web permission matrix', api, grouped);
 compare('In the web permission matrix but missing from the API', grouped, api);
 
+const instApiStart = apiSource.indexOf('export const INSTITUTION_PERMISSIONS = [');
+const instApi = new Set(keysIn(apiSource.slice(instApiStart, apiSource.indexOf('] as const;', instApiStart))));
+const instTypeStart = typesSource.indexOf('export type InstitutionPermissionKey =');
+const instWeb = new Set(keysIn(typesSource.slice(instTypeStart, typesSource.indexOf(';', instTypeStart))));
+const instItemsStart = sharedSource.indexOf('export const INSTITUTION_PERMISSION_ITEMS');
+const instItems = new Set([...sharedSource.slice(instItemsStart, sharedSource.indexOf('];', instItemsStart)).matchAll(/key: '([^']+)'/g)].map((match) => match[1]));
+compare('Institution key in the API but missing from web InstitutionPermissionKey', instApi, instWeb);
+compare('Institution key in web InstitutionPermissionKey but missing from the API', instWeb, instApi);
+compare('Institution key in the API but missing from the institution checklist', instApi, instItems);
+compare('Institution key in the institution checklist but missing from the API', instItems, instApi);
+
 if (problems.length > 0) {
   console.error(`Permission keys are out of sync:\n- ${problems.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`Permission keys in sync (${api.size} keys).`);
+console.log(`Permission keys in sync (${api.size} platform keys, ${instApi.size} institution keys).`);

@@ -21,21 +21,21 @@ export class ContentProblemsService {
     private readonly problems: ProblemsService,
   ) {}
 
-  private scope(actor: AdminActor, scope?: string): Prisma.ProblemWhereInput {
-    if (scope === 'created') return { createdById: actor.id };
-    if (scope === 'assigned') return { assigneeId: actor.id };
-    return { OR: [{ createdById: actor.id }, { assigneeId: actor.id }] };
+  private scope(actor: AdminActor, organizationId: string, scope?: string): Prisma.ProblemWhereInput {
+    if (scope === 'created') return { organizationId, createdById: actor.id };
+    if (scope === 'assigned') return { organizationId, assigneeId: actor.id };
+    return { organizationId };
   }
 
-  private async owned(id: string, actor: AdminActor) {
-    const row = await this.prisma.problem.findFirst({ where: { id, ...this.scope(actor) }, select: { id: true, status: true, updatedAt: true, title: true } });
-    if (!row) throw new NotFoundException('Problem not found in your library.');
+  private async owned(id: string, organizationId: string) {
+    const row = await this.prisma.problem.findFirst({ where: { id, organizationId }, select: { id: true, status: true, updatedAt: true, title: true } });
+    if (!row) throw new NotFoundException('Problem not found in your institution.');
     return row;
   }
 
-  async list(query: ContentProblemQueryDto, actor: AdminActor) {
+  async list(query: ContentProblemQueryDto, actor: AdminActor, organizationId: string) {
     const { page, pageSize, skip, take } = pageArgs(query);
-    const base = this.scope(actor, query.scope);
+    const base = this.scope(actor, organizationId, query.scope);
     const where: Prisma.ProblemWhereInput = {
       AND: [
         base,
@@ -84,38 +84,38 @@ export class ContentProblemsService {
     };
   }
 
-  async get(id: string, actor: AdminActor) {
-    const row = await this.owned(id, actor);
+  async get(id: string, organizationId: string) {
+    const row = await this.owned(id, organizationId);
     const [detail, extra] = await Promise.all([
-      this.problems.get(id),
+      this.problems.get(id, organizationId),
       this.prisma.problem.findUnique({ where: { id }, select: { assignee: PERSON, assignedAt: true } }),
     ]);
     return { ...detail, nextActions: [], assignee: extra?.assignee ?? null, assignedAt: extra?.assignedAt ?? null, editable: EDITABLE.has(row.status) };
   }
 
-  async versions(id: string, actor: AdminActor) {
-    await this.owned(id, actor);
-    return this.problems.versions(id);
+  async versions(id: string, organizationId: string) {
+    await this.owned(id, organizationId);
+    return this.problems.versions(id, organizationId);
   }
 
-  async create(dto: CreateProblemDto, actor: AdminActor) {
-    const created = await this.problems.create(dto, actor);
-    return this.get(created.id, actor);
+  async create(dto: CreateProblemDto, actor: AdminActor, organizationId: string) {
+    const created = await this.problems.create(dto, actor, organizationId);
+    return this.get(created.id, organizationId);
   }
 
-  async update(id: string, dto: ContentUpdateProblemDto, actor: AdminActor) {
-    const row = await this.owned(id, actor);
+  async update(id: string, dto: ContentUpdateProblemDto, actor: AdminActor, organizationId: string) {
+    const row = await this.owned(id, organizationId);
     if (!EDITABLE.has(row.status)) throw new ForbiddenException(`This problem is ${row.status}. Only drafts can be edited for now.`);
     const { expectedUpdatedAt, ...fields } = dto;
     if (expectedUpdatedAt && new Date(expectedUpdatedAt).getTime() !== row.updatedAt.getTime()) {
       throw new ConflictException('Someone else saved this problem after you opened it. Reload to see their changes before editing.');
     }
-    await this.problems.update(id, fields, actor);
-    return this.get(id, actor);
+    await this.problems.update(id, fields, actor, organizationId);
+    return this.get(id, organizationId);
   }
 
-  async duplicate(id: string, actor: AdminActor) {
-    await this.owned(id, actor);
+  async duplicate(id: string, actor: AdminActor, organizationId: string) {
+    await this.owned(id, organizationId);
     const source = await this.prisma.problem.findUniqueOrThrow({ where: { id }, include: { testCases: { orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] } } });
     let slug = `${source.slug}-copy`;
     for (let n = 2; await this.prisma.problem.findUnique({ where: { slug }, select: { id: true } }); n += 1) slug = `${source.slug}-copy-${n}`;
@@ -148,6 +148,7 @@ export class ContentProblemsService {
           referenceSolution: source.referenceSolution,
           createdById: actor.id,
           updatedById: actor.id,
+          organizationId,
         },
       });
       if (source.testCases.length) {
@@ -158,7 +159,7 @@ export class ContentProblemsService {
       await this.audit.record(tx, actor, { action: 'problem.duplicate', entityType: 'problem', entityId: copy.id, summary: `Duplicated ${source.title} as a new draft` });
       return copy.id;
     });
-    return this.get(createdId, actor);
+    return this.get(createdId, organizationId);
   }
 
   async technologies() {

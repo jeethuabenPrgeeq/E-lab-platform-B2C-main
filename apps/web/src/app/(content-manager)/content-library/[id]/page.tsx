@@ -39,7 +39,7 @@ export default function Page() {
       guardConcurrency
       showTestLinks={false}
       backLabel="Back to library"
-      editPermission="content.edit"
+      editPermission="inst.content.create"
     />
   );
 }

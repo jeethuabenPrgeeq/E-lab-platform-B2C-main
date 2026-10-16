@@ -74,14 +74,14 @@ export class TestCasesService {
   ) {}
 
   async isHidden(id: string) {
-    const test = await this.prisma.testCase.findUnique({ where: { id }, select: { hidden: true } });
+    const test = await this.prisma.testCase.findFirst({ where: { id, problem: { organizationId: null } }, select: { hidden: true } });
     if (!test) throw new NotFoundException('Test case not found.');
     return test.hidden;
   }
 
   private async problemOrThrow(problemId: string) {
-    const problem = await this.prisma.problem.findUnique({
-      where: { id: problemId },
+    const problem = await this.prisma.problem.findFirst({
+      where: { id: problemId, organizationId: null },
       include: { technology: { select: { id: true, name: true, slug: true } } },
     });
     if (!problem) throw new NotFoundException('Problem not found.');
@@ -126,7 +126,7 @@ export class TestCasesService {
 
   async overview() {
     const problems = await this.prisma.problem.findMany({
-      where: { status: { not: 'deprecated' } },
+      where: { status: { not: 'deprecated' }, organizationId: null },
       orderBy: { title: 'asc' },
       select: {
         id: true,
@@ -232,7 +232,7 @@ export class TestCasesService {
   }
 
   async update(id: string, dto: UpdateTestCaseDto, actor: AdminActor) {
-    const existing = await this.prisma.testCase.findUnique({ where: { id } });
+    const existing = await this.prisma.testCase.findFirst({ where: { id, problem: { organizationId: null } } });
     if (!existing) throw new NotFoundException('Test case not found.');
     const { reason, ...fields } = dto;
     const changes = testChanges(
@@ -254,7 +254,7 @@ export class TestCasesService {
   }
 
   async remove(id: string, reason: string | undefined, actor: AdminActor) {
-    const existing = await this.prisma.testCase.findUnique({ where: { id } });
+    const existing = await this.prisma.testCase.findFirst({ where: { id, problem: { organizationId: null } } });
     if (!existing) throw new NotFoundException('Test case not found.');
     await this.prisma.$transaction(async (tx) => {
       await tx.testCase.delete({ where: { id } });
@@ -269,7 +269,7 @@ export class TestCasesService {
   }
 
   async duplicate(id: string, reason: string | undefined, actor: AdminActor) {
-    const existing = await this.prisma.testCase.findUnique({ where: { id } });
+    const existing = await this.prisma.testCase.findFirst({ where: { id, problem: { organizationId: null } } });
     if (!existing) throw new NotFoundException('Test case not found.');
     return this.prisma.$transaction(async (tx) => {
       await tx.testCase.updateMany({
@@ -366,8 +366,8 @@ export class TestCasesService {
   }
 
   async updateCheck(id: string, dto: UpdateSourceCheckDto, actor: AdminActor) {
-    const existing = await this.prisma.sourceCheck.findUnique({
-      where: { id },
+    const existing = await this.prisma.sourceCheck.findFirst({
+      where: { id, problem: { organizationId: null } },
     });
     if (!existing) throw new NotFoundException('Source check not found.');
     validateRegex(
@@ -391,8 +391,8 @@ export class TestCasesService {
   }
 
   async removeCheck(id: string, reason: string | undefined, actor: AdminActor) {
-    const existing = await this.prisma.sourceCheck.findUnique({
-      where: { id },
+    const existing = await this.prisma.sourceCheck.findFirst({
+      where: { id, problem: { organizationId: null } },
     });
     if (!existing) throw new NotFoundException('Source check not found.');
     await this.prisma.$transaction(async (tx) => {

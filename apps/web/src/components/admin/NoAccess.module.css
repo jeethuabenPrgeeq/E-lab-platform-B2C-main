@@ -23,6 +23,10 @@
   color: var(--ad-danger);
 }
 
+.iconNeutral {
+  color: var(--ad-primary);
+}
+
 .title {
   margin: 0;
   font-size: 22px;

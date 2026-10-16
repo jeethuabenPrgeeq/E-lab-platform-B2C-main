@@ -22,13 +22,13 @@ export class ContentDashboardService {
     private readonly settings: SettingsService,
   ) {}
 
-  async overview(actor: AdminActor, filters: DashboardFilters) {
+  async overview(actor: AdminActor, organizationId: string, filters: DashboardFilters) {
     const { values } = await this.settings.all();
     const timeZone = String(values.timezone);
     const now = new Date();
     const since = filters.days ? new Date(now.getTime() - filters.days * DAY) : null;
     const mine: Prisma.ProblemWhereInput = {
-      OR: [{ createdById: actor.id }, { assigneeId: actor.id }],
+      organizationId,
       ...(filters.technologyId ? { technologyId: filters.technologyId } : {}),
       ...(since ? { updatedAt: { gte: since } } : {}),
     };
@@ -58,7 +58,7 @@ export class ContentDashboardService {
       filters: { technologyId: filters.technologyId ?? null, days: filters.days ?? null },
       technologies,
       summary: [
-        { key: 'assigned', label: 'Created or assigned to me', value: total, tone: 'primary' },
+        { key: 'assigned', label: 'Institution problems', value: total, tone: 'primary' },
         { key: 'draft', label: 'Drafts', value: count('draft'), tone: 'neutral' },
         { key: 'review', label: 'Awaiting review', value: count('review'), tone: 'warning' },
         { key: 'published', label: 'Published', value: count('published'), tone: 'success' },
@@ -66,7 +66,7 @@ export class ContentDashboardService {
       pipeline: ['draft', 'review', 'ready', 'published', 'deprecated'].map((status) => ({ key: status, label: STATUS_LABEL[status], value: count(status) })),
       attention: [
         { key: 'staleDrafts', label: `Drafts untouched for ${STALE_DAYS}+ days`, value: staleDrafts, tone: 'warning' },
-        { key: 'ready', label: 'Approved, waiting for Super Admin', value: count('ready'), tone: 'primary' },
+        { key: 'ready', label: 'Approved, ready to publish', value: count('ready'), tone: 'primary' },
       ],
       recent: recent.map((row) => ({
         id: row.id,

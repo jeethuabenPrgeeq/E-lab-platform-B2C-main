@@ -1,0 +1,119 @@
+.permRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.permRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: var(--ad-inset-sm);
+  cursor: pointer;
+}
+
+.permRow input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--ad-primary);
+}
+
+.permText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.permName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ad-text);
+}
+
+.permDesc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ad-muted);
+}
+
+.adminList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adminRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ad-bg);
+  box-shadow: var(--ad-raised-sm);
+}
+
+.adminInfo {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.adminName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ad-text);
+}
+
+.adminMeta {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--ad-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.revokeForm {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.revokeForm > input {
+  flex: 1 1 200px;
+}
+
+.inlineForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.linkForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+@media (max-width: 559px) {
+  .inlineForm,
+  .linkForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

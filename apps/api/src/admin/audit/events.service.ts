@@ -71,8 +71,8 @@ export class AuditEventsService {
         ? (row.actor.adminRole?.name ?? 'Super admin')
         : row.actor.role === 'PLATFORM_ADMIN'
           ? 'Platform admin'
-          : row.actor.role === 'CONTENT_MANAGER'
-            ? 'Content manager'
+          : row.actor.role === 'INSTITUTE_ADMIN'
+            ? 'Institute admin'
             : 'Learner'
       : row.actorEmail === 'system'
         ? 'System'

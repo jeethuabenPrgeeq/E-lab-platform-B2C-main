@@ -22,7 +22,7 @@ export class OwnershipController {
     return this.ownership.list(query);
   }
 
-  @Get('content-managers')
+  @Get('institute-admins')
   contentManagers() {
     return this.ownership.contentManagers();
   }

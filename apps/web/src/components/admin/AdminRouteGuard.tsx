@@ -8,7 +8,7 @@ import { AdminShell } from './AdminShell';
 const ALLOWED: Record<AdminRole, readonly AdminRole[]> = {
   'super-admin': ['super-admin'],
   'platform-admin': ['platform-admin'],
-  'content-manager': ['content-manager'],
+  'institute-admin': ['institute-admin'],
 };
 
 export function AdminRouteGuard({ role, children }: { role: AdminRole; children: ReactNode }) {

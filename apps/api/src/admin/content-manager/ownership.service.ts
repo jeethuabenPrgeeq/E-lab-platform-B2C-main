@@ -17,11 +17,12 @@ const SELECT = {
   updatedAt: true,
   assignedAt: true,
   technology: { select: { id: true, name: true } },
+  organization: { select: { id: true, name: true } },
   createdBy: { select: { id: true, name: true, email: true, role: true } },
   assignee: PERSON,
 } as const;
 type Row = Prisma.ProblemGetPayload<{ select: typeof SELECT }>;
-const ROLE_LABEL: Record<string, string> = { CONTENT_MANAGER: 'Content manager', PLATFORM_ADMIN: 'Platform admin', SUPER_ADMIN: 'Super admin', LEARNER: 'Learner' };
+const ROLE_LABEL: Record<string, string> = { INSTITUTE_ADMIN: 'Institute admin', PLATFORM_ADMIN: 'Platform admin', SUPER_ADMIN: 'Super admin', LEARNER: 'Learner' };
 
 function present(row: Row) {
   return {
@@ -58,20 +59,21 @@ export class OwnershipService {
   }
 
   async contentManagers() {
-    const users = await this.prisma.user.findMany({ where: { role: 'CONTENT_MANAGER', status: 'ACTIVE' }, orderBy: { name: 'asc' }, select: { id: true, name: true, email: true } });
+    const users = await this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', status: 'ACTIVE', organizationId: { not: null } }, orderBy: { name: 'asc' }, select: { id: true, name: true, email: true, organizationId: true, organization: { select: { name: true } } } });
     const counts = await this.prisma.problem.groupBy({ by: ['assigneeId'], where: { assigneeId: { in: users.map((user) => user.id) } }, _count: { _all: true } });
-    return { items: users.map((user) => ({ ...user, assigned: counts.find((row) => row.assigneeId === user.id)?._count._all ?? 0 })) };
+    return { items: users.map(({ organization, ...user }) => ({ ...user, institution: organization?.name ?? null, assigned: counts.find((row) => row.assigneeId === user.id)?._count._all ?? 0 })) };
   }
 
   async assign(id: string, dto: AssignProblemDto, actor: AdminActor) {
-    const problem = await this.prisma.problem.findUnique({ where: { id }, select: { id: true, title: true, assigneeId: true, assignee: { select: { name: true } } } });
+    const problem = await this.prisma.problem.findUnique({ where: { id }, select: { id: true, title: true, assigneeId: true, organizationId: true, assignee: { select: { name: true } } } });
     if (!problem) throw new NotFoundException('Problem not found.');
     const nextId = dto.assigneeId ?? null;
     if (nextId !== problem.assigneeId) {
       let nextName: string | null = null;
       if (nextId) {
-        const user = await this.prisma.user.findFirst({ where: { id: nextId, role: 'CONTENT_MANAGER', status: 'ACTIVE' }, select: { name: true } });
-        if (!user) throw new BadRequestException('Pick an active content manager.');
+        if (!problem.organizationId) throw new BadRequestException('Platform content cannot be assigned to an Institute Admin.');
+        const user = await this.prisma.user.findFirst({ where: { id: nextId, role: 'INSTITUTE_ADMIN', status: 'ACTIVE', organizationId: problem.organizationId }, select: { name: true } });
+        if (!user) throw new BadRequestException('Pick an active Institute Admin from the same institution.');
         nextName = user.name;
       }
       await this.prisma.$transaction(async (tx) => {

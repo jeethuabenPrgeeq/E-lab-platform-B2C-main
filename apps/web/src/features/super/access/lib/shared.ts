@@ -1,5 +1,5 @@
 import { INSTITUTIONS } from '../../users/lib/shared';
-import type { AdminAccount, AdminRole, AdminStatus, PermissionKey } from './types';
+import type { AdminAccount, AdminRole, AdminStatus, InstitutionPermissionKey, PermissionKey } from './types';
 
 export { EMAIL_PATTERN, ME, cx, formatAgo, formatDate, initials } from '../../users/lib/shared';
 
@@ -16,6 +16,7 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
       { key: 'users.manage', label: 'Invite and edit users' },
       { key: 'users.suspend', label: 'Suspend and reactivate users' },
       { key: 'admins.manage', label: 'Manage admins and roles', sensitive: true },
+      { key: 'institutions.manage', label: 'Register institutions and set their permissions', sensitive: true },
     ],
   },
   {
@@ -56,7 +57,7 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
   },
   {
     id: 'authoring',
-    label: 'Content authoring (Platform admin and Content manager only)',
+    label: 'Content authoring (Platform admin only)',
     items: [
       { key: 'content.upload', label: 'Upload content (CSV and AI)' },
       { key: 'problems.manage', label: 'Create and edit problems and technologies' },
@@ -87,9 +88,16 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
   },
 ];
 
+export const INSTITUTION_PERMISSION_ITEMS: { key: InstitutionPermissionKey; label: string; description: string }[] = [
+  { key: 'inst.content.view', label: 'View institution content', description: 'Dashboard, content library, organization, review queue and reports' },
+  { key: 'inst.content.create', label: 'Create and edit content', description: 'Create problems, edit drafts and duplicate problems' },
+];
+
+export const INSTITUTION_PERMISSION_LABEL = Object.fromEntries(INSTITUTION_PERMISSION_ITEMS.map((item) => [item.key, item.label])) as Record<InstitutionPermissionKey, string>;
+
 export const AUTHORING_PERMISSIONS: readonly PermissionKey[] = ['content.upload', 'problems.manage', 'tests.manage', 'tests.hidden'];
 
-export const AUTHORING_ROLE_IDS: readonly string[] = ['platform_admin', 'content_manager'];
+export const AUTHORING_ROLE_IDS: readonly string[] = ['platform_admin'];
 
 export const canHoldPermission = (roleId: string, key: PermissionKey) => AUTHORING_ROLE_IDS.includes(roleId) || !AUTHORING_PERMISSIONS.includes(key);
 
@@ -106,7 +114,6 @@ export const STATUS_META: Record<AdminStatus, { label: string; tone: string }> =
 export const ROLE_TONES: Record<string, string> = {
   super_admin: 'danger',
   platform_admin: 'primary',
-  content_manager: 'success',
   billing_manager: 'warning',
 };
 

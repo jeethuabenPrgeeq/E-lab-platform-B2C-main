@@ -2,22 +2,32 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminApi, errorText } from '@/features/admin/lib/api';
-import { PERMISSION_LABEL } from '@/features/super/access/lib/shared';
-import type { PermissionKey } from '@/features/super/access/lib/types';
+import { INSTITUTION_PERMISSION_LABEL, PERMISSION_LABEL } from '@/features/super/access/lib/shared';
+import type { AnyPermissionKey, InstitutionPermissionKey, PermissionKey } from '@/features/super/access/lib/types';
 
-export type PermissionRequirement = PermissionKey | readonly PermissionKey[];
+export type PermissionRequirement = AnyPermissionKey | readonly AnyPermissionKey[];
 
 type Status = 'loading' | 'ready' | 'error';
+
+export interface MyInstitution {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  status: string;
+}
 
 interface MyPermissions {
   roleId: string;
   roleName: string;
-  permissions: PermissionKey[];
+  permissions: AnyPermissionKey[];
+  institution: MyInstitution | null;
 }
 
 interface PermissionsValue {
   status: Status;
   roleName: string;
+  institution: MyInstitution | null;
   error: string;
   has: (requirement?: PermissionRequirement) => boolean;
   reload: () => void;
@@ -26,16 +36,19 @@ interface PermissionsValue {
 const PermissionsContext = createContext<PermissionsValue>({
   status: 'ready',
   roleName: '',
+  institution: null,
   error: '',
   has: () => true,
   reload: () => undefined,
 });
 
-const toList = (requirement: PermissionRequirement): readonly PermissionKey[] => (typeof requirement === 'string' ? [requirement] : requirement);
+const toList = (requirement: PermissionRequirement): readonly AnyPermissionKey[] => (typeof requirement === 'string' ? [requirement] : requirement);
+
+const labelOf = (key: AnyPermissionKey) => (key.startsWith('inst.') ? INSTITUTION_PERMISSION_LABEL[key as InstitutionPermissionKey] : PERMISSION_LABEL[key as PermissionKey]) ?? key;
 
 export function permissionLabel(requirement: PermissionRequirement) {
   return toList(requirement)
-    .map((key) => PERMISSION_LABEL[key] ?? key)
+    .map(labelOf)
     .join(' or ');
 }
 
@@ -79,6 +92,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     return {
       status,
       roleName: data?.roleName ?? '',
+      institution: data?.institution ?? null,
       error,
       has: (requirement) => !requirement || toList(requirement).some((key) => granted.has(key)),
       reload,

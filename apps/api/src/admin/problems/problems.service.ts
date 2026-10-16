@@ -199,6 +199,7 @@ export class ProblemsService {
   async list(query: ProblemQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query);
     const where: Prisma.ProblemWhereInput = {
+      organizationId: null,
       ...(query.status ? { status: query.status } : {}),
       ...(query.difficulty
         ? { difficulty: TO_DB_DIFFICULTY[query.difficulty] }
@@ -234,6 +235,7 @@ export class ProblemsService {
       this.prisma.problem.count({ where }),
       this.prisma.problem.groupBy({
         by: ['status'],
+        where: { organizationId: null },
         orderBy: { status: 'asc' },
         _count: { _all: true },
       }),
@@ -259,9 +261,9 @@ export class ProblemsService {
     };
   }
 
-  async get(id: string) {
-    const problem = await this.prisma.problem.findUnique({
-      where: { id },
+  async get(id: string, organizationId: string | null = null) {
+    const problem = await this.prisma.problem.findFirst({
+      where: { id, organizationId },
       include: {
         technology: true,
         testCases: { orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] },
@@ -319,7 +321,7 @@ export class ProblemsService {
     return tech;
   }
 
-  async create(dto: CreateProblemDto, actor: AdminActor) {
+  async create(dto: CreateProblemDto, actor: AdminActor, organizationId: string | null = null) {
     const tech = await this.loadTechnology(dto.technologyId);
     if (tech.status === 'disabled')
       throw new BadRequestException(
@@ -366,6 +368,7 @@ export class ProblemsService {
             referenceSolution: dto.referenceSolution ?? null,
             createdById: actor.id,
             updatedById: actor.id,
+            organizationId,
           },
         });
         await this.audit.record(tx, actor, {
@@ -376,11 +379,11 @@ export class ProblemsService {
         });
         return { id: problem.id, slug: problem.slug };
       })
-      .then(({ id }) => this.get(id));
+      .then(({ id }) => this.get(id, organizationId));
   }
 
-  async update(id: string, dto: UpdateProblemDto, actor: AdminActor) {
-    const existing = await this.prisma.problem.findUnique({ where: { id } });
+  async update(id: string, dto: UpdateProblemDto, actor: AdminActor, organizationId: string | null = null) {
+    const existing = await this.prisma.problem.findFirst({ where: { id, organizationId } });
     if (!existing) throw new NotFoundException('Problem not found.');
 
     if (dto.technologyId && dto.technologyId !== existing.technologyId) {
@@ -448,7 +451,7 @@ export class ProblemsService {
         before: LONG_FIELDS.has(key) ? '(changed)' : (before[key] ?? null),
         after: LONG_FIELDS.has(key) ? '(changed)' : (after[key] ?? null),
       }));
-    if (changes.length === 0) return this.get(id);
+    if (changes.length === 0) return this.get(id, organizationId);
 
     await this.prisma.$transaction(async (tx) => {
       await tx.problem.update({
@@ -469,13 +472,13 @@ export class ProblemsService {
       });
     });
 
-    return this.get(id);
+    return this.get(id, organizationId);
   }
 
   async transition(id: string, dto: TransitionDto, actor: AdminActor) {
     const rule = RULES[dto.action];
-    const problem = await this.prisma.problem.findUnique({
-      where: { id },
+    const problem = await this.prisma.problem.findFirst({
+      where: { id, organizationId: null },
       include: { technology: true },
     });
     if (!problem) throw new NotFoundException('Problem not found.');
@@ -559,9 +562,9 @@ export class ProblemsService {
     return this.get(id);
   }
 
-  async versions(id: string) {
-    const exists = await this.prisma.problem.findUnique({
-      where: { id },
+  async versions(id: string, organizationId: string | null = null) {
+    const exists = await this.prisma.problem.findFirst({
+      where: { id, organizationId },
       select: { id: true },
     });
     if (!exists) throw new NotFoundException('Problem not found.');
@@ -574,7 +577,7 @@ export class ProblemsService {
   }
 
   async remove(id: string, actor: AdminActor) {
-    const problem = await this.prisma.problem.findUnique({ where: { id } });
+    const problem = await this.prisma.problem.findFirst({ where: { id, organizationId: null } });
     if (!problem) throw new NotFoundException('Problem not found.');
     if (problem.status !== 'draft' || problem.publishedAt) {
       throw new ConflictException(

@@ -18,12 +18,15 @@ export interface OwnershipRow {
   updatedAt: number;
   assignedAt: number | null;
   technology: { id: string; name: string };
+  organization: { id: string; name: string } | null;
   createdBy: (OwnershipPerson & { role: string }) | null;
   assignee: OwnershipPerson | null;
 }
 
 export interface ContentManagerOption extends OwnershipPerson {
   assigned: number;
+  organizationId: string;
+  institution: string | null;
 }
 
 export interface OwnershipFilters {
@@ -41,7 +44,7 @@ export function useOwnership(filters: OwnershipFilters) {
 
   const loadManagers = useCallback(async () => {
     try {
-      setManagers((await adminApi<{ items: ContentManagerOption[] }>('/super/content/content-managers')).items);
+      setManagers((await adminApi<{ items: ContentManagerOption[] }>('/super/content/institute-admins')).items);
     } catch (err) {
       setError(errorText(err));
     }

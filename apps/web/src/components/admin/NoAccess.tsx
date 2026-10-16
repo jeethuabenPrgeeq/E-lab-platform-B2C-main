@@ -2,13 +2,29 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { RefreshCw, ShieldOff } from 'lucide-react';
+import { Hourglass, RefreshCw, ShieldOff } from 'lucide-react';
 import { permissionLabel, usePermissions, type PermissionRequirement } from '@/features/admin/permissions/PermissionsProvider';
 import { DASHBOARD } from './admin-nav';
 import styles from './NoAccess.module.css';
 
-export function RouteGate({ requirement, children }: { requirement?: PermissionRequirement; children: ReactNode }) {
+export function RouteGate({ requirement, unavailable = false, children }: { requirement?: PermissionRequirement; unavailable?: boolean; children: ReactNode }) {
   const { status, has, error, reload, roleName } = usePermissions();
+  if (unavailable) {
+    return (
+      <section className={styles.panel} aria-labelledby="unavailable-title">
+        <span className={`${styles.icon} ${styles.iconNeutral}`} aria-hidden="true">
+          <Hourglass width={28} height={28} />
+        </span>
+        <h1 id="unavailable-title" className={styles.title}>
+          This page isn’t available yet
+        </h1>
+        <p className={styles.text}>It will open once its backend is connected for your role.</p>
+        <Link href={DASHBOARD} className={styles.button}>
+          Back to dashboard
+        </Link>
+      </section>
+    );
+  }
   if (!requirement) return <>{children}</>;
   if (status === 'loading') return null;
   if (status === 'error') {

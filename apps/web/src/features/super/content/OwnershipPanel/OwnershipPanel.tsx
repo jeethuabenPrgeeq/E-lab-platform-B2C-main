@@ -46,12 +46,12 @@ export function OwnershipPanel() {
         <div className={styles.statCard}>
           <span className={cx(styles.statValue, loaded && unassigned > 0 && styles.statWarn)}>{loaded ? unassigned : '—'}</span>
           <span className={styles.statLabel}>Unassigned</span>
-          <span className={styles.statFoot}>Not deprecated and without a content manager</span>
+          <span className={styles.statFoot}>Not deprecated and without an Institute Admin</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statValue}>{managers.length}</span>
-          <span className={styles.statLabel}>Active content managers</span>
-          <span className={styles.statFoot}>Invite more from Admins &amp; Permissions</span>
+          <span className={styles.statLabel}>Active Institute Admins</span>
+          <span className={styles.statFoot}>Invite more from Institutions</span>
         </div>
       </section>
 
@@ -74,7 +74,7 @@ export function OwnershipPanel() {
             <option value="none">Unassigned</option>
             {managers.map((manager) => (
               <option key={manager.id} value={manager.id}>
-                {`${manager.name} (${manager.assigned})`}
+                {`${manager.name} · ${manager.institution ?? 'No institution'} (${manager.assigned})`}
               </option>
             ))}
           </select>
@@ -106,7 +106,8 @@ export function OwnershipPanel() {
                   <th>Problem</th>
                   <th>Status</th>
                   <th>Created by</th>
-                  <th>Assigned content manager</th>
+                  <th>Institution</th>
+                  <th>Assigned Institute Admin</th>
                   <th>Updated</th>
                 </tr>
               </thead>
@@ -125,19 +126,25 @@ export function OwnershipPanel() {
                       <span className={styles.meta}>{row.createdBy?.role ?? ''}</span>
                     </td>
                     <td>
+                      <span className={styles.nameLine}>{row.organization?.name ?? 'Platform content'}</span>
+                    </td>
+                    <td>
                       <select
                         className={styles.select}
                         value={row.assignee?.id ?? ''}
-                        disabled={busyId === row.id || row.status === 'deprecated'}
+                        disabled={busyId === row.id || row.status === 'deprecated' || !row.organization}
+                        title={row.organization ? undefined : 'Platform content stays with Platform Admin'}
                         onChange={(event) => void change(row, event.target.value)}
                         aria-label={`Assign ${row.title}`}
                       >
                         <option value="">Unassigned</option>
-                        {managers.map((manager) => (
-                          <option key={manager.id} value={manager.id}>
-                            {manager.name}
-                          </option>
-                        ))}
+                        {managers
+                          .filter((manager) => manager.organizationId === row.organization?.id)
+                          .map((manager) => (
+                            <option key={manager.id} value={manager.id}>
+                              {manager.name}
+                            </option>
+                          ))}
                       </select>
                       {row.assignedAt && <span className={styles.meta}>{`Since ${formatDay(row.assignedAt)}`}</span>}
                     </td>

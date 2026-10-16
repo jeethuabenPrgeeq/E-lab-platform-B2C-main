@@ -5,6 +5,7 @@ export type PermissionKey =
   | 'users.manage'
   | 'users.suspend'
   | 'admins.manage'
+  | 'institutions.manage'
   | 'content.view'
   | 'content.edit'
   | 'content.publish'
@@ -30,6 +31,10 @@ export type PermissionKey =
   | 'support.technical'
   | 'incidents.manage'
   | 'releases.manage';
+
+export type InstitutionPermissionKey = 'inst.content.view' | 'inst.content.create';
+
+export type AnyPermissionKey = PermissionKey | InstitutionPermissionKey;
 
 export interface AdminRole {
   id: string;

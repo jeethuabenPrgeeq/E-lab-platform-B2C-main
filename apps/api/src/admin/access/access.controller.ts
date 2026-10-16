@@ -95,7 +95,7 @@ export class AccessController {
 }
 @Controller('admin/me')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('super-admin', 'platform-admin', 'content-manager')
+@Roles('super-admin', 'platform-admin', 'institute-admin')
 export class MyPermissionsController {
   constructor(private readonly access: AccessService) {}
 

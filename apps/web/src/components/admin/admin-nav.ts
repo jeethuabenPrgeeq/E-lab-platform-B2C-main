@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { Activity, BarChart3, Bell, Boxes, Bug, CreditCard, Cpu, FileCode2, FileText, FlaskConical, Gauge, Headphones, Layers, LayoutDashboard, Library, LifeBuoy, Receipt, Rocket, Route, ScrollText, Server, Settings, ShieldCheck, Siren, TicketPercent, Trophy, Upload, Users } from "lucide-react";
+import { Activity, BarChart3, Bell, Boxes, Building2, Bug, CreditCard, Cpu, FileCode2, FileText, FlaskConical, Gauge, Headphones, Layers, LayoutDashboard, Library, LifeBuoy, Receipt, Rocket, Route, ScrollText, Server, Settings, ShieldCheck, Siren, TicketPercent, Trophy, Upload, Users } from "lucide-react";
 import type { PermissionRequirement } from "@/features/admin/permissions/PermissionsProvider";
 import type { AdminRole } from "@/features/admin/types";
-import { CONTENT_MANAGER_CONFIG } from "./content-nav";
+import { INSTITUTE_ADMIN_CONFIG } from "./content-nav";
 
 export interface NavLeaf {
   label: string;
@@ -40,7 +40,7 @@ const SUPER = "";
 const PLATFORM = "";
 
 export const ROLE_CONFIG: Record<AdminRole, RoleConfig> = {
-  "content-manager": CONTENT_MANAGER_CONFIG,
+  "institute-admin": INSTITUTE_ADMIN_CONFIG,
   "super-admin": {
     role: "super-admin",
     label: "Super Admin",
@@ -77,6 +77,7 @@ export const ROLE_CONFIG: Record<AdminRole, RoleConfig> = {
         title: "People & Access",
         items: [
           { label: "Users", href: `${SUPER}/users`, icon: Users, ready: true, permission: "users.view" },
+          { label: "Institutions", href: `${SUPER}/institutions`, icon: Building2, ready: true, permission: "institutions.manage" },
           { label: "Admins & Permissions", href: `${SUPER}/access`, icon: ShieldCheck, ready: true, permission: "admins.manage" },
         ],
       },
@@ -193,9 +194,14 @@ export function filterNavByPermission(sections: NavSection[], has: (requirement?
     .filter((section) => section.items.length > 0);
 }
 
-export function routePermission(config: RoleConfig, pathname: string): PermissionRequirement | undefined {
+export interface RouteAccess {
+  requirement?: PermissionRequirement;
+  unavailable: boolean;
+}
+
+export function routeAccess(config: RoleConfig, pathname: string): RouteAccess {
   const rules: NavLeaf[] = [
-    ...(config.routes ?? []).map((rule) => ({ label: rule.href, href: rule.href, permission: rule.permission })),
+    ...(config.routes ?? []).map((rule) => ({ label: rule.href, href: rule.href, permission: rule.permission, ready: true })),
     ...config.sections.flatMap((section) => section.items.flatMap((item) => [item, ...(item.children ?? [])])),
   ];
   let best: NavLeaf | undefined;
@@ -203,5 +209,5 @@ export function routePermission(config: RoleConfig, pathname: string): Permissio
     if (!isWithin(pathname, rule.href)) continue;
     if (!best || rule.href.length > best.href.length) best = rule;
   }
-  return best?.permission;
+  return { requirement: best?.permission, unavailable: Boolean(best && best.ready === false) };
 }

@@ -4,6 +4,8 @@ import { AuthModule } from '../auth/auth.module.js';
 import { JudgeModule } from '../judge/judge.module.js';
 import { SubmissionsModule } from '../submissions/submissions.module.js';
 import { AccessController, MyPermissionsController } from './access/access.controller.js';
+import { InstitutionsController } from './institutions/institutions.controller.js';
+import { InstitutionsService } from './institutions/institutions.service.js';
 import { AnalyticsController } from './analytics/analytics.controller.js';
 import { AnalyticsService } from './analytics/analytics.service.js';
 import { SuperDashboardController } from './analytics/super-dashboard.controller.js';
@@ -99,6 +101,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     InboxController,
     AccessController,
     MyPermissionsController,
+    InstitutionsController,
     AnalyticsController,
     AuditEventsController,
     BillingController,
@@ -116,6 +119,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     PublicOpsController,
   ],
   providers: [
+    InstitutionsService,
     AuditService,
     ProblemVersioningService,
     TechnologiesService,

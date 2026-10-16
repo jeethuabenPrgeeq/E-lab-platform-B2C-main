@@ -4,14 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, Eye, Pencil, Plus, Search, ChevronLeft, ChevronRight, RotateCcw, LibraryBig } from "lucide-react";
+import { PageHeader } from "@/components/admin/widgets/AdminWidgets";
+import { usePermissionGate } from "@/features/admin/permissions/PermissionsProvider";
 import { useTechnologies } from "@/features/admin/technologies/lib/api";
 import { DIFFICULTIES, STATUS_LABEL, capitalize, cx, formatDate } from "@/features/admin/problems/lib/shared";
 import type { ProblemStatus } from "@/features/admin/problems/lib/types";
 import { CM_ROUTE, CM_TECHNOLOGIES, useLibrary, type LibraryFilters, type LibraryScope } from "../lib/api";
+import { useInstitutionLabel } from "../lib/useInstitutionLabel";
 import styles from "./LibraryPage.module.css";
 
 const SCOPES: { value: LibraryScope; label: string }[] = [
-  { value: "all", label: "All my problems" },
+  { value: "all", label: "All institution problems" },
   { value: "created", label: "Created by me" },
   { value: "assigned", label: "Assigned to me" },
 ];
@@ -20,6 +23,8 @@ const PAGE_SIZE = 10;
 
 export default function LibraryPage() {
   const router = useRouter();
+  const institution = useInstitutionLabel();
+  const create = usePermissionGate("inst.content.create");
   const [scope, setScope] = useState<LibraryScope>("all");
   const [status, setStatus] = useState<ProblemStatus | "">("");
   const [difficulty, setDifficulty] = useState("");
@@ -66,16 +71,22 @@ export default function LibraryPage() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>CONTENT MANAGEMENT</p>
-          <h1 className={styles.title}>Content Library</h1>
-          <p className={styles.subtitle}>Manage problems you created or that a Super Admin assigned to you. Drafts can be edited; other stages are view-only.</p>
-        </div>
-        <Link href="/upload-content" className={styles.primaryButton}>
-          <Plus size={17} aria-hidden="true" /> Upload Content
-        </Link>
-      </header>
+      <PageHeader
+        title="Content Library"
+        pill={institution}
+        meta="Your institution’s problems. Drafts can be edited; other stages are view-only."
+        actions={
+          create.allowed ? (
+            <Link href="/create" className={styles.primaryButton}>
+              <Plus size={17} aria-hidden="true" /> New problem
+            </Link>
+          ) : (
+            <button type="button" className={styles.primaryButton} disabled title={create.title}>
+              <Plus size={17} aria-hidden="true" /> New problem
+            </button>
+          )
+        }
+      />
 
       <nav className={styles.scopeTabs} aria-label="Library scope">
         {SCOPES.map((item) => (
@@ -218,7 +229,7 @@ export default function LibraryPage() {
                           <Link href={`${CM_ROUTE}/${p.id}`} className={styles.iconButton} aria-label={`${p.editable ? "Edit" : "View"} ${p.title}`} title={p.editable ? "Edit" : "View"}>
                             {p.editable ? <Pencil size={16} /> : <Eye size={16} />}
                           </Link>
-                          <button type="button" className={styles.iconButton} aria-label={`Duplicate ${p.title}`} title="Duplicate as a new draft" disabled={busyId !== null} onClick={() => void copy(p.id, p.title)}>
+                          <button type="button" className={styles.iconButton} aria-label={`Duplicate ${p.title}`} title={create.title ?? "Duplicate as a new draft"} disabled={busyId !== null || !create.allowed} onClick={() => void copy(p.id, p.title)}>
                             <Copy size={16} />
                           </button>
                         </div>

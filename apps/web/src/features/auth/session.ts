@@ -1,4 +1,4 @@
-export type UserRole = 'learner' | 'super-admin' | 'platform-admin' | 'content-manager';
+export type UserRole = 'learner' | 'super-admin' | 'platform-admin' | 'institute-admin';
 
 export interface Session {
   email: string;
@@ -21,7 +21,7 @@ const AUTH_KEY = 'elab_dummy_auth';
 const USER_KEY = 'elab_dummy_user';
 const ROLE_KEY = 'elab_dummy_role';
 
-const ROLES: readonly UserRole[] = ['learner', 'super-admin', 'platform-admin', 'content-manager'];
+const ROLES: readonly UserRole[] = ['learner', 'super-admin', 'platform-admin', 'institute-admin'];
 
 export function saveSession(session: Session) {
   localStorage.setItem(AUTH_KEY, 'true');

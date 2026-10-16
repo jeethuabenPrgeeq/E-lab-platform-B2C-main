@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { ApiError, adminApi, errorText, type Paged } from '@/features/admin/lib/api';
 import type { ProblemDetail, ProblemItem, ProblemStatus } from '@/features/admin/problems/lib/types';
 
-export const CM_PROBLEMS = '/content-manager/problems';
-export const CM_TECHNOLOGIES = '/content-manager/technologies';
+export const CM_PROBLEMS = '/institute/problems';
+export const CM_TECHNOLOGIES = '/institute/technologies';
 export const CM_ROUTE = '/content-library';
 
 export type LibraryScope = 'all' | 'created' | 'assigned';

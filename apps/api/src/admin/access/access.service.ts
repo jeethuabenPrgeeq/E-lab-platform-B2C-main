@@ -10,7 +10,7 @@ import { pageArgs } from '../common/pagination.js';
 import { activityFor } from '../content/activity.js';
 import type { AdminQueryDto, CreateRoleDto, InviteAdminDto } from './access.dto.js';
 import { PERMISSION_SUBJECT_SELECT, resolvePermissions } from './effective-permissions.js';
-import { ALL_SCOPE, AUTHORING_PERMISSIONS, AUTHORING_ROLES, CONTENT_ROLE, DEFAULT_ROLES, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
+import { ALL_SCOPE, AUTHORING_PERMISSIONS, AUTHORING_ROLES, DEFAULT_ROLES, INSTITUTE_ROLE, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
 
 const ADMIN_SELECT = {
   id: true,
@@ -29,10 +29,10 @@ const ADMIN_SELECT = {
 
 type AdminRow = Prisma.UserGetPayload<{ select: typeof ADMIN_SELECT }>;
 
-const roleIdOf = (row: Pick<AdminRow, 'role' | 'adminRoleId'>) => row.adminRoleId ?? (row.role === 'PLATFORM_ADMIN' ? PLATFORM_ROLE : row.role === 'CONTENT_MANAGER' ? CONTENT_ROLE : SUPER_ROLE);
+const roleIdOf = (row: Pick<AdminRow, 'role' | 'adminRoleId'>) => row.adminRoleId ?? (row.role === 'PLATFORM_ADMIN' ? PLATFORM_ROLE : row.role === 'INSTITUTE_ADMIN' ? INSTITUTE_ROLE : SUPER_ROLE);
 const statusOf = (row: Pick<AdminRow, 'status' | 'revokeReason' | 'lastLoginAt'>) => (row.status !== 'ACTIVE' ? 'revoked' : row.lastLoginAt ? 'active' : 'invited');
-const authRoleFor = (roleId: string) => (roleId === PLATFORM_ROLE ? 'PLATFORM_ADMIN' : roleId === CONTENT_ROLE ? 'CONTENT_MANAGER' : 'SUPER_ADMIN');
-const ADMIN_DB_ROLES: ('SUPER_ADMIN' | 'PLATFORM_ADMIN' | 'CONTENT_MANAGER')[] = ['SUPER_ADMIN', 'PLATFORM_ADMIN', 'CONTENT_MANAGER'];
+const authRoleFor = (roleId: string) => (roleId === PLATFORM_ROLE ? 'PLATFORM_ADMIN' : 'SUPER_ADMIN');
+const ADMIN_DB_ROLES: ('SUPER_ADMIN' | 'PLATFORM_ADMIN')[] = ['SUPER_ADMIN', 'PLATFORM_ADMIN'];
 const tempPassword = () => `${randomBytes(9).toString('base64url')}A1!`;
 
 function slugify(name: string) {
@@ -53,12 +53,6 @@ export class AccessService {
         data: DEFAULT_ROLES.map((role) => ({ ...role, permissions: role.permissions, updatedByName: 'System' })),
         skipDuplicates: true,
       });
-    }
-    await this.prisma.user.updateMany({ where: { adminRoleId: CONTENT_ROLE, role: { not: 'CONTENT_MANAGER' } }, data: { role: 'CONTENT_MANAGER' } });
-    const content = await this.prisma.adminRole.findUnique({ where: { id: CONTENT_ROLE }, select: { permissions: true } });
-    const stored = (content?.permissions as Permission[] | undefined) ?? [];
-    if (stored.includes('content.publish')) {
-      await this.prisma.adminRole.update({ where: { id: CONTENT_ROLE }, data: { permissions: stored.filter((key) => key !== 'content.publish') } });
     }
   }
 
@@ -110,11 +104,18 @@ export class AccessService {
 
   async me(actor: AdminActor) {
     await this.ensureRoles();
-    const user = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { ...ADMIN_SELECT, ...PERMISSION_SUBJECT_SELECT, adminRole: { select: { name: true, permissions: true } } } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: actor.id },
+      select: { ...ADMIN_SELECT, ...PERMISSION_SUBJECT_SELECT, adminRole: { select: { name: true, permissions: true } }, organization: { select: { id: true, name: true, code: true, type: true, status: true, permissions: true } } },
+    });
     if (!user) throw new NotFoundException('User not found.');
     const roleId = roleIdOf(user);
     const permissions = resolvePermissions(user);
-    return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : roleId === CONTENT_ROLE ? 'Content manager' : 'Platform admin'), scope: user.adminScope, permissions };
+    if (user.role === 'INSTITUTE_ADMIN') {
+      const institution = user.organization ? { id: user.organization.id, name: user.organization.name, code: user.organization.code, type: user.organization.type, status: user.organization.status } : null;
+      return { roleId, roleName: 'Institute admin', scope: institution?.name ?? 'Not linked to an institution', permissions, institution };
+    }
+    return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : 'Platform admin'), scope: user.adminScope, permissions, institution: null };
   }
 
   async list(query: AdminQueryDto, actor: AdminActor) {

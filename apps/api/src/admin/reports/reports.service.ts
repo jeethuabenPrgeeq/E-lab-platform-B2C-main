@@ -16,7 +16,7 @@ const iso = (value: Date | number) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 const gstOf = (amount: number) => Math.round(((amount * GST_RATE) / (1 + GST_RATE)) * 100) / 100;
-const ROLE = { LEARNER: 'learner', PLATFORM_ADMIN: 'platform-admin', SUPER_ADMIN: 'super-admin', CONTENT_MANAGER: 'content-manager' } as const;
+const ROLE = { LEARNER: 'learner', PLATFORM_ADMIN: 'platform-admin', SUPER_ADMIN: 'super-admin', INSTITUTE_ADMIN: 'institute-admin' } as const;
 const CONTENT_TYPE = (workspace: string) => (workspace === 'devops' ? 'lab' : workspace === 'web' || workspace === 'framework' ? 'project' : 'problem');
 
 @Injectable()

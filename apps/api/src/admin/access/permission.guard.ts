@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { grantedPermissions, type PermissionRequest } from './effective-permissions.js';
 import { PERMISSION_KEY, type PermissionRule } from './permission.decorator.js';
-import type { Permission } from './permissions.js';
+import type { AnyPermission } from './permissions.js';
 
 const READ_METHODS = new Set(['GET', 'HEAD']);
 
@@ -20,7 +20,7 @@ export class PermissionGuard implements CanActivate {
     if (!rule) return true;
     const request = context.switchToHttp().getRequest<PermissionRequest>();
     if (!request.user) throw new UnauthorizedException('Authentication is required.');
-    const needed: Permission = READ_METHODS.has(request.method) || !rule.write ? rule.read : rule.write;
+    const needed: AnyPermission = READ_METHODS.has(request.method) || !rule.write ? rule.read : rule.write;
     const granted = await grantedPermissions(this.prisma, request);
     if (!granted.has(needed)) throw new ForbiddenException(`Your role does not include "${needed}".`);
     return true;
