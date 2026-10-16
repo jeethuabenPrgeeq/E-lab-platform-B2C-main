@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -22,6 +23,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: AppRole;
+  mustChangePassword: boolean;
 }
 
 interface Tokens {
@@ -35,6 +37,7 @@ interface TokenSubject {
   email: string;
   name: string;
   role: string;
+  mustChangePassword?: boolean;
 }
 
 interface AuthEvent {
@@ -103,6 +106,25 @@ export class AuthService {
     });
 
     return this.issueTokens(user, meta);
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string, meta: SessionMeta) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+      throw new BadRequestException('Your current password is not correct.');
+    }
+    if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      throw new BadRequestException('Use at least one letter and one number in the new password.');
+    }
+    if (await bcrypt.compare(newPassword, user.passwordHash)) {
+      throw new BadRequestException('Choose a password different from the current one.');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: await bcrypt.hash(newPassword, 12), mustChangePassword: false },
+    });
+    await this.log(meta, { action: 'auth.password_change', actorId: user.id, email: user.email, summary: `${user.name} changed their password`, outcome: 'success' });
+    return { changed: true };
   }
 
   async refresh(rawToken: string, meta: SessionMeta): Promise<Tokens> {
@@ -197,6 +219,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: toAppRole(user.role),
+        mustChangePassword: user.mustChangePassword ?? false,
       },
       accessToken,
       refreshToken,

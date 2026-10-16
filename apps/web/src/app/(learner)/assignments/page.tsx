@@ -99,7 +99,7 @@ export default function AssignmentsPage() {
                     <ProblemList
                       key={`${batch.id}-${solved.join('-')}`}
                       problems={batch.problems.map(toPracticeProblem)}
-                      context={{ source: 'practice', technologySlug: batch.problems[0]?.technologySlug }}
+                      context={{ source: 'assignments' }}
                       emptyTitle="No problems available"
                       emptyDescription="The problems in this batch are not available right now."
                     />

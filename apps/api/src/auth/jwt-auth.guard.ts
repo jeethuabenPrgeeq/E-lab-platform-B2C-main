@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,6 +11,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ACCESS_COOKIE, assertTrustedOrigin, readCookie } from './cookies.js';
 import type { AuthenticatedRequest } from './current-user.decorator.js';
 import { toAppRole } from './roles.js';
+
+const PASSWORD_CHANGE_PATHS = ['/auth/change-password', '/auth/me'];
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -48,8 +51,8 @@ export class JwtAuthGuard implements CanActivate {
 
     const user = await this.prisma.user.findUnique({
       where: { id: subject },
-      select: { id: true, email: true, name: true, role: true, status: true },
-    });
+        select: { id: true, email: true, name: true, role: true, status: true, mustChangePassword: true },
+    }); 
 
     if (!user || user.status !== 'ACTIVE') {
       throw new UnauthorizedException('Account is not active.');
@@ -60,7 +63,12 @@ export class JwtAuthGuard implements CanActivate {
       email: user.email,
       name: user.name,
       role: toAppRole(user.role),
+      mustChangePassword: user.mustChangePassword,
     };
+
+    if (user.mustChangePassword && !PASSWORD_CHANGE_PATHS.some((path) => request.path.endsWith(path))) {
+      throw new ForbiddenException('Change your temporary password before continuing.');
+    }
 
     return true;
   }

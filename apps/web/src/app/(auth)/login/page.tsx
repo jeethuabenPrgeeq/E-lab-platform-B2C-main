@@ -37,9 +37,9 @@ export default function LoginPage() {
     try {
       const user = await loginRequest(email.trim(), password);
 
-      saveSession({ email: user.email, role: user.role });
+      saveSession({ email: user.email, role: user.role, mustChangePassword: user.mustChangePassword });
 
-      router.push("/dashboard");
+      router.push(user.mustChangePassword ? "/change-password" : "/dashboard");
     } catch (err) {
       setError(err instanceof TypeError ? "Cannot reach the server. Check that the API is running." : err instanceof Error ? err.message : "Invalid email or password.");
       setIsLoading(false);

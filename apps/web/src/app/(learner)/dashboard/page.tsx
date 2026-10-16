@@ -17,7 +17,7 @@ const PlatformAdminDashboard = dynamic(
 );
 
 const InstituteAdminDashboard = dynamic(
-  () => import('@/features/admin/dashboards/ContentManagerDashboard').then((mod) => mod.ContentManagerDashboard),
+  () => import('@/features/admin/dashboards/InstituteAdminDashboard').then((mod) => mod.InstituteAdminDashboard),
   { ssr: false },
 );
 

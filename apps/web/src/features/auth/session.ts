@@ -3,6 +3,7 @@ export type UserRole = 'learner' | 'super-admin' | 'platform-admin' | 'institute
 export interface Session {
   email: string;
   role: UserRole;
+  mustChangePassword?: boolean;
 }
 
 export interface DemoAccount {
@@ -20,6 +21,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
 const AUTH_KEY = 'elab_dummy_auth';
 const USER_KEY = 'elab_dummy_user';
 const ROLE_KEY = 'elab_dummy_role';
+const PASSWORD_KEY = 'elab_must_change_password';
 
 const ROLES: readonly UserRole[] = ['learner', 'super-admin', 'platform-admin', 'institute-admin'];
 
@@ -27,6 +29,14 @@ export function saveSession(session: Session) {
   localStorage.setItem(AUTH_KEY, 'true');
   localStorage.setItem(USER_KEY, session.email);
   localStorage.setItem(ROLE_KEY, session.role);
+  if (session.mustChangePassword) localStorage.setItem(PASSWORD_KEY, 'true');
+  else localStorage.removeItem(PASSWORD_KEY);
+}
+
+export function markPasswordChanged() {
+  try {
+    localStorage.removeItem(PASSWORD_KEY);
+  } catch {}
 }
 
 export function readSession(): Session | null {
@@ -36,6 +46,7 @@ export function readSession(): Session | null {
     return {
       email: localStorage.getItem(USER_KEY) ?? '',
       role: storedRole && ROLES.includes(storedRole) ? storedRole : 'learner',
+      mustChangePassword: localStorage.getItem(PASSWORD_KEY) === 'true',
     };
   } catch {
     return null;
@@ -47,5 +58,6 @@ export function clearSession() {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(PASSWORD_KEY);
   } catch {}
 }

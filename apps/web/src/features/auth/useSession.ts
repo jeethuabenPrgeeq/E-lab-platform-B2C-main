@@ -14,6 +14,12 @@ export function useSession(allowedRoles?: readonly UserRole[]) {
       router.replace('/login');
       return;
     }
+
+    if (current.mustChangePassword) {
+      router.replace('/change-password');
+      return;
+    }
+
     if (allowedRoles && !allowedRoles.includes(current.role)) {
       router.replace('/dashboard');
       return;

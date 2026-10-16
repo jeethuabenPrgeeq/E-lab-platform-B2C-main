@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: UserRole;
+  mustChangePassword?: boolean;
 }
 
 export async function loginRequest(email: string, password: string): Promise<AuthUser> {
@@ -25,6 +26,20 @@ export async function loginRequest(email: string, password: string): Promise<Aut
   }
 
   return body.user as AuthUser;
+}
+
+export async function changePasswordRequest(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/auth/change-password`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const message = Array.isArray(body?.message) ? body.message[0] : body?.message;
+    throw new Error(message ?? 'Could not change the password.');
+  }
 }
 
 export async function logoutRequest(): Promise<void> {

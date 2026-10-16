@@ -205,6 +205,12 @@ export default function CodingWorkspacePage() {
   ======================================================= */
 
   const goBack = () => {
+
+    if (source === "assignments") {
+      router.push("/assignments");
+
+      return;
+    }
     /* ===============================================
        STACK
     =============================================== */
@@ -263,6 +269,11 @@ export default function CodingWorkspacePage() {
   ======================================================= */
 
   const returnAfterSolved = () => {
+    if (source === "assignments") {
+      router.replace("/assignments");
+
+      return;
+    }
     /* ===============================================
        PRACTICE
     =============================================== */

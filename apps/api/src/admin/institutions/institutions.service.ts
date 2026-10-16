@@ -191,7 +191,7 @@ export class InstitutionsService {
     const invitedByName = await this.actorName(actor);
     const admin = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
-        data: { email, name: dto.name.trim(), role: 'INSTITUTE_ADMIN', organizationId: id, adminScope: row.name, passwordHash: await bcrypt.hash(password, 12), invitedByName },
+        data: { email, name: dto.name.trim(), role: 'INSTITUTE_ADMIN', organizationId: id, adminScope: row.name,   passwordHash: await bcrypt.hash(password, 12), mustChangePassword: true, invitedByName },
         select: ADMIN_SELECT,
       });
       await this.audit.record(tx, actor, { action: 'institution.admin_invite', entityType: 'institution', entityId: id, summary: `Invited ${email} as Institute Admin of ${row.name}` });

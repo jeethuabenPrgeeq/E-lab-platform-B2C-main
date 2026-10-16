@@ -36,7 +36,8 @@ export type WorkspaceType =
 export type ProblemSource =
   | 'practice'
   | 'stack'
-  | 'challenge';
+  | 'challenge'
+  | 'assignments';
 
 /* =========================================================
    SUPPORTED LANGUAGE SLUG

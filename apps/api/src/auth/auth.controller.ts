@@ -23,6 +23,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from './current-user.decorator.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 
@@ -98,6 +99,13 @@ export class AuthController {
     clearAuthCookies(res);
 
     return { message: 'Signed out.' };
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
+    return this.authService.changePassword(user.id, dto.currentPassword, dto.newPassword, sessionMeta(req));
   }
 
   @Get('me')

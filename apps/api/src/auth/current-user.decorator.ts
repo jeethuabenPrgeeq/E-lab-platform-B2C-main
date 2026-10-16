@@ -8,6 +8,7 @@ export interface AuthenticatedUser {
   email: string;
   name: string;
   role: AppRole;
+  mustChangePassword?: boolean;
 }
 
 export type AuthenticatedRequest = Request & { user?: AuthenticatedUser };

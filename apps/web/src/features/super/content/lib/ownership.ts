@@ -23,7 +23,7 @@ export interface OwnershipRow {
   assignee: OwnershipPerson | null;
 }
 
-export interface ContentManagerOption extends OwnershipPerson {
+export interface InstituteAdminOption extends OwnershipPerson {
   assigned: number;
   organizationId: string;
   institution: string | null;
@@ -39,12 +39,12 @@ export function useOwnership(filters: OwnershipFilters) {
   const [rows, setRows] = useState<OwnershipRow[] | null>(null);
   const [total, setTotal] = useState(0);
   const [unassigned, setUnassigned] = useState(0);
-  const [managers, setManagers] = useState<ContentManagerOption[]>([]);
+  const [managers, setManagers] = useState<InstituteAdminOption[]>([]);
   const [error, setError] = useState('');
 
   const loadManagers = useCallback(async () => {
     try {
-      setManagers((await adminApi<{ items: ContentManagerOption[] }>('/super/content/institute-admins')).items);
+      setManagers((await adminApi<{ items: InstituteAdminOption[] }>('/super/content/institute-admins')).items);
     } catch (err) {
       setError(errorText(err));
     }
