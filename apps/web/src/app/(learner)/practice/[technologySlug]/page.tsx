@@ -4,6 +4,8 @@ import {
   ArrowLeft,
   BookOpen,
   Braces,
+  Building2,
+  Sparkles,
   Code2,
   Layers3,
   LogOut,
@@ -37,6 +39,12 @@ import {
 } from '@/features/progress/local-progress';
 
 import ProblemList from '@/components/problems/ProblemList';
+
+import {
+  syncServerProgress,
+  toPracticeProblem,
+  useLearnerCatalog,
+} from '@/features/learner/api';
 
 import styles from './practice.module.css';
 
@@ -72,6 +80,58 @@ export default function TechnologyPracticePage() {
     getPracticePathByTechnology(
       technologySlug,
     );
+
+  const catalog =
+    useLearnerCatalog(
+      technologySlug,
+    );
+
+  const extraSections =
+    useMemo(() => {
+      const institution =
+        catalog.items.filter(
+          (item) =>
+            item.source ===
+            'institution',
+        );
+
+      const platform =
+        catalog.items.filter(
+          (item) =>
+            item.source ===
+            'platform',
+        );
+
+      return [
+        {
+          key: 'institution',
+          title: `From ${catalog.institution?.name ?? 'your institution'}`,
+          description:
+            'Published by your institution for its learners.',
+          problems:
+            institution.map(
+              toPracticeProblem,
+            ),
+        },
+        {
+          key: 'platform',
+          title:
+            'More problems',
+          description:
+            'Recently published practice problems.',
+          problems:
+            platform.map(
+              toPracticeProblem,
+            ),
+        },
+      ].filter(
+        (section) =>
+          section.problems
+            .length > 0,
+      );
+    }, [
+      catalog,
+    ]);
 
   /* =======================================================
      FILTER
@@ -124,14 +184,24 @@ export default function TechnologyPracticePage() {
         return [];
       }
 
-      return practicePath
-        .stages
-        .flatMap(
-          (stage) =>
-            stage.problemSlugs,
-        );
+      return [
+        ...practicePath
+          .stages
+          .flatMap(
+            (stage) =>
+              stage.problemSlugs,
+          ),
+        ...extraSections.flatMap(
+          (section) =>
+            section.problems.map(
+              (problem) =>
+                problem.slug,
+            ),
+        ),
+      ];
     }, [
       practicePath,
+      extraSections,
     ]);
 
   /* =======================================================
@@ -155,6 +225,14 @@ export default function TechnologyPracticePage() {
 
   useEffect(() => {
     refreshProgress();
+
+    void syncServerProgress().then(
+      (changed) => {
+        if (changed) {
+          refreshProgress();
+        }
+      },
+    );
   }, [
     refreshProgress,
     technologySlug,
@@ -818,6 +896,100 @@ export default function TechnologyPracticePage() {
             },
           )}
         </section>
+
+        {selectedLevel === 'All' &&
+          extraSections.length > 0 && (
+          <section
+            className={
+              styles.stageList
+            }
+          >
+          {extraSections.map(
+            (section) => (
+              <section
+                key={`${section.key}-${solvedProblemSlugs.length}`}
+                className={
+                  styles.stage
+                }
+              >
+                <div
+                  className={
+                    styles.stageHeader
+                  }
+                >
+                  <div
+                    className={
+                      styles.stageNumber
+                    }
+                  >
+                    {section.key ===
+                    'institution' ? (
+                      <Building2 />
+                    ) : (
+                      <Sparkles />
+                    )}
+                  </div>
+
+                  <div
+                    className={
+                      styles.stageInfo
+                    }
+                  >
+                    <div
+                      className={
+                        styles.stageMeta
+                      }
+                    >
+                      <span>
+                        {
+                          section
+                            .problems
+                            .length
+                        }{' '}
+                        {section
+                          .problems
+                          .length === 1
+                          ? 'problem'
+                          : 'problems'}
+                      </span>
+                    </div>
+
+                    <h2>
+                      {
+                        section.title
+                      }
+                    </h2>
+
+                    <p>
+                      {
+                        section.description
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={
+                    styles.problemArea
+                  }
+                >
+                  <ProblemList
+                    key={`${section.key}-${solvedProblemSlugs.join('-')}`}
+                    problems={
+                      section.problems
+                    }
+                    context={{
+                      source:
+                        'practice',
+                      technologySlug,
+                    }}
+                  />
+                </div>
+              </section>
+            ),
+          )}
+          </section>
+        )}
       </div>
     </main>
   );

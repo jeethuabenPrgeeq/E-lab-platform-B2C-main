@@ -1037,6 +1037,98 @@
    RESPONSIVE - 1200
 ========================================================= */
 
+/* =========================================================
+   ASSIGNMENTS
+========================================================= */
+
+.assignmentCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: #e7ecf2;
+  box-shadow:
+    7px 7px 16px rgba(184, 193, 203, 0.56),
+    -7px -7px 16px rgba(255, 255, 255, 0.95);
+}
+
+.assignmentIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #e7ecf2;
+  box-shadow:
+    inset 3px 3px 7px rgba(184, 193, 203, 0.48),
+    inset -3px -3px 7px rgba(255, 255, 255, 0.94);
+  color: #2563eb;
+}
+
+.assignmentIcon > svg {
+  width: 21px;
+  height: 21px;
+}
+
+.assignmentText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.assignmentText strong {
+  color: #1f2937;
+  font-size: 15px;
+}
+
+.assignmentText span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.assignmentButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #2563eb;
+  box-shadow: 4px 4px 10px rgba(37, 99, 235, 0.28);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.assignmentButton > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.assignmentButton:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .assignmentCard {
+    flex-wrap: wrap;
+  }
+
+  .assignmentButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 1200px) {
   .headerInner,
   .main {

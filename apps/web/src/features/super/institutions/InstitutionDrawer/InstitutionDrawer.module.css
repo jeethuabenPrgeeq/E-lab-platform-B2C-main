@@ -117,3 +117,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.hint {
+  margin: 0 0 12px;
+  color: var(--ad-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}

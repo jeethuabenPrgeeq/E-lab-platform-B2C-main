@@ -7,6 +7,7 @@ import {
   LineChart,
   Tags,
   Upload,
+  Users,
 } from "lucide-react";
 
 import type { RoleConfig } from "./admin-nav";
@@ -71,6 +72,18 @@ export const INSTITUTE_ADMIN_CONFIG: RoleConfig = {
           icon: Tags,
           ready: true,
           permission: "inst.content.view",
+        },
+      ],
+    },
+    {
+      title: "People",
+      items: [
+        {
+          label: "Learners",
+          href: "/learners",
+          icon: Users,
+          ready: true,
+          permission: "inst.learners.manage",
         },
       ],
     },

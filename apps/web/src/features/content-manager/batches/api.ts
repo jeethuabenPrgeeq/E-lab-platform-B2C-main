@@ -40,6 +40,9 @@ export interface BatchSummary {
   withoutSample: number;
   withoutHidden: number;
   notPublished: number;
+  assignedAt: string | null;
+  assignedByName: string | null;
+  assignedGroup: { id: string; name: string } | null;
   createdBy: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +50,7 @@ export interface BatchSummary {
 
 export interface BatchDetail extends BatchSummary {
   items: BatchProblem[];
+  progress: { learners: number; started: number; completed: number };
 }
 
 export interface BatchInput {
@@ -74,6 +78,9 @@ export const batchApi = {
   get: (id: string) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}`)),
   create: (input: BatchInput) => attempt(() => adminApi<BatchDetail>(BATCHES, { method: 'POST', body: input })),
   update: (id: string, input: Partial<BatchInput>) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}`, { method: 'PATCH', body: input })),
+  assign: (id: string, groupId: string | null) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}/assign`, { method: 'POST', body: { groupId } })),
+  groups: () => attempt(() => adminApi<{ items: { id: string; name: string }[] }>(`${BATCHES}/groups`)),
+  unassign: (id: string) => attempt(() => adminApi<BatchDetail>(`${BATCHES}/${id}/unassign`, { method: 'POST' })),
   remove: (id: string) => attempt(() => adminApi<{ deleted: boolean }>(`${BATCHES}/${id}`, { method: 'DELETE' })),
 };
 

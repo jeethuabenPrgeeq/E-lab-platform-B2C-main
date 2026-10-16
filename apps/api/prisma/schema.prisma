@@ -292,6 +292,8 @@ model User {
 
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  learnerGroupId String?
+  learnerGroup   LearnerGroup? @relation(fields: [learnerGroupId], references: [id], onDelete: SetNull)
 
   problemsCreated   Problem[]          @relation("ProblemCreatedBy")
   problemsUpdated   Problem[]          @relation("ProblemUpdatedBy")
@@ -336,11 +338,24 @@ model Organization {
   users          User[]
   problems       Problem[]
   contentBatches ContentBatch[]
-
+  learnerGroups  LearnerGroup[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("organizations")
+}
+
+model LearnerGroup {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  name           String
+  learners       User[]
+  batches        ContentBatch[]
+  createdAt      DateTime       @default(now())
+
+  @@unique([organizationId, name])
+  @@map("learner_groups")
 }
 
 model ContentBatch {
@@ -354,6 +369,10 @@ model ContentBatch {
   easyTarget     Int              @default(0)
   mediumTarget   Int              @default(0)
   hardTarget     Int              @default(0)
+  assignedAt     DateTime?
+  assignedByName String?
+  assignedGroupId String?
+  assignedGroup  LearnerGroup?    @relation(fields: [assignedGroupId], references: [id], onDelete: SetNull)
   createdById    String?
   createdBy      User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   items          ContentBatchItem[]

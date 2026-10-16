@@ -424,6 +424,38 @@
   color: var(--ad-warning);
 }
 
+.code {
+  padding: 4px 8px;
+  border-radius: 8px;
+  box-shadow: var(--ad-inset-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  user-select: all;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: var(--ad-radius-sm);
+  box-shadow: var(--ad-inset-sm);
+}
+
+.metric strong {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.metric span {
+  color: var(--ad-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .note {
   margin: 0;
   color: var(--ad-muted);

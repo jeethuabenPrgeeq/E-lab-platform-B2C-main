@@ -67,7 +67,7 @@ export class InstitutionsService {
         orderBy: { createdAt: 'desc' },
         skip,
         take,
-        include: { _count: { select: { problems: true } }, users: { where: { role: 'INSTITUTE_ADMIN', status: 'ACTIVE' }, select: { id: true } } },
+        include: { _count: { select: { problems: true, users: { where: { role: 'LEARNER', status: 'ACTIVE' } } } }, users: { where: { role: 'INSTITUTE_ADMIN', status: 'ACTIVE' }, select: { id: true } } },
       }),
       this.prisma.organization.count({ where }),
       this.prisma.organization.groupBy({ by: ['status'], _count: { _all: true } }),
@@ -84,6 +84,7 @@ export class InstitutionsService {
         permissions: keysOf(row.permissions),
         admins: row.users.length,
         problems: row._count.problems,
+        learners: row._count.users,
         createdAt: row.createdAt.getTime(),
       })),
       total,
@@ -96,9 +97,10 @@ export class InstitutionsService {
 
   async get(id: string) {
     const row = await this.institution(id);
-    const [admins, problems] = await Promise.all([
+    const [admins, problems, learners] = await Promise.all([
       this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: id }, orderBy: { createdAt: 'asc' }, select: ADMIN_SELECT }),
       this.prisma.problem.groupBy({ by: ['status'], where: { organizationId: id }, _count: { _all: true } }),
+      this.prisma.user.groupBy({ by: ['status'], where: { role: 'LEARNER', organizationId: id }, _count: { _all: true } }),
     ]);
     return {
       id: row.id,
@@ -113,6 +115,10 @@ export class InstitutionsService {
       updatedAt: row.updatedAt.getTime(),
       admins: admins.map(presentAdmin),
       problemsByStatus: Object.fromEntries(problems.map((item) => [item.status, item._count._all])),
+      learners: {
+        active: learners.find((item) => item.status === 'ACTIVE')?._count._all ?? 0,
+        revoked: learners.filter((item) => item.status !== 'ACTIVE').reduce((sum, item) => sum + item._count._all, 0),
+      },
     };
   }
 
@@ -197,6 +203,44 @@ export class InstitutionsService {
   async unlinkedAdmins() {
     const rows = await this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: null }, orderBy: { name: 'asc' }, select: ADMIN_SELECT });
     return { items: rows.map(presentAdmin) };
+  }
+
+  async unlinkedLearners(q?: string) {
+    const term = q?.trim();
+    const rows = await this.prisma.user.findMany({
+      where: {
+        role: 'LEARNER',
+        organizationId: null,
+        status: 'ACTIVE',
+        ...(term ? { OR: [{ name: { contains: term, mode: 'insensitive' } }, { email: { contains: term, mode: 'insensitive' } }] } : {}),
+      },
+      orderBy: { name: 'asc' },
+      take: 20,
+      select: { id: true, name: true, email: true },
+    });
+    return { items: rows };
+  }
+
+  async linkLearner(id: string, userId: string, actor: AdminActor) {
+    const row = await this.institution(id);
+    const user = await this.prisma.user.findFirst({ where: { id: userId, role: 'LEARNER', organizationId: null }, select: { id: true, email: true } });
+    if (!user) throw new NotFoundException('No unlinked learner with that id.');
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: userId }, data: { organizationId: id } });
+      await this.audit.record(tx, actor, { action: 'institution.learner_link', entityType: 'institution', entityId: id, summary: `Linked learner ${user.email} to ${row.name}` });
+    });
+    return this.get(id);
+  }
+
+  async unlinkLearner(id: string, userId: string, actor: AdminActor) {
+    const row = await this.institution(id);
+    const user = await this.prisma.user.findFirst({ where: { id: userId, role: 'LEARNER', organizationId: id }, select: { id: true, email: true } });
+    if (!user) throw new NotFoundException('Learner not found in this institution.');
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: userId }, data: { organizationId: null } });
+      await this.audit.record(tx, actor, { action: 'institution.learner_unlink', entityType: 'institution', entityId: id, summary: `Unlinked learner ${user.email} from ${row.name}` });
+    });
+    return this.get(id);
   }
 
   async linkAdmin(id: string, userId: string, actor: AdminActor) {

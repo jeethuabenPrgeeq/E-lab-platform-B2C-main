@@ -20,6 +20,10 @@ export class CreateBatchDto {
   @IsOptional() @IsArray() @ArrayMaxSize(MAX_BATCH_PROBLEMS) @IsString({ each: true }) problemIds?: string[];
 }
 
+export class AssignBatchDto {
+  @IsOptional() @IsString() @MaxLength(60) groupId?: string | null;
+}
+
 export class UpdateBatchDto {
   @IsOptional() @IsString() @Length(1, 120) name?: string;
   @IsOptional() @IsString() @MaxLength(2000) description?: string;

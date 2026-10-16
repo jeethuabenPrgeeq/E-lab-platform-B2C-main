@@ -93,7 +93,8 @@ export const INSTITUTION_PERMISSION_ITEMS: { key: InstitutionPermissionKey; labe
   { key: 'inst.content.create', label: 'Create and edit content', description: 'Create, upload and duplicate problems, edit drafts and submit them for review' },
   { key: 'inst.content.publish', label: 'Review and publish content', description: 'Approve, send back, publish and deprecate institution problems' },
   { key: 'inst.tests.manage', label: 'Manage test cases', description: 'Sample and hidden test cases and source checks' },
-  { key: 'inst.batches.manage', label: 'Manage content batches', description: 'Create and edit batches of institution problems' },
+  { key: 'inst.batches.manage', label: 'Manage content batches', description: 'Create, edit and assign batches of institution problems' },
+  { key: 'inst.learners.manage', label: 'Manage learners', description: 'Invite, import, revoke and restore the institution’s learners' },
 ];
 
 export const INSTITUTION_PERMISSION_LABEL = Object.fromEntries(INSTITUTION_PERMISSION_ITEMS.map((item) => [item.key, item.label])) as Record<InstitutionPermissionKey, string>;

@@ -18,8 +18,15 @@ import { getLinuxTestCases } from './linux-test-cases.js';
 import { getDockerTestCases } from './docker-test-cases.js';
 import { getKubernetesTestCases } from './kubernetes-test-cases.js';
 import { getCicdTestCases } from './cicd-test-cases.js';
-import { JudgeGateway, type RunRecord } from '../judge/judge-gateway.service.js';
+import {
+  JudgeGateway,
+  type RunRecord,
+} from '../judge/judge-gateway.service.js';
 import type { JudgeLimits } from '../judge/judge-settings.service.js';
+import {
+  DB_JUDGED_LANGUAGES,
+  LearnerCatalogService,
+} from '../learner/learner-catalog.service.js';
 
 /* =========================================================
    TYPES
@@ -38,6 +45,19 @@ type SubmissionRequest = {
     challenge?: string | null;
     attempt?: string | null;
   };
+};
+
+type LearnerFacingResult = {
+  status?: string;
+  results?: Array<{
+    testNumber: number;
+    passed: boolean;
+    status: string;
+    output?: string;
+    stderr?: string;
+    expectedOutput?: string;
+  }>;
+  [key: string]: unknown;
 };
 
 type HiddenTestCase = {
@@ -114,7 +134,10 @@ const SUPPORTED_LANGUAGES = [
 
 @Injectable()
 export class SubmissionsService implements OnModuleInit {
-  constructor(private readonly gateway: JudgeGateway) {}
+  constructor(
+    private readonly gateway: JudgeGateway,
+    private readonly catalog: LearnerCatalogService,
+  ) {}
 
   onModuleInit() {
     this.gateway.register('submit', async (job, judgeUrl, limits) => {
@@ -126,6 +149,7 @@ export class SubmissionsService implements OnModuleInit {
         },
         judgeUrl,
         limits,
+        job.userId ?? null,
       );
       return { response: result, record: this.toRecord(result) };
     });
@@ -161,7 +185,7 @@ export class SubmissionsService implements OnModuleInit {
   }
 
   async submit(body: SubmissionRequest, userId: string | null = null) {
-    const language = this.validate(body);
+    const language = await this.validate(body, userId);
     const { response } = await this.gateway.execute({
       kind: 'submit',
       userId,
@@ -170,7 +194,32 @@ export class SubmissionsService implements OnModuleInit {
       workspaceType: '',
       code: body.code,
     });
-    return { ...(response as Record<string, unknown>), context: body.context };
+    return {
+      ...this.forLearner(response as LearnerFacingResult),
+      context: body.context,
+    };
+  }
+
+  private forLearner(result: LearnerFacingResult) {
+    const { results = [], ...rest } = result;
+    const compileError =
+      rest.status === 'COMPILATION_ERROR' ? results[0] : undefined;
+    return {
+      ...rest,
+      ...(compileError
+        ? {
+            output: (compileError.output || compileError.stderr || '').slice(
+              0,
+              4000,
+            ),
+          }
+        : {}),
+      results: results.map(({ testNumber, passed, status }) => ({
+        testNumber,
+        passed,
+        status,
+      })),
+    };
   }
 
   async rejudge(
@@ -198,7 +247,7 @@ export class SubmissionsService implements OnModuleInit {
     );
   }
 
-  private validate(body: SubmissionRequest) {
+  private async validate(body: SubmissionRequest, userId: string | null) {
     if (!body.problemSlug || !body.problemSlug.trim())
       throw new BadRequestException('Problem slug is required.');
     if (!body.language || !body.language.trim())
@@ -214,11 +263,25 @@ export class SubmissionsService implements OnModuleInit {
       throw new BadRequestException(
         `Unsupported submission language: ${body.language}`,
       );
-    if (this.getHiddenTests(language, body.problemSlug).length === 0)
+    if (
+      (await this.resolveTests(language, body.problemSlug, userId)).length === 0
+    )
       throw new BadRequestException(
         `No hidden test cases configured for ${body.problemSlug}.`,
       );
     return language;
+  }
+
+  private async resolveTests(
+    language: string,
+    problemSlug: string,
+    userId: string | null,
+  ): Promise<HiddenTestCase[]> {
+    const fixed = this.getHiddenTests(language, problemSlug);
+    if (fixed.length > 0) return fixed;
+    if (!(DB_JUDGED_LANGUAGES as readonly string[]).includes(language))
+      return [];
+    return this.catalog.hiddenTests(userId, problemSlug, language);
   }
 
   private readonly judgeUrl = process.env.JUDGE_URL ?? 'http://127.0.0.1:4100';
@@ -353,6 +416,7 @@ export class SubmissionsService implements OnModuleInit {
     body: SubmissionRequest,
     judgeUrl: string,
     limits: JudgeLimits,
+    userId: string | null = null,
   ) {
     /* =====================================================
        VALIDATE PROBLEM
@@ -402,7 +466,11 @@ export class SubmissionsService implements OnModuleInit {
        GET HIDDEN TEST CASES
     ===================================================== */
 
-    const testCases = this.getHiddenTests(language, body.problemSlug);
+    const testCases = await this.resolveTests(
+      language,
+      body.problemSlug,
+      userId,
+    );
 
     if (testCases.length === 0) {
       throw new BadRequestException(

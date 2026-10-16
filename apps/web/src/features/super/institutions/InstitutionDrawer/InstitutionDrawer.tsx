@@ -9,7 +9,7 @@ import type { InstitutionPermissionKey } from '../../access/lib/types';
 import { EMAIL_PATTERN, cx, formatAgo, formatDate } from '../../users/lib/shared';
 import { institutionApi } from '../lib/api';
 import { ADMIN_STATUS_META, INSTITUTION_STATUS_META, INSTITUTION_TYPES, TYPE_LABEL } from '../lib/shared';
-import type { InstituteAdmin, InstitutionDetail, InstitutionStatus, InstitutionType } from '../lib/types';
+import type { InstituteAdmin, InstitutionDetail, InstitutionStatus, InstitutionType, LearnerRef } from '../lib/types';
 
 interface InstitutionDrawerProps {
   institutionId: string;
@@ -43,6 +43,9 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
   const [linkId, setLinkId] = useState('');
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
+  const [learnerQuery, setLearnerQuery] = useState('');
+  const [learnerOptions, setLearnerOptions] = useState<LearnerRef[]>([]);
+  const [learnerId, setLearnerId] = useState('');
 
   const apply = useCallback((next: InstitutionDetail) => {
     setDetail(next);
@@ -152,6 +155,24 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
     onChanged();
   };
 
+  const findLearners = async () => {
+    const result = await institutionApi.unlinkedLearners(learnerQuery.trim());
+    if (result.ok) {
+      setLearnerOptions(result.data.items);
+      setLearnerId(result.data.items[0]?.id ?? '');
+      if (result.data.items.length === 0) setError('No unlinked learner matches that search.');
+    } else setError(result.error);
+  };
+
+  const linkLearner = async () => {
+    if (!learnerId) return;
+    if (await run(() => institutionApi.linkLearner(detail.id, learnerId), 'Learner linked')) {
+      setLearnerId('');
+      setLearnerOptions([]);
+      setLearnerQuery('');
+    }
+  };
+
   const link = async () => {
     if (!linkId) return;
     if (await run(() => institutionApi.link(detail.id, linkId), 'Admin linked')) {
@@ -175,6 +196,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
     ['Registered', formatDate(detail.createdAt)],
     ['Registered by', detail.createdBy],
     ['Problems', String(problemTotal)],
+    ['Learners', `${detail.learners.active} active${detail.learners.revoked ? `, ${detail.learners.revoked} revoked` : ''}`],
     ['Contact', detail.contactEmail ?? 'Not set'],
   ];
 
@@ -342,6 +364,49 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
                 </select>
               </label>
               <button type="button" className={styles.ghostButton} disabled={!linkId || busy} onClick={() => void link()}>
+                <Link2 width={14} height={14} aria-hidden="true" />
+                Link
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Learners</h3>
+          <p className={own.hint}>Institute Admins invite and manage learners from their Learners page. Link an existing learner account here.</p>
+          <div className={own.linkForm}>
+            <label className={styles.field}>
+              <span className={styles.label}>Find an unlinked learner</span>
+              <input
+                className={styles.control}
+                value={learnerQuery}
+                placeholder="Name or email"
+                onChange={(event) => setLearnerQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    void findLearners();
+                  }
+                }}
+              />
+            </label>
+            <button type="button" className={styles.ghostButton} disabled={busy} onClick={() => void findLearners()}>
+              Find
+            </button>
+          </div>
+          {learnerOptions.length > 0 && (
+            <div className={own.linkForm}>
+              <label className={styles.field}>
+                <span className={styles.label}>Learner</span>
+                <select className={styles.control} value={learnerId} onChange={(event) => setLearnerId(event.target.value)}>
+                  {learnerOptions.map((learner) => (
+                    <option key={learner.id} value={learner.id}>
+                      {`${learner.name} (${learner.email})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className={styles.ghostButton} disabled={!learnerId || busy} onClick={() => void linkLearner()}>
                 <Link2 width={14} height={14} aria-hidden="true" />
                 Link
               </button>

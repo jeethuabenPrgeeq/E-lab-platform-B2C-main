@@ -14,6 +14,7 @@ export interface InstitutionSummary {
   permissions: InstitutionPermissionKey[];
   admins: number;
   problems: number;
+  learners: number;
   createdAt: number;
 }
 
@@ -35,11 +36,18 @@ export interface InstituteAdmin {
   createdAt: number;
 }
 
-export interface InstitutionDetail extends Omit<InstitutionSummary, 'admins' | 'problems'> {
+export interface LearnerRef {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface InstitutionDetail extends Omit<InstitutionSummary, 'admins' | 'problems' | 'learners'> {
   createdBy: string;
   updatedAt: number;
   admins: InstituteAdmin[];
   problemsByStatus: Record<string, number>;
+  learners: { active: number; revoked: number };
 }
 
 export interface CreateInstitutionInput {

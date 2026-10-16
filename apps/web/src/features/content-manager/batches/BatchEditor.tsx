@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, CheckCircle2, Plus, Save, Search, TriangleAlert, X } from 'lucide-react';
-import { PageHeader, Panel } from '@/components/admin/widgets/AdminWidgets';
-import { STATUS_LABEL, capitalize } from '@/features/admin/problems/lib/shared';
-import { useLibrary, type LibraryFilters, type LibraryItem } from '../lib/api';
-import { useInstitutionLabel } from '../lib/useInstitutionLabel';
-import styles from '../ui/institute.module.css';
-import { BATCH_ROUTE, BATCH_TYPES, batchApi, type BatchDetail, type BatchProblem, type BatchType, type Difficulty } from './api';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowUp, CheckCircle2, Plus, Save, Search, Send, TriangleAlert, Undo2, X } from "lucide-react";
+import { PageHeader, Panel } from "@/components/admin/widgets/AdminWidgets";
+import { STATUS_LABEL, capitalize, formatDate } from "@/features/admin/problems/lib/shared";
+import { useLibrary, type LibraryFilters, type LibraryItem } from "../lib/api";
+import { useInstitutionLabel } from "../lib/useInstitutionLabel";
+import styles from "../ui/institute.module.css";
+import { BATCH_ROUTE, BATCH_TYPES, batchApi, type BatchDetail, type BatchProblem, type BatchType, type Difficulty } from "./api";
 
-const LEVELS: Difficulty[] = ['easy', 'medium', 'hard'];
+const LEVELS: Difficulty[] = ["easy", "medium", "hard"];
 
 const fromLibrary = (item: LibraryItem): BatchProblem => ({
   id: item.id,
@@ -28,23 +28,30 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
   const router = useRouter();
   const institution = useInstitutionLabel();
   const [loaded, setLoaded] = useState(!batchId);
-  const [loadError, setLoadError] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<BatchType>('regular_practice');
-  const [focus, setFocus] = useState('');
+  const [loadError, setLoadError] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState<BatchType>("regular_practice");
+  const [focus, setFocus] = useState("");
   const [targets, setTargets] = useState<Record<Difficulty, number>>({ easy: 0, medium: 0, hard: 0 });
   const [selected, setSelected] = useState<BatchProblem[]>([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
-  const filters = useMemo<LibraryFilters>(() => ({ scope: 'all', status: '', difficulty: '', technologyId: '', q: query.trim() }), [query]);
+  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [assignment, setAssignment] = useState<Pick<BatchDetail, "assignedAt" | "assignedByName" | "assignedGroup" | "progress"> | null>(null);
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [targetGroup, setTargetGroup] = useState("");
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const filters = useMemo<LibraryFilters>(() => ({ scope: "all", status: "", difficulty: "", technologyId: "", q: query.trim() }), [query]);
   const library = useLibrary(filters);
-  const candidates = (library.data?.items ?? []).filter((item) => item.status !== 'deprecated' && !selected.some((chosen) => chosen.id === item.id));
+  const candidates = (library.data?.items ?? []).filter((item) => item.status !== "deprecated" && !selected.some((chosen) => chosen.id === item.id));
 
   useEffect(() => {
     if (!batchId) return;
     let alive = true;
+    void batchApi.groups().then((result) => {
+      if (alive && result.ok) setGroups(result.data.items);
+    });
     void batchApi.get(batchId).then((result) => {
       if (!alive) return;
       if (result.ok) apply(result.data);
@@ -63,19 +70,37 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
     setFocus(batch.focus);
     setTargets(batch.targets);
     setSelected(batch.items);
+    setSavedIds(batch.items.map((item) => item.id));
+    setAssignment({ assignedAt: batch.assignedAt, assignedByName: batch.assignedByName, assignedGroup: batch.assignedGroup, progress: batch.progress });
   }
+
+  const toggleAssignment = async () => {
+    if (!batchId || !assignment) return;
+    setSaving(true);
+    setNotice(null);
+    const result = assignment.assignedAt ? await batchApi.unassign(batchId) : await batchApi.assign(batchId, targetGroup || null);
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.error });
+      return;
+    }
+    apply(result.data);
+    setNotice({ tone: "ok", text: result.data.assignedAt ? `Batch assigned to ${result.data.assignedGroup ? result.data.assignedGroup.name : "all learners"}.` : "Batch withdrawn from learners." });
+  };
+
+  const unsaved = JSON.stringify(savedIds) !== JSON.stringify(selected.map((item) => item.id));
 
   const counts = Object.fromEntries(LEVELS.map((level) => [level, selected.filter((problem) => problem.difficulty === level).length])) as Record<Difficulty, number>;
   const planned = targets.easy + targets.medium + targets.hard;
   const withoutTests = selected.filter((problem) => problem.sampleTests === 0 || problem.hiddenTests === 0).length;
-  const unpublished = selected.filter((problem) => problem.status !== 'published').length;
+  const unpublished = selected.filter((problem) => problem.status !== "published").length;
   const checks = [
-    { ok: name.trim().length > 0, text: 'The batch has a name' },
-    { ok: selected.length > 0, text: 'At least one problem is selected' },
+    { ok: name.trim().length > 0, text: "The batch has a name" },
+    { ok: selected.length > 0, text: "At least one problem is selected" },
     { ok: planned === selected.length, text: `Targets add up to the selection (${planned} planned, ${selected.length} selected)` },
-    { ok: LEVELS.every((level) => counts[level] === targets[level]), text: 'Each difficulty matches its target' },
-    { ok: withoutTests === 0, text: withoutTests ? `${withoutTests} problem${withoutTests === 1 ? ' is' : 's are'} missing sample or hidden tests` : 'Every problem has sample and hidden tests' },
-    { ok: unpublished === 0, text: unpublished ? `${unpublished} problem${unpublished === 1 ? ' is' : 's are'} not published yet` : 'Every problem is published' },
+    { ok: LEVELS.every((level) => counts[level] === targets[level]), text: "Each difficulty matches its target" },
+    { ok: withoutTests === 0, text: withoutTests ? `${withoutTests} problem${withoutTests === 1 ? " is" : "s are"} missing sample or hidden tests` : "Every problem has sample and hidden tests" },
+    { ok: unpublished === 0, text: unpublished ? `${unpublished} problem${unpublished === 1 ? " is" : "s are"} not published yet` : "Every problem is published" },
   ];
 
   const move = (index: number, delta: number) =>
@@ -88,7 +113,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
 
   const save = async () => {
     if (!name.trim()) {
-      setNotice({ tone: 'error', text: 'Give the batch a name before saving.' });
+      setNotice({ tone: "error", text: "Give the batch a name before saving." });
       return;
     }
     setSaving(true);
@@ -97,7 +122,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
     const result = batchId ? await batchApi.update(batchId, input) : await batchApi.create(input);
     setSaving(false);
     if (!result.ok) {
-      setNotice({ tone: 'error', text: result.error });
+      setNotice({ tone: "error", text: result.error });
       return;
     }
     if (!batchId) {
@@ -105,7 +130,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
       return;
     }
     apply(result.data);
-    setNotice({ tone: 'ok', text: 'Batch saved.' });
+    setNotice({ tone: "ok", text: "Batch saved." });
   };
 
   if (!loaded) return <p className={styles.empty}>Loading batch…</p>;
@@ -129,19 +154,19 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
         Back to batches
       </Link>
       <PageHeader
-        title={batchId ? name || 'Edit batch' : 'New batch'}
+        title={batchId ? name || "Edit batch" : "New batch"}
         pill={institution}
         meta="Pick institution problems, set difficulty targets and keep them in order"
         actions={
           <button className={styles.primaryButton} type="button" disabled={saving} onClick={() => void save()}>
             <Save size={16} aria-hidden="true" />
-            {saving ? 'Saving…' : batchId ? 'Save changes' : 'Create batch'}
+            {saving ? "Saving…" : batchId ? "Save changes" : "Create batch"}
           </button>
         }
       />
 
       {notice && (
-        <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
+        <p className={notice.tone === "error" ? styles.error : styles.success} role={notice.tone === "error" ? "alert" : "status"}>
           {notice.text}
         </p>
       )}
@@ -178,15 +203,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
           {LEVELS.map((level) => (
             <label key={level} className={styles.field}>
               <span className={styles.label}>{`${capitalize(level)} (${counts[level]} selected)`}</span>
-              <input
-                id={`batch-target-${level}`}
-                type="number"
-                min={0}
-                max={500}
-                className={styles.input}
-                value={targets[level]}
-                onChange={(e) => setTargets((current) => ({ ...current, [level]: Math.max(0, Math.min(500, Math.floor(Number(e.target.value) || 0))) }))}
-              />
+              <input id={`batch-target-${level}`} type="number" min={0} max={500} className={styles.input} value={targets[level]} onChange={(e) => setTargets((current) => ({ ...current, [level]: Math.max(0, Math.min(500, Math.floor(Number(e.target.value) || 0))) }))} />
             </label>
           ))}
         </div>
@@ -202,7 +219,7 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
           {!library.loaded ? (
             <p className={styles.empty}>Loading problems…</p>
           ) : candidates.length === 0 ? (
-            <p className={styles.empty}>{query ? 'No matching problems.' : 'Every available problem is already in this batch.'}</p>
+            <p className={styles.empty}>{query ? "No matching problems." : "Every available problem is already in this batch."}</p>
           ) : (
             <ul className={styles.pickList}>
               {candidates.map((item) => (
@@ -250,6 +267,45 @@ export default function BatchEditor({ batchId }: { batchId?: string }) {
           )}
         </Panel>
       </div>
+
+      {batchId && assignment && (
+        <Panel
+          title="Assignment"
+          subtitle={assignment.assignedAt ? `Assigned to ${assignment.assignedGroup ? assignment.assignedGroup.name : "all learners"} on ${formatDate(assignment.assignedAt)}${assignment.assignedByName ? ` by ${assignment.assignedByName}` : ""}` : "Not assigned. Learners can’t see this batch yet."}
+          action={
+            <span className={styles.rowActions}>
+              {!assignment.assignedAt && (
+                <select className={styles.select} value={targetGroup} onChange={(e) => setTargetGroup(e.target.value)} aria-label="Assign to">
+                  <option value="">All learners</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button type="button" className={assignment.assignedAt ? styles.ghostButton : styles.primaryButton} disabled={saving || (!assignment.assignedAt && (unsaved || selected.length === 0))} title={!assignment.assignedAt && unsaved ? "Save your changes before assigning" : undefined} onClick={() => void toggleAssignment()}>
+                {assignment.assignedAt ? <Undo2 size={16} aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
+                {assignment.assignedAt ? "Withdraw" : targetGroup ? "Assign to group" : "Assign to all learners"}
+              </button>
+            </span>
+          }>
+          <div className={styles.statGrid}>
+            <p className={styles.metric}>
+              <strong>{assignment.progress.learners}</strong>
+              <span>Active learners</span>
+            </p>
+            <p className={styles.metric}>
+              <strong>{assignment.progress.started}</strong>
+              <span>Solved at least one</span>
+            </p>
+            <p className={styles.metric}>
+              <strong>{assignment.progress.completed}</strong>
+              <span>Completed the batch</span>
+            </p>
+          </div>
+        </Panel>
+      )}
 
       <Panel title="Checks" subtitle="Advisory: you can save a batch that doesn’t pass every check yet">
         <ul className={styles.checkList}>

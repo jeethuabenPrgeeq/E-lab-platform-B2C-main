@@ -43,6 +43,8 @@ import { ContentProblemsService } from './content-manager/content-problems.servi
 import { InstituteUploadService } from './content-manager/institute-upload.service.js';
 import { ContentBatchesController } from './content-manager/content-batches.controller.js';
 import { ContentBatchesService } from './content-manager/content-batches.service.js';
+import { InstituteLearnersController } from './content-manager/institute-learners.controller.js';
+import { InstituteLearnersService } from './content-manager/institute-learners.service.js';
 import { OwnershipController } from './content-manager/ownership.controller.js';
 import { OwnershipService } from './content-manager/ownership.service.js';
 import { PathsService } from './content/paths.service.js';
@@ -94,6 +96,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     ContentDashboardController,
     ContentProblemsController,
     ContentBatchesController,
+    InstituteLearnersController,
     OwnershipController,
     ContentController,
     RevenueController,
@@ -138,6 +141,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     ContentProblemsService,
     InstituteUploadService,
     ContentBatchesService,
+    InstituteLearnersService,
     OwnershipService,
     CatalogService,
     PathsService,

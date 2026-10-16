@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Braces, BrainCircuit, ChevronRight, Cloud, Code2, Database, GitBranch, Layers3, LogOut, Search, Server, Sparkles, Trophy, UserRound, X, Zap } from "lucide-react";
+import { Braces, BrainCircuit, ChevronRight, ClipboardList, Cloud, Code2, Database, GitBranch, Layers3, LogOut, Search, Server, Sparkles, Trophy, UserRound, X, Zap } from "lucide-react";
 
 import { FaJava } from "react-icons/fa";
 
@@ -15,6 +15,8 @@ import { SiC, SiCplusplus, SiPython, SiJavascript, SiTypescript, SiGo, SiRuby, S
 import { useEffect, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
+
+import { useLearnerBatches } from "@/features/learner/api";
 
 import styles from "./dashboard.module.css";
 
@@ -502,6 +504,12 @@ export default function DashboardPage() {
     router.push(`/practice/${slug}`);
   };
 
+  const assignments = useLearnerBatches();
+
+  const assignedProblems = assignments.items.reduce((sum, batch) => sum + batch.total, 0);
+
+  const assignedSolved = assignments.items.reduce((sum, batch) => sum + batch.solvedCount, 0);
+
   if (checkingAuth) {
     return null;
   }
@@ -600,6 +608,25 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
+
+        {assignments.items.length > 0 && (
+          <section className={styles.assignmentCard} aria-label="Assignments">
+            <div className={styles.assignmentIcon}>
+              <ClipboardList />
+            </div>
+
+            <div className={styles.assignmentText}>
+              <strong>{`${assignments.items.length} batch${assignments.items.length === 1 ? "" : "es"} assigned by ${assignments.institution?.name ?? "your institution"}`}</strong>
+
+              <span>{`${assignedSolved} of ${assignedProblems} problems solved`}</span>
+            </div>
+
+            <button type="button" className={styles.assignmentButton} onClick={() => router.push("/assignments")}>
+              View assignments
+              <ChevronRight />
+            </button>
+          </section>
+        )}
 
         {/* =================================================
             SEARCH

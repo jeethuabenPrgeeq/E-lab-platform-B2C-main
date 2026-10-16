@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { adminApi, errorText } from '@/features/admin/lib/api';
 import type { InstitutionPermissionKey } from '../../access/lib/types';
-import type { CreateInstitutionInput, InstituteAdmin, InstitutionDetail, InstitutionList, UpdateInstitutionInput } from './types';
+import type { CreateInstitutionInput, InstituteAdmin, InstitutionDetail, InstitutionList, LearnerRef, UpdateInstitutionInput } from './types';
 
 const BASE = '/super/institutions';
 
@@ -44,6 +44,8 @@ export const institutionApi = {
   setPermissions: (id: string, permissions: InstitutionPermissionKey[]) => attempt(() => adminApi<InstitutionDetail>(`${BASE}/${id}/permissions`, { method: 'PUT', body: { permissions } })),
   invite: (id: string, name: string, email: string) => attempt(() => adminApi<{ admin: InstituteAdmin; temporaryPassword: string }>(`${BASE}/${id}/admins`, { method: 'POST', body: { name, email } })),
   unlinked: () => attempt(() => adminApi<{ items: InstituteAdmin[] }>(`${BASE}/unlinked-admins`)),
+  unlinkedLearners: (q: string) => attempt(() => adminApi<{ items: LearnerRef[] }>(`${BASE}/unlinked-learners`, { query: { q: q || undefined } })),
+  linkLearner: (id: string, userId: string) => attempt(() => adminApi<InstitutionDetail>(`${BASE}/${id}/learners/link`, { method: 'POST', body: { userId } })),
   link: (id: string, userId: string) => attempt(() => adminApi<InstitutionDetail>(`${BASE}/${id}/admins/link`, { method: 'POST', body: { userId } })),
   revoke: (id: string, userId: string, reason: string) => attempt(() => adminApi<InstitutionDetail>(`${BASE}/${id}/admins/${userId}/revoke`, { method: 'POST', body: { reason } })),
   restore: (id: string, userId: string) => attempt(() => adminApi<InstitutionDetail>(`${BASE}/${id}/admins/${userId}/restore`, { method: 'POST' })),

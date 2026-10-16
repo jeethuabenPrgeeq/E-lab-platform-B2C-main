@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
-import { CheckCircle2, Layers, ListChecks, Plus, RefreshCw, Search, Trash2, TriangleAlert } from 'lucide-react';
-import { PageHeader, Panel, StatCard } from '@/components/admin/widgets/AdminWidgets';
-import { formatDate } from '@/features/admin/problems/lib/shared';
-import { useInstitutionLabel } from '../lib/useInstitutionLabel';
-import styles from '../ui/institute.module.css';
-import { BATCH_ROUTE, BATCH_TYPE_LABEL, batchApi, meetsTargets, useBatches } from './api';
+import Link from "next/link";
+import { useState } from "react";
+import { CheckCircle2, Layers, ListChecks, Plus, RefreshCw, Search, Trash2, TriangleAlert } from "lucide-react";
+import { PageHeader, Panel, StatCard } from "@/components/admin/widgets/AdminWidgets";
+import { formatDate } from "@/features/admin/problems/lib/shared";
+import { useInstitutionLabel } from "../lib/useInstitutionLabel";
+import styles from "../ui/institute.module.css";
+import { BATCH_ROUTE, BATCH_TYPE_LABEL, batchApi, meetsTargets, useBatches } from "./api";
 
 export default function BatchesPage() {
   const institution = useInstitutionLabel();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const { items, loaded, error, refresh } = useBatches(search.trim());
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const problems = items.reduce((sum, batch) => sum + batch.problemCount, 0);
   const onTarget = items.filter((batch) => batch.problemCount > 0 && meetsTargets(batch)).length;
   const gaps = items.filter((batch) => batch.withoutSample + batch.withoutHidden > 0).length;
@@ -26,9 +26,9 @@ export default function BatchesPage() {
     setBusyId(null);
     setConfirmId(null);
     if (result.ok) {
-      setNotice({ tone: 'ok', text: `${name} was deleted.` });
+      setNotice({ tone: "ok", text: `${name} was deleted.` });
       await refresh();
-    } else setNotice({ tone: 'error', text: result.error });
+    } else setNotice({ tone: "error", text: result.error });
   };
 
   return (
@@ -52,10 +52,10 @@ export default function BatchesPage() {
       />
 
       <section className={styles.statGrid} aria-label="Batch summary">
-        <StatCard metric={{ key: 'batches', label: 'Batches', value: items.length, tone: 'primary' }} icon={Layers} />
-        <StatCard metric={{ key: 'problems', label: 'Problems in batches', value: problems, tone: 'neutral' }} icon={ListChecks} />
-        <StatCard metric={{ key: 'target', label: 'Matching their targets', value: onTarget, tone: 'success' }} icon={CheckCircle2} />
-        <StatCard metric={{ key: 'gaps', label: 'With test-case gaps', value: gaps, tone: gaps ? 'warning' : 'neutral' }} icon={TriangleAlert} />
+        <StatCard metric={{ key: "batches", label: "Batches", value: items.length, tone: "primary" }} icon={Layers} />
+        <StatCard metric={{ key: "problems", label: "Problems in batches", value: problems, tone: "neutral" }} icon={ListChecks} />
+        <StatCard metric={{ key: "target", label: "Matching their targets", value: onTarget, tone: "success" }} icon={CheckCircle2} />
+        <StatCard metric={{ key: "gaps", label: "With test-case gaps", value: gaps, tone: gaps ? "warning" : "neutral" }} icon={TriangleAlert} />
       </section>
 
       <Panel title="Batches">
@@ -71,7 +71,7 @@ export default function BatchesPage() {
           </p>
         )}
         {notice && (
-          <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
+          <p className={notice.tone === "error" ? styles.error : styles.success} role={notice.tone === "error" ? "alert" : "status"}>
             {notice.text}
           </p>
         )}
@@ -80,7 +80,7 @@ export default function BatchesPage() {
         ) : items.length === 0 ? (
           <div className={styles.empty}>
             <Layers size={30} aria-hidden="true" />
-            <strong>{search ? 'No matching batches' : 'No batches yet'}</strong>
+            <strong>{search ? "No matching batches" : "No batches yet"}</strong>
             <p>Create a batch, then pick problems from your Content Library.</p>
             <Link href={`${BATCH_ROUTE}/new`} className={styles.textLink}>
               Create a batch
@@ -96,6 +96,7 @@ export default function BatchesPage() {
                   <th>Problems</th>
                   <th>Easy · Medium · Hard</th>
                   <th>Test cases</th>
+                  <th>Assigned</th>
                   <th>Updated</th>
                   <th>
                     <span className={styles.srOnly}>Actions</span>
@@ -115,15 +116,19 @@ export default function BatchesPage() {
                     <td>{batch.problemCount}</td>
                     <td>
                       {`${batch.difficulty.easy} · ${batch.difficulty.medium} · ${batch.difficulty.hard}`}
-                      <span className={styles.rowMeta}>{meetsTargets(batch) ? 'Matches targets' : `Targets ${batch.targets.easy} · ${batch.targets.medium} · ${batch.targets.hard}`}</span>
+                      <span className={styles.rowMeta}>{meetsTargets(batch) ? "Matches targets" : `Targets ${batch.targets.easy} · ${batch.targets.medium} · ${batch.targets.hard}`}</span>
                     </td>
-                    <td>{batch.withoutSample + batch.withoutHidden === 0 ? 'Complete' : `${batch.withoutHidden} without hidden, ${batch.withoutSample} without sample`}</td>
+                    <td>{batch.withoutSample + batch.withoutHidden === 0 ? "Complete" : `${batch.withoutHidden} without hidden, ${batch.withoutSample} without sample`}</td>
+                    <td>
+                      {batch.assignedAt ? formatDate(batch.assignedAt) : "Not assigned"}
+                      {batch.assignedAt && <span className={styles.rowMeta}>{batch.assignedGroup ? batch.assignedGroup.name : "All learners"}</span>}
+                    </td>
                     <td>{formatDate(batch.updatedAt)}</td>
                     <td>
                       {confirmId === batch.id ? (
                         <span className={styles.rowActions}>
                           <button type="button" className={styles.dangerButton} disabled={busyId !== null} onClick={() => void remove(batch.id, batch.name)}>
-                            {busyId === batch.id ? 'Deleting…' : 'Delete'}
+                            {busyId === batch.id ? "Deleting…" : "Delete"}
                           </button>
                           <button type="button" className={styles.textButton} onClick={() => setConfirmId(null)}>
                             Cancel
@@ -142,7 +147,7 @@ export default function BatchesPage() {
           </div>
         )}
       </Panel>
-      <p className={styles.note}>Batches are not shown to learners yet. Assigning batches to learners arrives with the learner workflow.</p>
+      <p className={styles.note}>Learners see a batch once it is assigned. Only published problems can be in an assigned batch.</p>
     </div>
   );
 }

@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module.js';
 import { JudgeModule } from '../judge/judge.module.js';
+import { LearnerModule } from '../learner/learner.module.js';
 import { SubmissionsController } from './submissions.controller.js';
 import { SubmissionsService } from './submissions.service.js';
 
 @Module({
-  imports: [AuthModule, JudgeModule],
+  imports: [AuthModule, JudgeModule, LearnerModule],
   controllers: [SubmissionsController],
   providers: [SubmissionsService],
   exports: [SubmissionsService],

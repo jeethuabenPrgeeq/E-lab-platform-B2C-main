@@ -11,6 +11,7 @@ import KubernetesLiveWorkspace from '../../../../components/workspace/Kubernetes
 import CicdLiveWorkspace from '../../../../components/workspace/CicdLiveWorkspace';
 import { getProblemBySlug } from "@/features/problem-engine";
 import { markProblemSolved } from "@/features/progress/local-progress";
+import { useRemoteProblem } from "@/features/learner/api";
 import { apiFetch } from "@/features/auth/apiFetch";
 
 import styles from "./workspace.module.css";
@@ -105,7 +106,11 @@ export default function CodingWorkspacePage() {
 
   const problemSlug = params.problemSlug;
 
-  const problem = getProblemBySlug(problemSlug);
+  const staticProblem = getProblemBySlug(problemSlug);
+
+  const remote = useRemoteProblem(staticProblem ? null : problemSlug);
+
+  const problem = staticProblem ?? remote.problem;
 
   /* =======================================================
      CONTEXT
@@ -156,7 +161,7 @@ export default function CodingWorkspacePage() {
   ======================================================= */
 
   useEffect(() => {
-    const selectedProblem = getProblemBySlug(problemSlug);
+    const selectedProblem = getProblemBySlug(problemSlug) ?? remote.problem;
 
     const nextCode = selectedProblem?.starterCode ?? selectedProblem?.starterFiles?.[0]?.content ?? "";
 
@@ -167,11 +172,19 @@ export default function CodingWorkspacePage() {
     setCustomInput(nextInput);
 
     setOutput("Run your code to view the output.");
-  }, [problemSlug]);
+  }, [problemSlug, remote.problem]);
 
   /* =======================================================
      PROBLEM NOT FOUND
   ======================================================= */
+
+  if (!problem && remote.loading) {
+    return (
+      <main className={styles.notFound}>
+        <h1>Loading problem…</h1>
+      </main>
+    );
+  }
 
   if (!problem) {
     return (
@@ -697,13 +710,17 @@ export default function CodingWorkspacePage() {
                 SKILLS
             =========================================== */}
 
-            <h2>Skills</h2>
+            {problem.skills.length > 0 && (
+              <>
+                <h2>Skills</h2>
 
-            <div className={styles.skillTags}>
-              {problem.skills.map((skill) => (
-                <span key={skill}>{skill}</span>
-              ))}
-            </div>
+                <div className={styles.skillTags}>
+                  {problem.skills.map((skill) => (
+                    <span key={skill}>{skill}</span>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* ===========================================
                 SAMPLE TESTS

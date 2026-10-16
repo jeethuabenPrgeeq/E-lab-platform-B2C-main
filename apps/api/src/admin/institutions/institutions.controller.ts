@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { Roles } from '../../auth/roles.decorator.js';
@@ -33,6 +33,23 @@ export class InstitutionsController {
   @Get('unlinked-admins')
   unlinked() {
     return this.institutions.unlinkedAdmins();
+  }
+
+  @Get('unlinked-learners')
+  unlinkedLearners(@Query('q') q?: string) {
+    return this.institutions.unlinkedLearners(typeof q === 'string' ? q.slice(0, 120) : undefined);
+  }
+
+  @Post(':id/learners/link')
+  @HttpCode(200)
+  linkLearner(@Param('id') id: string, @Body() dto: LinkInstituteAdminDto, @Actor() actor: AdminActor) {
+    return this.institutions.linkLearner(id, dto.userId, actor);
+  }
+
+  @Post(':id/learners/:userId/unlink')
+  @HttpCode(200)
+  unlinkLearner(@Param('id') id: string, @Param('userId') userId: string, @Actor() actor: AdminActor) {
+    return this.institutions.unlinkLearner(id, userId, actor);
   }
 
   @Post()

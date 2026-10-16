@@ -148,6 +148,7 @@ export default function InstitutionsPage() {
                   <th>Type</th>
                   <th>Institute Admins</th>
                   <th>Problems</th>
+                  <th>Learners</th>
                   <th>Permissions</th>
                   <th>Registered</th>
                   <th>Status</th>
@@ -186,6 +187,7 @@ export default function InstitutionsPage() {
                       <td>{TYPE_LABEL[item.type]}</td>
                       <td>{item.admins}</td>
                       <td>{item.problems}</td>
+                      <td>{item.learners}</td>
                       <td className={styles.muted}>{`${item.permissions.length} of ${INSTITUTION_PERMISSION_ITEMS.length}`}</td>
                       <td className={cx(styles.nowrap, styles.muted)}>{formatDate(item.createdAt)}</td>
                       <td>
