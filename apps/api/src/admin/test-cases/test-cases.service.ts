@@ -73,6 +73,12 @@ export class TestCasesService {
     private readonly versioning: ProblemVersioningService,
   ) {}
 
+  async isHidden(id: string) {
+    const test = await this.prisma.testCase.findUnique({ where: { id }, select: { hidden: true } });
+    if (!test) throw new NotFoundException('Test case not found.');
+    return test.hidden;
+  }
+
   private async problemOrThrow(problemId: string) {
     const problem = await this.prisma.problem.findUnique({
       where: { id: problemId },

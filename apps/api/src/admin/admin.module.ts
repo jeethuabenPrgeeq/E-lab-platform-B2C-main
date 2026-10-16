@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
 import { JudgeModule } from '../judge/judge.module.js';
 import { SubmissionsModule } from '../submissions/submissions.module.js';
-import { AccessController } from './access/access.controller.js';
+import { AccessController, MyPermissionsController } from './access/access.controller.js';
 import { AnalyticsController } from './analytics/analytics.controller.js';
 import { AnalyticsService } from './analytics/analytics.service.js';
 import { SuperDashboardController } from './analytics/super-dashboard.controller.js';
@@ -98,6 +98,7 @@ import { TechSupportService } from './ops/tech-support.service.js';
     NotificationsController,
     InboxController,
     AccessController,
+    MyPermissionsController,
     AnalyticsController,
     AuditEventsController,
     BillingController,

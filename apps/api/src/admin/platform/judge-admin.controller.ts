@@ -23,7 +23,7 @@ export class PauseDto {
 @Controller('admin/judge')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('judge.manage')
 export class JudgeAdminController {
   constructor(private readonly judge: JudgeAdminService) {}
 

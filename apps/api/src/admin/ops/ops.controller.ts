@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { Roles } from '../../auth/roles.decorator.js';
 import { RolesGuard } from '../../auth/roles.guard.js';
-import { RequirePermission } from '../access/permission.decorator.js';
+import { NoPermissionRequired, RequirePermission } from '../access/permission.decorator.js';
 import { PermissionGuard } from '../access/permission.guard.js';
 import { Actor, type AdminActor } from '../common/admin-actor.decorator.js';
 import { QueryPipe } from '../common/pagination.js';
@@ -46,7 +46,7 @@ import { TechSupportService } from './tech-support.service.js';
 @Controller('admin/platform')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@NoPermissionRequired()
 export class PlatformOpsController {
   constructor(
     private readonly dashboard: PlatformDashboardService,
@@ -68,7 +68,7 @@ export class PlatformOpsController {
 @Controller('admin/problem-reports')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('support.technical')
 export class ProblemReportsController {
   constructor(private readonly reports: ProblemReportsService) {}
 
@@ -116,7 +116,7 @@ export class ProblemReportsController {
 @Controller('admin/tech-support')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('support.technical')
 export class TechSupportController {
   constructor(private readonly tickets: TechSupportService) {}
 
@@ -164,7 +164,7 @@ export class TechSupportController {
 @Controller('admin/incidents')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('incidents.manage')
 export class IncidentsController {
   constructor(private readonly incidents: IncidentsService) {}
 
@@ -227,7 +227,7 @@ export class IncidentsController {
 @Controller('admin/releases')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('releases.manage')
 export class ReleasesController {
   constructor(private readonly releases: ReleasesService) {}
 
@@ -295,7 +295,7 @@ export class ReleasesController {
 @Controller('admin/audit/events')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('audit.view')
 export class PlatformAuditController {
   constructor(private readonly audit: PlatformAuditService) {}
 

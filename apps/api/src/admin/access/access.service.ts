@@ -9,7 +9,8 @@ import type { AdminActor } from '../common/admin-actor.decorator.js';
 import { pageArgs } from '../common/pagination.js';
 import { activityFor } from '../content/activity.js';
 import type { AdminQueryDto, CreateRoleDto, InviteAdminDto } from './access.dto.js';
-import { ALL_SCOPE, CONTENT_ROLE, DEFAULT_ROLES, PERMISSIONS, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
+import { PERMISSION_SUBJECT_SELECT, resolvePermissions } from './effective-permissions.js';
+import { ALL_SCOPE, AUTHORING_PERMISSIONS, AUTHORING_ROLES, CONTENT_ROLE, DEFAULT_ROLES, PLATFORM_ROLE, SUPER_ROLE, type Permission } from './permissions.js';
 
 const ADMIN_SELECT = {
   id: true,
@@ -109,10 +110,10 @@ export class AccessService {
 
   async me(actor: AdminActor) {
     await this.ensureRoles();
-    const user = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { ...ADMIN_SELECT, adminRole: { select: { name: true, permissions: true } } } });
+    const user = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { ...ADMIN_SELECT, ...PERMISSION_SUBJECT_SELECT, adminRole: { select: { name: true, permissions: true } } } });
     if (!user) throw new NotFoundException('User not found.');
     const roleId = roleIdOf(user);
-    const permissions = roleId === SUPER_ROLE ? [...PERMISSIONS] : ((user.adminRole?.permissions as Permission[] | undefined) ?? DEFAULT_ROLES.find((role) => role.id === roleId)?.permissions ?? []);
+    const permissions = resolvePermissions(user);
     return { roleId, roleName: user.adminRole?.name ?? (roleId === SUPER_ROLE ? 'Super admin' : roleId === CONTENT_ROLE ? 'Content manager' : 'Platform admin'), scope: user.adminScope, permissions };
   }
 
@@ -279,7 +280,7 @@ export class AccessService {
     if (dto.copyFrom && !source) throw new BadRequestException('The role to copy from does not exist.');
     const name = await this.actorName(actor);
     await this.prisma.$transaction(async (tx) => {
-      await tx.adminRole.create({ data: { id, name: dto.name.trim(), description: dto.description.trim(), permissions: (source?.permissions as Permission[] | undefined) ?? [], updatedByName: name } });
+      await tx.adminRole.create({ data: { id, name: dto.name.trim(), description: dto.description.trim(), permissions: ((source?.permissions as Permission[] | undefined) ?? []).filter((key) => !AUTHORING_PERMISSIONS.includes(key)), updatedByName: name } });
       await this.audit.record(tx, actor, { action: 'role.create', entityType: 'admin_role', entityId: id, summary: `Created the role ${dto.name.trim()}${source ? ` from ${source.name}` : ''}` });
     });
     return (await this.roles()).find((role) => role.id === id);
@@ -288,6 +289,8 @@ export class AccessService {
   async savePermissions(id: string, permissions: Permission[], actor: AdminActor) {
     const role = await this.role(id);
     if (role.locked) throw new BadRequestException(`${role.name} cannot be edited.`);
+    const authoring = permissions.filter((key) => AUTHORING_PERMISSIONS.includes(key));
+    if (authoring.length > 0 && !AUTHORING_ROLES.includes(id)) throw new BadRequestException(`${role.name} cannot author content. Remove: ${authoring.join(', ')}.`);
     const next = [...new Set(permissions)].sort();
     const before = (role.permissions as Permission[]).slice().sort();
     if (JSON.stringify(before) === JSON.stringify(next)) return (await this.roles()).find((item) => item.id === id);

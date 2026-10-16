@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { Roles } from '../../auth/roles.decorator.js';
@@ -91,5 +91,17 @@ export class AccessController {
   @Delete('roles/:id')
   deleteRole(@Param('id') id: string, @Actor() actor: AdminActor) {
     return this.access.deleteRole(id, actor);
+  }
+}
+@Controller('admin/me')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('super-admin', 'platform-admin', 'content-manager')
+export class MyPermissionsController {
+  constructor(private readonly access: AccessService) {}
+
+  @Get('permissions')
+  @Header('Cache-Control', 'no-store')
+  permissions(@Actor() actor: AdminActor) {
+    return this.access.me(actor);
   }
 }

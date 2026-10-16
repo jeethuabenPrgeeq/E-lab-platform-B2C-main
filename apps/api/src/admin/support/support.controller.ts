@@ -59,8 +59,9 @@ export class SupportController {
 }
 
 @Controller('admin/support')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin')
+@RequirePermission('support.technical')
 export class EscalationController {
   constructor(private readonly support: SupportService) {}
 

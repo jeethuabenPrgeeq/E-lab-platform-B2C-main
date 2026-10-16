@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, LoaderCircle, RefreshCcw, X } from 'lucide-react';
+import { usePermissionGate } from '../../permissions/PermissionsProvider';
 import { LANGUAGES, MEMORY_LIMIT_MB, PROBLEMS, TIME_LIMIT_MS, codeFor, testsFor } from '../lib/data';
 import { DIFFICULTY_META, VERDICT_META, cx, formatDateTime, formatMs } from '../lib/shared';
 import type { DisplayVerdict, Override, Submission, Verdict } from '../lib/types';
@@ -16,6 +17,7 @@ interface SubmissionDrawerProps {
 }
 
 export function SubmissionDrawer({ sub, verdict, override, onRejudge, onClose }: SubmissionDrawerProps) {
+  const judge = usePermissionGate('judge.manage');
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -95,7 +97,8 @@ export function SubmissionDrawer({ sub, verdict, override, onRejudge, onClose }:
           <button
             type="button"
             className={styles.action}
-            disabled={judging || rejudging}
+            disabled={judging || rejudging || !judge.allowed}
+            title={judge.title}
             onClick={() => {
               setRejudged(false);
               setRejudging(true);

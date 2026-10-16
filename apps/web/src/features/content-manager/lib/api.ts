@@ -6,7 +6,7 @@ import type { ProblemDetail, ProblemItem, ProblemStatus } from '@/features/admin
 
 export const CM_PROBLEMS = '/content-manager/problems';
 export const CM_TECHNOLOGIES = '/content-manager/technologies';
-export const CM_ROUTE = '/content-manager/problems';
+export const CM_ROUTE = '/content-library';
 
 export type LibraryScope = 'all' | 'created' | 'assigned';
 

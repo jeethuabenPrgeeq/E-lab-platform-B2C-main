@@ -17,9 +17,19 @@ export type PermissionKey =
   | 'reports.export'
   | 'support.respond'
   | 'notifications.send'
-  | 'platform.operate'
   | 'settings.manage'
-  | 'audit.view';
+  | 'audit.view'
+  | 'content.upload'
+  | 'problems.manage'
+  | 'tests.manage'
+  | 'tests.hidden'
+  | 'content.validate'
+  | 'runtimes.manage'
+  | 'judge.manage'
+  | 'monitoring.view'
+  | 'support.technical'
+  | 'incidents.manage'
+  | 'releases.manage';
 
 export interface AdminRole {
   id: string;

@@ -270,6 +270,46 @@
   gap: 16px;
 }
 
+
+/* Embedded manual-entry form used by Content Manager */
+
+.embedded {
+  gap: 0;
+}
+
+.embedded .section {
+  margin-bottom: 20px;
+}
+
+.embedded .card {
+  border-radius: 20px;
+  padding: 28px;
+}
+
+.embedded .sectionTitle {
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.embedded .formGrid {
+  gap: 22px;
+}
+
+.embedded .input,
+.embedded .select {
+  min-height: 46px;
+  border-radius: 12px;
+}
+
+.embedded .textarea {
+  border-radius: 12px;
+  min-height: 120px;
+}
+
+.embedded .formFooter {
+  padding: 20px 4px 0;
+}
+
 @media (max-width: 1023px) {
   .span4 {
     grid-column: span 6;
@@ -302,6 +342,15 @@
 
   .header > a {
     width: 100%;
+  }
+
+  .embedded .card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .embedded .formGrid {
+    gap: 16px;
   }
 }
 

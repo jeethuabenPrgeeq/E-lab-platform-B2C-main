@@ -3,7 +3,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Lock, Plus, ShieldAlert, Trash2 } from 'lucide-react';
 import type { AdminStore } from '../lib/api';
-import { ALL_PERMISSIONS, PERMISSION_GROUPS, cx, roleTone } from '../lib/shared';
+import { ALL_PERMISSIONS, PERMISSION_GROUPS, canHoldPermission, cx, roleTone } from '../lib/shared';
 import type { PermissionKey } from '../lib/types';
 import { RoleModal } from '../RoleModal/RoleModal';
 import styles from '../ui/admins.module.css';
@@ -79,7 +79,8 @@ export function RolesPanel({ store, hidden, onNotice }: RolesPanelProps) {
       <div className={styles.roleGrid}>
         {roles.map((role) => {
           const count = members[role.id] ?? 0;
-          const perms = effective(role.id).length;
+          const perms = effective(role.id).filter((key) => canHoldPermission(role.id, key)).length;
+          const total = ALL_PERMISSIONS.filter((key) => canHoldPermission(role.id, key)).length;
           return (
             <article key={role.id} className={styles.roleCard}>
               <div className={styles.roleCardHead}>
@@ -91,7 +92,7 @@ export function RolesPanel({ store, hidden, onNotice }: RolesPanelProps) {
               </div>
               <p className={styles.roleDesc}>{role.description || 'No description'}</p>
               <div className={styles.roleFoot}>
-                <span>{`${count} member${count === 1 ? '' : 's'} · ${perms} of ${ALL_PERMISSIONS.length} permissions`}</span>
+                <span>{`${count} member${count === 1 ? '' : 's'} · ${perms} of ${total} permissions`}</span>
                 {!role.system && (
                   <button
                     type="button"
@@ -178,7 +179,15 @@ export function RolesPanel({ store, hidden, onNotice }: RolesPanelProps) {
                       <span className={styles.permKey}>{item.key}</span>
                     </th>
                     {roles.map((role) => {
-                      const checked = role.locked || effective(role.id).includes(item.key);
+                      if (!canHoldPermission(role.id, item.key)) {
+                        return (
+                          <td key={role.id} className={cx(styles.matrixCell, styles.cellNa)} title={`${role.name} does not author content`}>
+                            <span aria-hidden="true">—</span>
+                            <span className={styles.srOnly}>{`${role.name}: ${item.label} — not applicable`}</span>
+                          </td>
+                        );
+                      }
+                      const checked = effective(role.id).includes(item.key);
                       return (
                         <td key={role.id} className={cx(styles.matrixCell, isChanged(role.id, item.key) && styles.cellChanged)}>
                           <input

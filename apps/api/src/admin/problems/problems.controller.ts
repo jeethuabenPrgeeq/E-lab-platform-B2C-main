@@ -29,7 +29,7 @@ import { PermissionGuard } from '../access/permission.guard.js';
 @Controller('admin/problems')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('content.view')
+@RequirePermission('content.view', 'problems.manage')
 export class ProblemsController {
   constructor(private readonly problems: ProblemsService) {}
 
@@ -67,6 +67,7 @@ export class ProblemsController {
   @Post(':id/transition')
   @HttpCode(200)
   @Roles('platform-admin')
+  @RequirePermission('content.view', 'content.validate')
   transition(
     @Param('id') id: string,
     @Body() dto: TransitionDto,

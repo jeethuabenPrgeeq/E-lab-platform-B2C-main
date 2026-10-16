@@ -27,7 +27,7 @@ import { PermissionGuard } from '../access/permission.guard.js';
 @Controller('admin/technologies')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('content.view')
+@RequirePermission('content.view', 'problems.manage')
 export class TechnologiesController {
   constructor(private readonly technologies: TechnologiesService) {}
 

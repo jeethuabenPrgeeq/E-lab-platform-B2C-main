@@ -945,6 +945,12 @@
   background: rgba(168, 101, 26, 0.14);
 }
 
+.cellNa {
+  color: var(--ad-muted);
+  font-weight: 600;
+  cursor: default;
+}
+
 @media (max-width: 1279px) {
   .toolbarThree {
     grid-template-columns: repeat(2, minmax(0, 1fr));

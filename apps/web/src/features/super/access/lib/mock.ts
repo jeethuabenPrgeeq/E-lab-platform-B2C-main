@@ -18,7 +18,7 @@ function seedRoles(now: number): AdminRole[] {
       description: 'Runs the judge, runtimes, incidents and releases.',
       system: true,
       locked: false,
-      permissions: ['users.view', 'content.view', 'analytics.view', 'support.respond', 'platform.operate', 'audit.view'],
+      permissions: ['users.view', 'content.view', 'analytics.view', 'support.respond', 'audit.view', 'content.upload', 'problems.manage', 'tests.manage', 'tests.hidden', 'content.validate', 'runtimes.manage', 'judge.manage', 'monitoring.view', 'support.technical', 'incidents.manage', 'releases.manage'],
       updatedAt: at,
       updatedBy: 'System',
     },

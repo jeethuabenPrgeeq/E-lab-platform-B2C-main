@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import { PermissionsProvider } from '@/features/admin/permissions/PermissionsProvider';
 import type { AdminRole } from '@/features/admin/types';
-import { ROLE_CONFIG } from './admin-nav';
+import { ROLE_CONFIG, routePermission } from './admin-nav';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminTopbar } from './AdminTopbar';
+import { RouteGate } from './NoAccess';
 import styles from './AdminShell.module.css';
 
 const MOBILE_QUERY = '(max-width: 1023px)';
@@ -44,30 +46,32 @@ export function AdminShell({ role, email, children }: AdminShellProps) {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   return (
-    <div className={styles.shell} data-collapsed={collapsed} data-drawer={drawerOpen}>
-      <AdminSidebar
-        config={config}
-        pathname={pathname}
-        query={query}
-        collapsed={collapsed}
-        onNavigate={closeDrawer}
-        onRequestExpand={expandNav}
-      />
-      {drawerOpen && (
-        <button type="button" className={styles.scrim} aria-label="Close navigation" onClick={closeDrawer} />
-      )}
-      <div className={styles.main}>
-        <AdminTopbar
+    <PermissionsProvider>
+      <div className={styles.shell} data-collapsed={collapsed} data-drawer={drawerOpen}>
+        <AdminSidebar
           config={config}
+          pathname={pathname}
           query={query}
-          onQueryChange={setQuery}
-          onToggleNav={toggleNav}
-          navExpanded={drawerOpen || !collapsed}
+          collapsed={collapsed}
+          onNavigate={closeDrawer}
+          onRequestExpand={expandNav}
         />
-        <main id="admin-content" className={styles.content}>
-          {children}
-        </main>
+        {drawerOpen && (
+          <button type="button" className={styles.scrim} aria-label="Close navigation" onClick={closeDrawer} />
+        )}
+        <div className={styles.main}>
+          <AdminTopbar
+            config={config}
+            query={query}
+            onQueryChange={setQuery}
+            onToggleNav={toggleNav}
+            navExpanded={drawerOpen || !collapsed}
+          />
+          <main id="admin-content" className={styles.content}>
+            <RouteGate requirement={routePermission(config, pathname)}>{children}</RouteGate>
+          </main>
+        </div>
       </div>
-    </div>
+    </PermissionsProvider>
   );
 }

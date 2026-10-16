@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Pencil, Plus, Power, Search, Trash2 } from "lucide-react";
+import { usePermissionGate } from "../../permissions/PermissionsProvider";
 import { useTechnologies } from "../lib/api";
 import { CATEGORY_LABEL, STATUS_LABEL, cx, formatDate, initials } from "../lib/shared";
 import { CATEGORIES, STATUSES, type Technology, type TechnologyInput } from "../lib/types";
@@ -9,6 +10,7 @@ import { TechnologyModal } from "../TechnologyModal/TechnologyModal";
 import styles from "./TechnologiesPage.module.css";
 
 export default function TechnologiesPage() {
+  const author = usePermissionGate("problems.manage");
   const { items, loaded, loadError, create, update, remove } = useTechnologies();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -67,7 +69,7 @@ export default function TechnologiesPage() {
           <p className={styles.subtitle}>Languages, frameworks and tools available for practice problems</p>
         </div>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.primaryButton} onClick={() => setModal({ item: null })}>
+          <button type="button" className={styles.primaryButton} disabled={!author.allowed} title={author.title} onClick={() => setModal({ item: null })}>
             <Plus width={16} height={16} aria-hidden="true" />
             Add technology
           </button>
@@ -191,13 +193,13 @@ export default function TechnologiesPage() {
                           </div>
                         ) : (
                           <div className={styles.actions}>
-                            <button type="button" className={styles.iconButton} aria-label={`Edit ${item.name}`} title="Edit" onClick={() => setModal({ item })}>
+                            <button type="button" className={styles.iconButton} aria-label={`Edit ${item.name}`} title={author.title ?? "Edit"} disabled={!author.allowed} onClick={() => setModal({ item })}>
                               <Pencil width={15} height={15} aria-hidden="true" />
                             </button>
-                            <button type="button" className={cx(styles.iconButton, item.status === "disabled" ? styles.iconSuccess : styles.iconWarn)} aria-label={item.status === "disabled" ? `Enable ${item.name}` : `Disable ${item.name}`} title={item.status === "disabled" ? "Enable" : "Disable"} disabled={busyId === item.id} onClick={() => toggleStatus(item)}>
+                            <button type="button" className={cx(styles.iconButton, item.status === "disabled" ? styles.iconSuccess : styles.iconWarn)} aria-label={item.status === "disabled" ? `Enable ${item.name}` : `Disable ${item.name}`} title={author.title ?? (item.status === "disabled" ? "Enable" : "Disable")} disabled={busyId === item.id || !author.allowed} onClick={() => toggleStatus(item)}>
                               <Power width={15} height={15} aria-hidden="true" />
                             </button>
-                            <button type="button" className={cx(styles.iconButton, styles.iconDanger)} aria-label={`Delete ${item.name}`} title="Delete" onClick={() => setConfirmId(item.id)}>
+                            <button type="button" className={cx(styles.iconButton, styles.iconDanger)} aria-label={`Delete ${item.name}`} title={author.title ?? "Delete"} disabled={!author.allowed} onClick={() => setConfirmId(item.id)}>
                               <Trash2 width={15} height={15} aria-hidden="true" />
                             </button>
                           </div>

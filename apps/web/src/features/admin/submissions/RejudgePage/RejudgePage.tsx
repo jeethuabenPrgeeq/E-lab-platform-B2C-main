@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Play, Square } from 'lucide-react';
+import { usePermissionGate } from '../../permissions/PermissionsProvider';
 import { PROBLEMS, brokenFrom } from '../lib/data';
 import { useFlags } from '../lib/flags';
 import { problemHealth } from '../lib/metrics';
@@ -48,6 +49,7 @@ function Changes({ job }: { job: RejudgeJob }) {
 }
 
 export default function RejudgePage() {
+  const judge = usePermissionGate('judge.manage');
   const [live, setLive] = useState(true);
   const { snap, persist, startJob, cancelJob, reset } = useSubmissions(live);
   const flags = useFlags(snap, persist);
@@ -163,7 +165,7 @@ export default function RejudgePage() {
               </span>
             </div>
 
-            <button type="submit" className={styles.primaryButton} disabled={!snap || !affected || Boolean(runningJob) || sinceInvalid}>
+            <button type="submit" className={styles.primaryButton} disabled={!snap || !affected || Boolean(runningJob) || sinceInvalid || !judge.allowed} title={judge.title}>
               <Play width={16} height={16} aria-hidden="true" />
               {runningJob ? 'Another rejudge is running' : 'Start rejudge'}
             </button>
@@ -197,7 +199,7 @@ export default function RejudgePage() {
                     <span>{`${formatNumber(done)} / ${formatNumber(runningJob.total)} judged`}</span>
                     <span>{`${Math.round(ratio * 100)}% · ${left}s left`}</span>
                   </div>
-                  <button type="button" className={styles.ghostButton} onClick={() => cancelJob(runningJob.id)}>
+                  <button type="button" className={styles.ghostButton} disabled={!judge.allowed} title={judge.title} onClick={() => cancelJob(runningJob.id)}>
                     <Square width={14} height={14} aria-hidden="true" />
                     Cancel
                   </button>

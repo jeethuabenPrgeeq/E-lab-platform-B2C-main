@@ -1,10 +1,12 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import type { AuthenticatedRequest } from '../../auth/current-user.decorator.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { grantedPermissions, type PermissionRequest } from './effective-permissions.js';
 import { PERMISSION_KEY, type PermissionRule } from './permission.decorator.js';
-import { CONTENT_ROLE, DEFAULT_ROLES, SUPER_ROLE, type Permission } from './permissions.js';
+import type { Permission } from './permissions.js';
+
+const READ_METHODS = new Set(['GET', 'HEAD']);
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -14,18 +16,13 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const rule = this.reflector.getAllAndOverride<PermissionRule | undefined>(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
+    const rule = this.reflector.getAllAndOverride<PermissionRule | null | undefined>(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
     if (!rule) return true;
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const user = request.user;
-    if (!user) throw new UnauthorizedException('Authentication is required.');
-    if (user.role !== 'super-admin' && user.role !== 'content-manager') return true;
-    const needed: Permission = request.method === 'GET' || !rule.write ? rule.read : rule.write;
-    const record = await this.prisma.user.findUnique({ where: { id: user.id }, select: { adminRoleId: true, adminRole: { select: { permissions: true } } } });
-    if (user.role === 'super-admin' && (!record?.adminRoleId || record.adminRoleId === SUPER_ROLE)) return true;
-    const fallback = DEFAULT_ROLES.find((role) => role.id === CONTENT_ROLE)?.permissions ?? [];
-    const granted = (record?.adminRole?.permissions as string[] | undefined) ?? (user.role === 'content-manager' ? fallback : []);
-    if (!granted.includes(needed)) throw new ForbiddenException(`Your role does not include "${needed}".`);
+    const request = context.switchToHttp().getRequest<PermissionRequest>();
+    if (!request.user) throw new UnauthorizedException('Authentication is required.');
+    const needed: Permission = READ_METHODS.has(request.method) || !rule.write ? rule.read : rule.write;
+    const granted = await grantedPermissions(this.prisma, request);
+    if (!granted.has(needed)) throw new ForbiddenException(`Your role does not include "${needed}".`);
     return true;
   }
 }

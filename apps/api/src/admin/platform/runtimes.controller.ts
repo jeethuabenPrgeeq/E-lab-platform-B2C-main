@@ -20,7 +20,7 @@ export class ImageMarkDto {
 @Controller('admin/runtimes')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('runtimes.manage')
 export class RuntimesController {
   constructor(private readonly runtimes: RuntimesService) {}
 

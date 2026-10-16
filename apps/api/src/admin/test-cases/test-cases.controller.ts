@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -13,6 +14,9 @@ import {
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { Roles } from '../../auth/roles.decorator.js';
 import { RolesGuard } from '../../auth/roles.guard.js';
+import { Granted, RequirePermission } from '../access/permission.decorator.js';
+import { PermissionGuard } from '../access/permission.guard.js';
+import type { Permission } from '../access/permissions.js';
 import { Actor, type AdminActor } from '../common/admin-actor.decorator.js';
 import {
   CreateSourceCheckDto,
@@ -24,11 +28,19 @@ import {
 } from './test-cases.dto.js';
 import { TestCasesService } from './test-cases.service.js';
 
+const HIDDEN_DENIED = 'Your role does not include "tests.hidden".';
+
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin')
+@RequirePermission('tests.manage')
 export class TestCasesController {
   constructor(private readonly tests: TestCasesService) {}
+
+  private async assertHiddenAccess(granted: ReadonlySet<Permission>, id: string | null, makesHidden?: boolean) {
+    if (granted.has('tests.hidden')) return;
+    if (makesHidden === true || (id !== null && (await this.tests.isHidden(id)))) throw new ForbiddenException(HIDDEN_DENIED);
+  }
 
   @Get('test-cases/overview')
   overview() {
@@ -36,16 +48,23 @@ export class TestCasesController {
   }
 
   @Get('problems/:problemId/test-cases')
-  list(@Param('problemId') problemId: string) {
-    return this.tests.list(problemId);
+  async list(@Param('problemId') problemId: string, @Granted() granted: ReadonlySet<Permission>) {
+    const result = await this.tests.list(problemId);
+    if (granted.has('tests.hidden')) return result;
+    return {
+      ...result,
+      testCases: result.testCases.map((test) => (test.hidden ? { ...test, input: null, expectedOutput: '', redacted: true } : test)),
+    };
   }
 
   @Post('problems/:problemId/test-cases')
-  create(
+  async create(
     @Param('problemId') problemId: string,
     @Body() dto: CreateTestCaseDto,
     @Actor() actor: AdminActor,
+    @Granted() granted: ReadonlySet<Permission>,
   ) {
+    await this.assertHiddenAccess(granted, null, dto.hidden);
     return this.tests.create(problemId, dto, actor);
   }
 
@@ -60,29 +79,35 @@ export class TestCasesController {
   }
 
   @Patch('test-cases/:id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() dto: UpdateTestCaseDto,
     @Actor() actor: AdminActor,
+    @Granted() granted: ReadonlySet<Permission>,
   ) {
+    await this.assertHiddenAccess(granted, id, dto.hidden);
     return this.tests.update(id, dto, actor);
   }
 
   @Post('test-cases/:id/duplicate')
-  duplicate(
+  async duplicate(
     @Param('id') id: string,
     @Body() dto: ReasonDto,
     @Actor() actor: AdminActor,
+    @Granted() granted: ReadonlySet<Permission>,
   ) {
+    await this.assertHiddenAccess(granted, id);
     return this.tests.duplicate(id, dto.reason, actor);
   }
 
   @Delete('test-cases/:id')
-  remove(
+  async remove(
     @Param('id') id: string,
     @Body() dto: ReasonDto,
     @Actor() actor: AdminActor,
+    @Granted() granted: ReadonlySet<Permission>,
   ) {
+    await this.assertHiddenAccess(granted, id);
     return this.tests.remove(id, dto.reason, actor);
   }
 

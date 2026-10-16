@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { DASHBOARD, filterNavSections, isNavActive, isWithin, type NavItem, type NavLeaf, type RoleConfig } from './admin-nav';
+import { usePermissions } from '@/features/admin/permissions/PermissionsProvider';
+import { DASHBOARD, filterNavByPermission, filterNavSections, isNavActive, isWithin, type NavItem, type NavLeaf, type RoleConfig } from './admin-nav';
 import styles from './AdminShell.module.css';
 
 interface AdminSidebarProps {
@@ -31,7 +32,9 @@ function initialOpenGroups(config: RoleConfig, pathname: string) {
 
 export function AdminSidebar({ config, pathname, query, collapsed, onNavigate, onRequestExpand }: AdminSidebarProps) {
   const [openGroups, setOpenGroups] = useState(() => initialOpenGroups(config, pathname));
-  const sections = useMemo(() => filterNavSections(config.sections, query), [config.sections, query]);
+  const { has } = usePermissions();
+  const permitted = useMemo(() => filterNavByPermission(config.sections, has), [config.sections, has]);
+  const sections = useMemo(() => filterNavSections(permitted, query), [permitted, query]);
   const searching = query.trim().length > 0;
 
   const toggleGroup = (href: string) => {

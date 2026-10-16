@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Check, Eye, Undo2, X } from 'lucide-react';
+import { usePermissionGate } from '../../permissions/PermissionsProvider';
 import { LANGUAGES, PROBLEMS } from '../lib/data';
 import { useFlags, type FlagItem } from '../lib/flags';
 import { cx, formatAgo } from '../lib/shared';
@@ -19,6 +20,7 @@ const STATUS_META = {
 } as const;
 
 export default function PlagiarismPage() {
+  const judge = usePermissionGate('judge.manage');
   const [live, setLive] = useState(true);
   const { snap, persist, decideFlag, reset } = useSubmissions(live);
   const flags = useFlags(snap, persist);
@@ -177,7 +179,8 @@ export default function PlagiarismPage() {
                               type="button"
                               className={styles.iconButton}
                               aria-label={`Undo decision on ${item.sub.id}`}
-                              title="Undo decision"
+                              title={judge.title ?? 'Undo decision'}
+                              disabled={!judge.allowed}
                               onClick={() => decideFlag(item.sub.id, null)}
                             >
                               <Undo2 width={15} height={15} aria-hidden="true" />
@@ -188,7 +191,8 @@ export default function PlagiarismPage() {
                                 type="button"
                                 className={cx(styles.iconButton, styles.iconDanger)}
                                 aria-label={`Confirm plagiarism on ${item.sub.id}`}
-                                title="Confirm plagiarism"
+                                title={judge.title ?? 'Confirm plagiarism'}
+                                disabled={!judge.allowed}
                                 onClick={() => decideFlag(item.sub.id, 'confirmed')}
                               >
                                 <Check width={15} height={15} aria-hidden="true" />
@@ -197,7 +201,8 @@ export default function PlagiarismPage() {
                                 type="button"
                                 className={styles.iconButton}
                                 aria-label={`Dismiss ${item.sub.id}`}
-                                title="Dismiss"
+                                title={judge.title ?? 'Dismiss'}
+                                disabled={!judge.allowed}
                                 onClick={() => decideFlag(item.sub.id, 'dismissed')}
                               >
                                 <X width={15} height={15} aria-hidden="true" />

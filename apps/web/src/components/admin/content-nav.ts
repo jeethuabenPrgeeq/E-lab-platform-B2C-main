@@ -1,7 +1,17 @@
-import { ClipboardCheck, FileCode2, FlaskConical, Gauge, Layers, LineChart, Sparkles, Tags, Upload, FilePlus2 } from "lucide-react";
-import type { RoleConfig } from "./admin-nav";
+﻿
+import {
+  ClipboardCheck,
+  FileCode2,
+  FlaskConical,
+  Gauge,
+  Layers,
+  Library,
+  LineChart,
+  Tags,
+  Upload,
+} from "lucide-react";
 
-const CM = "/content-manager";
+import type { RoleConfig } from "./admin-nav";
 
 export const CONTENT_MANAGER_CONFIG: RoleConfig = {
   role: "content-manager",
@@ -11,32 +21,77 @@ export const CONTENT_MANAGER_CONFIG: RoleConfig = {
   sections: [
     {
       title: "Main",
-      items: [{ label: "Dashboard", href: "/dashboard", icon: Gauge, ready: true }],
+      items: [
+        {
+          label: "Dashboard",
+          href: "/dashboard",
+          icon: Gauge,
+          ready: true,
+        },
+      ],
     },
     {
       title: "Problems",
       items: [
-        { label: "Problem Library", href: `${CM}/problems`, icon: FileCode2, ready: true },
-        { label: "Create Problem", href: `${CM}/create`, icon: FilePlus2, ready: true },
-        { label: "Bulk CSV Import", href: `${CM}/import/csv`, icon: Upload },
-        { label: "AI Generation", href: `${CM}/import/ai`, icon: Sparkles },
-        { label: "Test Case Preparation", href: `${CM}/test-cases`, icon: FlaskConical },
+        {
+          label: "Upload Content",
+          href: "/upload-content",
+          icon: Upload,
+          ready: true,
+        },
+        {
+          label: "Test Case Preparation",
+          href: "/test-case-preparation",
+          icon: FlaskConical,
+          ready: true,
+        },
+        {
+          label: "Content Library",
+          href: "/content-library",
+          icon: Library,
+          ready: true,
+        },
       ],
     },
     {
       title: "Organization",
       items: [
-        { label: "Content Organization", href: `${CM}/taxonomy`, icon: Tags },
-        { label: "Content Batches", href: `${CM}/batches`, icon: Layers },
+        {
+          label: "Content Organization",
+          href: "/taxonomy",
+          icon: Tags,
+          ready: true,
+        },
+        {
+          label: "Content Batches",
+          href: "/batches",
+          icon: Layers,
+          ready: true,
+        },
       ],
     },
     {
       title: "Review",
-      items: [{ label: "Review Queue", href: `${CM}/review`, icon: ClipboardCheck }],
+      items: [
+        {
+          label: "Review Queue",
+          href: "/review",
+          icon: ClipboardCheck,
+          ready: true,
+        },
+      ],
     },
     {
       title: "Insights",
-      items: [{ label: "Content Reports", href: `${CM}/reports`, icon: LineChart }],
+      items: [
+        {
+          label: "Content Reports",
+          href: "/content-reports",
+          icon: LineChart,
+          ready: true,
+        },
+      ],
     },
   ],
 };
+

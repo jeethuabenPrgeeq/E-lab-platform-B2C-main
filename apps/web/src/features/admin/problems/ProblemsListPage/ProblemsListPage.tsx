@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { usePermissionGate } from "../../permissions/PermissionsProvider";
 import { useTechnologies } from "../../technologies/lib/api";
 import { useProblems } from "../lib/api";
 import { ACTION_LABEL, DIFFICULTIES, NOTE_ACTIONS, STAGE_ACTIONS, STATUS_LABEL, capitalize, cx, formatDate } from "../lib/shared";
@@ -27,6 +28,9 @@ const CONFIRM_ACTIONS: ProblemAction[] = [...NOTE_ACTIONS, "unpublish"];
 
 export default function ProblemsListPage({ status, title, subtitle }: Props) {
   const router = useRouter();
+  const upload = usePermissionGate("content.upload");
+  const author = usePermissionGate("problems.manage");
+  const validate = usePermissionGate("content.validate");
   const { items, loaded, loadError, transition, remove } = useProblems(status);
   const { items: technologies } = useTechnologies();
   const [query, setQuery] = useState("");
@@ -93,10 +97,10 @@ export default function ProblemsListPage({ status, title, subtitle }: Props) {
           <p className={styles.subtitle}>{subtitle}</p>
         </div>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.ghostButton} onClick={() => router.push("/content-import")}>
+          <button type="button" className={styles.ghostButton} disabled={!upload.allowed} title={upload.title} onClick={() => router.push("/content-import")}>
             Bulk upload
           </button>
-          <button type="button" className={styles.primaryButton} onClick={() => router.push("/problems/create")}>
+          <button type="button" className={styles.primaryButton} disabled={!author.allowed} title={author.title} onClick={() => router.push("/problems/create")}>
             <Plus width={16} height={16} aria-hidden="true" />
             New problem
           </button>
@@ -195,7 +199,7 @@ export default function ProblemsListPage({ status, title, subtitle }: Props) {
                             {editable ? <Pencil width={15} height={15} aria-hidden="true" /> : <Eye width={15} height={15} aria-hidden="true" />}
                           </Link>
                           {STAGE_ACTIONS[p.status].map((action) => (
-                            <button key={action} type="button" disabled={busyId === p.id} className={cx(styles.actionButton, BACKWARD_ACTIONS.includes(action) ? styles.actionBack : styles.actionForward, (action === "unpublish" || action === "deprecate") && styles.actionDanger)} onClick={() => run(p, action)}>
+                            <button key={action} type="button" disabled={busyId === p.id || !validate.allowed} title={validate.title} className={cx(styles.actionButton, BACKWARD_ACTIONS.includes(action) ? styles.actionBack : styles.actionForward, (action === "unpublish" || action === "deprecate") && styles.actionDanger)} onClick={() => run(p, action)}>
                               {ACTION_LABEL[action]}
                             </button>
                           ))}
@@ -209,7 +213,7 @@ export default function ProblemsListPage({ status, title, subtitle }: Props) {
                               </button>
                             </>
                           ) : (
-                            <button type="button" className={cx(styles.iconButton, styles.iconDanger)} aria-label={`Delete ${p.title}`} title="Delete" disabled={busyId === p.id} onClick={() => setConfirmDelete(p.id)}>
+                            <button type="button" className={cx(styles.iconButton, styles.iconDanger)} aria-label={`Delete ${p.title}`} title={author.title ?? "Delete"} disabled={busyId === p.id || !author.allowed} onClick={() => setConfirmDelete(p.id)}>
                               <Trash2 width={15} height={15} aria-hidden="true" />
                             </button>
                           ))}

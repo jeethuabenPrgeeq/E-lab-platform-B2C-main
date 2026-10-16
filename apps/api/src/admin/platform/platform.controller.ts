@@ -78,7 +78,7 @@ export class DecideDto {
 @Controller('admin/executions')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('monitoring.view')
 export class ExecutionsMonitorController {
   constructor(private readonly monitor: ExecutionsMonitorService) {}
 
@@ -121,7 +121,7 @@ export class ExecutionsMonitorController {
 @Controller('admin/submissions')
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles('platform-admin', 'super-admin')
-@RequirePermission('platform.operate')
+@RequirePermission('monitoring.view', 'judge.manage')
 export class SubmissionsAdminController {
   constructor(private readonly submissions: SubmissionsAdminService) {}
 

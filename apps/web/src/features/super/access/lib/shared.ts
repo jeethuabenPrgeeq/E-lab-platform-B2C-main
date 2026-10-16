@@ -52,7 +52,29 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
     items: [
       { key: 'support.respond', label: 'Respond to support tickets' },
       { key: 'notifications.send', label: 'Send notifications' },
-      { key: 'platform.operate', label: 'Operate judge, incidents and releases' },
+    ],
+  },
+  {
+    id: 'authoring',
+    label: 'Content authoring (Platform admin and Content manager only)',
+    items: [
+      { key: 'content.upload', label: 'Upload content (CSV and AI)' },
+      { key: 'problems.manage', label: 'Create and edit problems and technologies' },
+      { key: 'tests.manage', label: 'Manage sample tests and source checks' },
+      { key: 'tests.hidden', label: 'View and edit hidden tests', sensitive: true },
+    ],
+  },
+  {
+    id: 'technical',
+    label: 'Technical operations',
+    items: [
+      { key: 'content.validate', label: 'Validate problems and move them through review' },
+      { key: 'runtimes.manage', label: 'Manage runtimes and Docker images' },
+      { key: 'judge.manage', label: 'Manage the judge, rejudges and plagiarism decisions' },
+      { key: 'monitoring.view', label: 'View executions and submissions' },
+      { key: 'support.technical', label: 'Handle technical tickets and problem reports' },
+      { key: 'incidents.manage', label: 'Manage incidents' },
+      { key: 'releases.manage', label: 'Manage releases' },
     ],
   },
   {
@@ -64,6 +86,12 @@ export const PERMISSION_GROUPS: { id: string; label: string; items: { key: Permi
     ],
   },
 ];
+
+export const AUTHORING_PERMISSIONS: readonly PermissionKey[] = ['content.upload', 'problems.manage', 'tests.manage', 'tests.hidden'];
+
+export const AUTHORING_ROLE_IDS: readonly string[] = ['platform_admin', 'content_manager'];
+
+export const canHoldPermission = (roleId: string, key: PermissionKey) => AUTHORING_ROLE_IDS.includes(roleId) || !AUTHORING_PERMISSIONS.includes(key);
 
 export const ALL_PERMISSIONS: PermissionKey[] = PERMISSION_GROUPS.flatMap((group) => group.items.map((item) => item.key));
 

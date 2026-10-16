@@ -525,3 +525,11 @@
   background: rgba(90, 95, 116, 0.14);
   color: var(--ad-muted);
 }
+
+.ghostButton:disabled,
+.actionButton:disabled,
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
