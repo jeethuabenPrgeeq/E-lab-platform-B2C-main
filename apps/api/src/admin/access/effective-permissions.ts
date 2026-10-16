@@ -7,8 +7,7 @@ export interface PermissionSubject {
   status: string;
   adminRoleId: string | null;
   adminRole: { permissions: unknown } | null;
-  organizationId?: string | null;
-  organization?: { status: string; permissions: unknown } | null;
+  organization?: { status: string; permissions: unknown; staffLevels?: number } | null;  
   staffTitle?: string | null;
   staffPermissions?: string[];
   staffGroups?: { id: string }[];
@@ -24,7 +23,7 @@ export const PERMISSION_SUBJECT_SELECT = {
   adminRoleId: true,
   adminRole: { select: { permissions: true } },
   organizationId: true,
-  organization: { select: { status: true, permissions: true } },
+  organization: { select: { status: true, permissions: true, staffLevels: true } },
   staffTitle: true,
   staffPermissions: true,
   staffGroups: { select: { id: true } },
@@ -37,7 +36,7 @@ export function resolvePermissions(subject: PermissionSubject | null): AnyPermis
   if (subject.role === 'INSTITUTE_ADMIN') {
     if (!subject.organization || subject.organization.status !== 'active') return [];
     const keys: AnyPermission[] = Array.isArray(subject.organization.permissions) ? (subject.organization.permissions as unknown[]).filter(isInstitutionPermission) : [];
-    if (subject.staffTitle == null) return [...new Set<AnyPermission>([...keys, INSTITUTE_OWNER_PERMISSION])].sort();
+    if (subject.staffTitle == null) return [...new Set<AnyPermission>([...keys, ...((subject.organization.staffLevels ?? 0) > 0 ? [INSTITUTE_OWNER_PERMISSION as AnyPermission] : [])])].sort();
     const own = new Set(subject.staffPermissions ?? []);
     return [...new Set(keys.filter((key) => own.has(key)))].sort();
   }

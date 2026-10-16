@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
-import { INSTITUTION_PERMISSION_ITEMS } from '../../access/lib/shared';
-import type { InstitutionPermissionKey } from '../../access/lib/types';
 import styles from '../../access/ui/modal.module.css';
 import { EMAIL_PATTERN, cx } from '../../users/lib/shared';
-import { CODE_PATTERN, INSTITUTION_TYPES } from '../lib/shared';
-import type { CreateInstitutionInput, InstitutionType } from '../lib/types';
+import { CODE_PATTERN, ENVIRONMENT_OPTIONS, HIERARCHY_OPTIONS, INSTITUTION_TYPES } from '../lib/shared';
+import type { CreateInstitutionInput, InstitutionEnvironment, InstitutionType, StaffLevels } from '../lib/types';
 
 interface CreateInstitutionModalProps {
   busy: boolean;
@@ -18,14 +16,13 @@ interface CreateInstitutionModalProps {
 
 type Errors = Partial<Record<'name' | 'code' | 'contactEmail', string>>;
 
-const DEFAULT_PERMISSIONS: InstitutionPermissionKey[] = ['inst.content.view', 'inst.content.create'];
-
 export function CreateInstitutionModal({ busy, serverError, onCancel, onSubmit }: CreateInstitutionModalProps) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [type, setType] = useState<InstitutionType>('university');
   const [contactEmail, setContactEmail] = useState('');
-  const [permissions, setPermissions] = useState<InstitutionPermissionKey[]>(DEFAULT_PERMISSIONS);
+  const [staffLevels, setStaffLevels] = useState<StaffLevels>(0);
+  const [environment, setEnvironment] = useState<InstitutionEnvironment>('empty');
   const [errors, setErrors] = useState<Errors>({});
   const nameRef = useRef<HTMLInputElement>(null);
   const onCancelRef = useRef(onCancel);
@@ -40,9 +37,6 @@ export function CreateInstitutionModal({ busy, serverError, onCancel, onSubmit }
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const toggle = (key: InstitutionPermissionKey) =>
-    setPermissions((current) => (current.includes(key) ? current.filter((item) => item !== key) : [...current, key]));
-
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const next: Errors = {};
@@ -52,7 +46,7 @@ export function CreateInstitutionModal({ busy, serverError, onCancel, onSubmit }
     if (cleanEmail && !EMAIL_PATTERN.test(cleanEmail)) next.contactEmail = 'Enter a valid email address';
     setErrors(next);
     if (Object.keys(next).length) return;
-    onSubmit({ name: name.trim(), code: code.trim().toUpperCase(), type, contactEmail: cleanEmail || undefined, permissions });
+    onSubmit({ name: name.trim(), code: code.trim().toUpperCase(), type, contactEmail: cleanEmail || undefined, staffLevels, environment });
   };
 
   return (
@@ -143,18 +137,31 @@ export function CreateInstitutionModal({ busy, serverError, onCancel, onSubmit }
               {errors.contactEmail && <p className={styles.errorText}>{errors.contactEmail}</p>}
             </div>
 
-            <fieldset className={cx(styles.fieldset, styles.wide)}>
-              <legend className={styles.label}>What its Institute Admins can do</legend>
-              {INSTITUTION_PERMISSION_ITEMS.map((item) => (
-                <label key={item.key} className={styles.confirmRow}>
-                  <input type="checkbox" checked={permissions.includes(item.key)} onChange={() => toggle(item.key)} />
+                        <fieldset className={cx(styles.fieldset, styles.wide)}>
+              <legend className={styles.label}>Hierarchy levels</legend>
+              {HIERARCHY_OPTIONS.map((item) => (
+                <label key={item.value} className={styles.confirmRow}>
+                  <input type="radio" name="inst-levels" checked={staffLevels === item.value} onChange={() => setStaffLevels(item.value)} />
                   <span>
                     <strong>{item.label}</strong>
                     <span className={styles.muted}>{` — ${item.description}`}</span>
                   </span>
                 </label>
               ))}
-              <p className={styles.hint}>You can change these later from the institution’s page.</p>
+              <p className={styles.hint}>The Institute Admin names the staff levels (e.g. Coordinator, Faculty) and picks their permissions.</p>
+            </fieldset>
+
+            <fieldset className={cx(styles.fieldset, styles.wide)}>
+              <legend className={styles.label}>Starting environment</legend>
+              {ENVIRONMENT_OPTIONS.map((item) => (
+                <label key={item.value} className={styles.confirmRow}>
+                  <input type="radio" name="inst-environment" checked={environment === item.value} onChange={() => setEnvironment(item.value)} />
+                  <span>
+                    <strong>{item.label}</strong>
+                    <span className={styles.muted}>{` — ${item.description}`}</span>
+                  </span>
+                </label>
+              ))}
             </fieldset>
           </div>
 

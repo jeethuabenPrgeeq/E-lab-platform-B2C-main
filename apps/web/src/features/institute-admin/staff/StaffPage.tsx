@@ -12,17 +12,21 @@ import styles from '../ui/institute.module.css';
 import { staffApi, useStaff, type StaffMember, type StaffPreset } from './api';
 import local from './staff.module.css';
 
-const PRESET_LABEL: Record<StaffPreset, string> = { lead: 'Lead staff', staff: 'Staff' };
+const LEVELS: { value: 1 | 2; label: string; preset: StaffPreset }[] = [
+  { value: 1, label: 'Lead staff', preset: 'lead' },
+  { value: 2, label: 'Staff', preset: 'staff' },
+];
 
 interface Draft {
   name: string;
   email: string;
   title: string;
+  level: 1 | 2;
   permissions: InstitutionPermissionKey[];
   groupIds: string[];
 }
 
-const EMPTY: Draft = { name: '', email: '', title: '', permissions: [], groupIds: [] };
+const EMPTY: Draft = { name: '', email: '', title: '', level: 1, permissions: [], groupIds: [] };
 
 const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
 
@@ -41,40 +45,38 @@ export default function StaffPage() {
   useEffect(() => {
     if (!data || seeded.current) return;
     seeded.current = true;
-    setDraft((current) => ({ ...current, permissions: data.presets.staff.filter((key) => data.permissions.includes(key)) }));
+    setDraft((current) => ({ ...current, level: data.levels === 2 ? 2 : 1, permissions: data.presets.staff.filter((key) => data.permissions.includes(key)) }));
   }, [data]);
 
   const enabled = data?.permissions ?? [];
   const groups = data?.groups ?? [];
   const items = data?.items ?? [];
+  const twoLevels = data?.levels === 2;
   const usable = (keys: InstitutionPermissionKey[]) => keys.filter((key) => enabled.includes(key));
-  const activePreset = (Object.keys(data?.presets ?? {}) as StaffPreset[]).find((preset) => {
-    const keys = usable(data!.presets[preset]);
-    return keys.length === draft.permissions.length && keys.every((key) => draft.permissions.includes(key));
-  });
+  const fresh = (): Draft => ({ ...EMPTY, level: twoLevels ? 2 : 1, permissions: usable(data?.presets.staff ?? []) });
 
   const startInvite = () => {
     setEditing(null);
-    setDraft({ ...EMPTY, permissions: usable(data?.presets.staff ?? []) });
+    setDraft(fresh());
   };
 
   const startEdit = (member: StaffMember) => {
     setEditing(member);
-    setDraft({ name: member.name, email: member.email, title: member.title, permissions: member.permissions, groupIds: member.groups.map((group) => group.id) });
+    setDraft({ name: member.name, email: member.email, title: member.title, level: member.level, permissions: member.permissions, groupIds: member.groups.map((group) => group.id) });
     setNotice(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditing(null);
-    setDraft({ ...EMPTY, permissions: usable(data?.presets.staff ?? []) });
+    setDraft(fresh());
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy('save');
     setNotice(null);
-    const input = { title: draft.title.trim(), permissions: draft.permissions, groupIds: draft.groupIds };
+    const input = { title: draft.title.trim(), level: twoLevels ? draft.level : (1 as const), permissions: draft.permissions, groupIds: draft.groupIds };
     if (editing) {
       const result = await staffApi.update(editing.id, input);
       setBusy(null);
@@ -182,16 +184,18 @@ export default function StaffPage() {
             <input id="staff-title" className={styles.input} value={draft.title} maxLength={60} minLength={2} required onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Coordinator, Mentor, HOD" />
           </label>
 
-          <div className={`${styles.field} ${styles.fieldWide}`}>
-            <span className={styles.label}>Start from</span>
-            <span className={local.presets}>
-              {(['lead', 'staff'] as StaffPreset[]).map((preset) => (
-                <button key={preset} type="button" className={`${styles.ghostButton} ${activePreset === preset ? local.presetActive : ''}`} aria-pressed={activePreset === preset} onClick={() => setDraft({ ...draft, permissions: usable(data?.presets[preset] ?? []) })}>
-                  {PRESET_LABEL[preset]}
-                </button>
-              ))}
-            </span>
-          </div>
+          {twoLevels && (
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <span className={styles.label}>Level</span>
+              <span className={local.presets}>
+                {LEVELS.map((item) => (
+                  <button key={item.value} type="button" className={`${styles.ghostButton} ${draft.level === item.value ? local.presetActive : ''}`} aria-pressed={draft.level === item.value} onClick={() => setDraft({ ...draft, level: item.value, permissions: usable(data?.presets[item.preset] ?? []) })}>
+                    {item.label}
+                  </button>
+                ))}
+              </span>
+            </div>
+          )}
 
           <fieldset className={`${styles.field} ${styles.fieldWide} ${local.options}`}>
             <legend className={`${styles.label} ${local.legend}`}>Permissions</legend>
@@ -265,6 +269,7 @@ export default function StaffPage() {
                 <tr>
                   <th>Staff member</th>
                   <th>Title</th>
+                  {twoLevels && <th>Level</th>}
                   <th>Permissions</th>
                   <th>Groups</th>
                   <th>Status</th>
@@ -281,6 +286,7 @@ export default function StaffPage() {
                       <span className={styles.rowMeta}>{member.email}</span>
                     </td>
                     <td>{member.title}</td>
+                    {twoLevels && <td>{member.level === 1 ? 'Lead staff' : 'Staff'}</td>}
                     <td>
                       <span className={local.tags}>
                         {member.permissions.map((key) => (

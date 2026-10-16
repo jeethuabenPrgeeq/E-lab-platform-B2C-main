@@ -6,6 +6,10 @@ import { PageQueryDto } from '../common/pagination.js';
 export const INSTITUTION_TYPES = ['university', 'college', 'corporate', 'skill_academy', 'bootcamp', 'ngo', 'government'] as const;
 export const INSTITUTION_STATUSES = ['active', 'suspended'] as const;
 
+export const STAFF_LEVEL_OPTIONS = [0, 1, 2] as const;
+export const ENVIRONMENTS = ['empty', 'predefined'] as const;
+export type InstitutionEnvironment = (typeof ENVIRONMENTS)[number];
+
 export type InstitutionType = (typeof INSTITUTION_TYPES)[number];
 export type InstitutionStatus = (typeof INSTITUTION_STATUSES)[number];
 
@@ -20,6 +24,8 @@ export class CreateInstitutionDto {
   @IsIn(INSTITUTION_TYPES) type!: InstitutionType;
   @IsOptional() @IsEmail() @MaxLength(160) contactEmail?: string;
   @IsOptional() @IsArray() @ArrayMaxSize(INSTITUTION_PERMISSIONS.length) @IsIn(INSTITUTION_PERMISSIONS, { each: true }) permissions?: InstitutionPermission[];
+  @IsOptional() @IsIn(STAFF_LEVEL_OPTIONS) staffLevels?: number;
+  @IsOptional() @IsIn(ENVIRONMENTS) environment?: InstitutionEnvironment;
 }
 
 export class UpdateInstitutionDto {
@@ -27,6 +33,7 @@ export class UpdateInstitutionDto {
   @IsOptional() @IsIn(INSTITUTION_TYPES) type?: InstitutionType;
   @IsOptional() @IsEmail() @MaxLength(160) contactEmail?: string;
   @IsOptional() @IsIn(INSTITUTION_STATUSES) status?: InstitutionStatus;
+  @IsOptional() @IsIn(STAFF_LEVEL_OPTIONS) staffLevels?: number;
 }
 
 export class SetInstitutionPermissionsDto {

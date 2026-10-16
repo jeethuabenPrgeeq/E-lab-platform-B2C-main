@@ -106,7 +106,7 @@ export class AccessService {
     await this.ensureRoles();
     const user = await this.prisma.user.findUnique({
       where: { id: actor.id },
-      select: { ...ADMIN_SELECT, ...PERMISSION_SUBJECT_SELECT, adminRole: { select: { name: true, permissions: true } }, organization: { select: { id: true, name: true, code: true, type: true, status: true, permissions: true } } },
+      select: { ...ADMIN_SELECT, ...PERMISSION_SUBJECT_SELECT, adminRole: { select: { name: true, permissions: true } }, organization: { select: { id: true, name: true, code: true, type: true, status: true, permissions: true, staffLevels: true } } },
     });
     if (!user) throw new NotFoundException('User not found.');
     const roleId = roleIdOf(user);

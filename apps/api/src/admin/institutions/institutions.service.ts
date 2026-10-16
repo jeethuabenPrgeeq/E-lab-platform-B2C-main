@@ -2,9 +2,9 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 
-import type { Prisma } from '../../../generated/prisma/client/index.js';
+import { Prisma } from '../../../generated/prisma/client/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { DEFAULT_INSTITUTION_PERMISSIONS, isInstitutionPermission, type InstitutionPermission } from '../access/permissions.js';
+import { INSTITUTION_PERMISSIONS, isInstitutionPermission, type InstitutionPermission } from '../access/permissions.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AdminActor } from '../common/admin-actor.decorator.js';
 import { pageArgs } from '../common/pagination.js';
@@ -98,7 +98,7 @@ export class InstitutionsService {
   async get(id: string) {
     const row = await this.institution(id);
     const [admins, problems, learners] = await Promise.all([
-            this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: id, staffTitle: null }, orderBy: { createdAt: 'asc' }, select: ADMIN_SELECT }),
+      this.prisma.user.findMany({ where: { role: 'INSTITUTE_ADMIN', organizationId: id, staffTitle: null }, orderBy: { createdAt: 'asc' }, select: ADMIN_SELECT }),
       this.prisma.problem.groupBy({ by: ['status'], where: { organizationId: id }, _count: { _all: true } }),
       this.prisma.user.groupBy({ by: ['status'], where: { role: 'LEARNER', organizationId: id }, _count: { _all: true } }),
     ]);
@@ -110,6 +110,8 @@ export class InstitutionsService {
       status: row.status,
       contactEmail: row.contactEmail,
       permissions: keysOf(row.permissions),
+      staffLevels: row.staffLevels,
+      environment: row.environment,
       createdBy: row.createdByName ?? 'System',
       createdAt: row.createdAt.getTime(),
       updatedAt: row.updatedAt.getTime(),
@@ -125,16 +127,82 @@ export class InstitutionsService {
   async create(dto: CreateInstitutionDto, actor: AdminActor) {
     const code = dto.code.trim().toUpperCase();
     if (await this.prisma.organization.findUnique({ where: { code } })) throw new ConflictException(`The code ${code} is already used by another institution.`);
-    const permissions = dto.permissions ? keysOf(dto.permissions) : [...DEFAULT_INSTITUTION_PERMISSIONS];
+    const permissions = dto.permissions ? keysOf(dto.permissions) : [...INSTITUTION_PERMISSIONS];
+    const staffLevels = dto.staffLevels ?? 0;
+    const environment = dto.environment ?? 'empty';
     const createdByName = await this.actorName(actor);
     const created = await this.prisma.$transaction(async (tx) => {
       const row = await tx.organization.create({
-        data: { name: dto.name.trim(), code, type: dto.type, contactEmail: dto.contactEmail?.trim().toLowerCase() || null, permissions, createdByName },
+        data: { name: dto.name.trim(), code, type: dto.type, contactEmail: dto.contactEmail?.trim().toLowerCase() || null, permissions, staffLevels, environment, createdByName },
       });
-      await this.audit.record(tx, actor, { action: 'institution.create', entityType: 'institution', entityId: row.id, summary: `Registered ${row.name} (${code})`, changes: { permissions } });
+      await this.audit.record(tx, actor, { action: 'institution.create', entityType: 'institution', entityId: row.id, summary: `Registered ${row.name} (${code})`, changes: { permissions, staffLevels, environment } });
       return row;
     });
+    if (environment === 'predefined') await this.seedContent(created.id, code, actor);
     return this.get(created.id);
+  }
+
+  private async seedContent(organizationId: string, code: string, actor: AdminActor) {
+    const sources = await this.prisma.problem.findMany({
+      where: { organizationId: null, status: 'published' },
+      include: { testCases: true, sourceChecks: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (sources.length === 0) return;
+    const suffix = code.toLowerCase();
+    const json = (value: Prisma.JsonValue | null) => (value === null ? Prisma.JsonNull : (value as Prisma.InputJsonValue));
+    const now = new Date();
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const source of sources) {
+          const slug = `${source.slug}-${suffix}`.slice(0, 190);
+          if (await tx.problem.findUnique({ where: { slug }, select: { id: true } })) continue;
+          const copy = await tx.problem.create({
+            data: {
+              slug,
+              title: source.title,
+              technologyId: source.technologyId,
+              difficulty: source.difficulty,
+              workspaceType: source.workspaceType,
+              source: source.source,
+              shortDescription: source.shortDescription,
+              problemStatement: source.problemStatement,
+              inputFormat: source.inputFormat,
+              outputFormat: source.outputFormat,
+              constraints: json(source.constraints),
+              notes: json(source.notes),
+              skills: source.skills as Prisma.InputJsonValue,
+              estimatedMinutes: source.estimatedMinutes,
+              defaultLanguage: source.defaultLanguage,
+              allowedLanguages: source.allowedLanguages as Prisma.InputJsonValue,
+              starterCode: source.starterCode,
+              starterFiles: json(source.starterFiles),
+              sampleTests: json(source.sampleTests),
+              domainSlug: source.domainSlug,
+              stackSlug: source.stackSlug,
+              moduleSlug: source.moduleSlug,
+              referenceSolution: source.referenceSolution,
+              status: 'published',
+              publishedAt: now,
+              organizationId,
+            },
+            select: { id: true },
+          });
+          if (source.testCases.length) {
+            await tx.testCase.createMany({
+              data: source.testCases.map((test) => ({ problemId: copy.id, input: test.input, expectedOutput: test.expectedOutput, hidden: test.hidden, position: test.position, score: test.score, timeoutMs: test.timeoutMs, enabled: test.enabled })),
+            });
+          }
+          if (source.sourceChecks.length) {
+            await tx.sourceCheck.createMany({
+              data: source.sourceChecks.map((check) => ({ problemId: copy.id, kind: check.kind, filePath: check.filePath, pattern: check.pattern, isRegex: check.isRegex, message: check.message, enabled: check.enabled })),
+            });
+          }
+        }
+        await this.audit.record(tx, actor, { action: 'institution.seed', entityType: 'institution', entityId: organizationId, summary: `Copied ${sources.length} eLab problem${sources.length === 1 ? '' : 's'} into the institution library` });
+      },
+      { timeout: 120_000 },
+    );
   }
 
   async update(id: string, dto: UpdateInstitutionDto, actor: AdminActor) {
@@ -150,6 +218,16 @@ export class InstitutionsService {
     if (track('Type', row.type, dto.type)) data.type = dto.type;
     if (track('Contact email', row.contactEmail, dto.contactEmail?.trim().toLowerCase())) data.contactEmail = dto.contactEmail!.trim().toLowerCase();
     if (track('Status', row.status, dto.status)) data.status = dto.status;
+    if (dto.staffLevels !== undefined && dto.staffLevels !== row.staffLevels) {
+      if (dto.staffLevels < row.staffLevels) {
+        const blocked = await this.prisma.user.count({
+          where: { organizationId: id, role: 'INSTITUTE_ADMIN', status: 'ACTIVE', staffTitle: { not: null }, ...(dto.staffLevels === 0 ? {} : { staffLevel: { gt: dto.staffLevels } }) },
+        });
+        if (blocked > 0) throw new BadRequestException(`Revoke ${blocked} staff member${blocked === 1 ? '' : 's'} at the removed level${dto.staffLevels === 0 ? 's' : ''} first.`);
+      }
+      fields.push({ field: 'Hierarchy levels', before: String(row.staffLevels + 2), after: String(dto.staffLevels + 2) });
+      data.staffLevels = dto.staffLevels;
+    }
     if (fields.length === 0) return this.get(id);
     await this.prisma.$transaction(async (tx) => {
       await tx.organization.update({ where: { id }, data });
@@ -191,7 +269,7 @@ export class InstitutionsService {
     const invitedByName = await this.actorName(actor);
     const admin = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
-        data: { email, name: dto.name.trim(), role: 'INSTITUTE_ADMIN', organizationId: id, adminScope: row.name,   passwordHash: await bcrypt.hash(password, 12), mustChangePassword: true, invitedByName },
+        data: { email, name: dto.name.trim(), role: 'INSTITUTE_ADMIN', organizationId: id, adminScope: row.name, passwordHash: await bcrypt.hash(password, 12), mustChangePassword: true, invitedByName },
         select: ADMIN_SELECT,
       });
       await this.audit.record(tx, actor, { action: 'institution.admin_invite', entityType: 'institution', entityId: id, summary: `Invited ${email} as Institute Admin of ${row.name}` });

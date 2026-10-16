@@ -298,6 +298,7 @@ model User {
 
   staffTitle       String?
   staffPermissions String[]       @default([])
+  staffLevel       Int?
   staffGroups      LearnerGroup[] @relation("StaffGroups")
 
   problemsCreated   Problem[]          @relation("ProblemCreatedBy")
@@ -339,7 +340,8 @@ model Organization {
   contactEmail  String?
   permissions   Json               @default("[]")
   createdByName String?
-
+  staffLevels   Int                @default(0)
+  environment   String             @default("empty")
   users          User[]
   problems       Problem[]
   contentBatches ContentBatch[]

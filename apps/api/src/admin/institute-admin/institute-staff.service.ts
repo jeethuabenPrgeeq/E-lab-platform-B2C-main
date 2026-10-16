@@ -19,6 +19,7 @@ const STAFF_SELECT = {
   revokeReason: true,
   createdAt: true,
   staffTitle: true,
+  staffLevel: true,
   staffPermissions: true,
   staffGroups: { orderBy: { name: 'asc' }, select: { id: true, name: true } },
 } satisfies Prisma.UserSelect;
@@ -34,6 +35,7 @@ const shape = (row: StaffRow) => ({
   name: row.name,
   email: row.email,
   title: row.staffTitle ?? '',
+  level: row.staffLevel ?? 1,
   permissions: ordered(row.staffPermissions),
   groups: row.staffGroups,
   status: row.status === 'ACTIVE' ? ('active' as const) : ('revoked' as const),
@@ -53,6 +55,17 @@ export class InstituteStaffService {
   private async institutionPermissions(organizationId: string): Promise<InstitutionPermission[]> {
     const org = await this.prisma.organization.findUnique({ where: { id: organizationId }, select: { permissions: true } });
     return Array.isArray(org?.permissions) ? ordered((org.permissions as unknown[]).filter(isInstitutionPermission)) : [];
+  }
+
+  private async levels(organizationId: string) {
+    const org = await this.prisma.organization.findUnique({ where: { id: organizationId }, select: { staffLevels: true } });
+    return org?.staffLevels ?? 0;
+  }
+
+  private async checkLevel(organizationId: string, level: number) {
+    const levels = await this.levels(organizationId);
+    if (level > levels) throw new BadRequestException(levels === 0 ? 'Your institution is set up without staff levels.' : 'Your institution has one staff level. Choose level 1.');
+    return level;
   }
 
   private async cleanPermissions(organizationId: string, keys: InstitutionPermission[]) {
@@ -79,22 +92,24 @@ export class InstituteStaffService {
   }
 
   async list(organizationId: string) {
-    const [rows, groups, permissions] = await Promise.all([
+    const [rows, groups, permissions, levels] = await Promise.all([
       this.prisma.user.findMany({ where: { organizationId, role: 'INSTITUTE_ADMIN', staffTitle: { not: null } }, orderBy: { createdAt: 'desc' }, select: STAFF_SELECT }),
       this.prisma.learnerGroup.findMany({ where: { organizationId }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
       this.institutionPermissions(organizationId),
+      this.levels(organizationId),
     ]);
-    return { items: rows.map(shape), groups, permissions, presets: STAFF_PRESETS };
+    return { items: rows.map(shape), groups, permissions, presets: STAFF_PRESETS, levels };
   }
 
   async invite(dto: InviteStaffDto, actor: AdminActor, organizationId: string) {
     const email = dto.email.trim().toLowerCase();
     if (await this.prisma.user.findUnique({ where: { email }, select: { id: true } })) throw new ConflictException(`${email} already has an account.`);
-    const [permissions, groupIds, inviter, org] = await Promise.all([
+    const [permissions, groupIds, inviter, org, level] = await Promise.all([
       this.cleanPermissions(organizationId, dto.permissions),
       this.cleanGroups(organizationId, dto.groupIds),
       this.prisma.user.findUnique({ where: { id: actor.id }, select: { name: true } }),
       this.prisma.organization.findUnique({ where: { id: organizationId }, select: { name: true } }),
+      this.checkLevel(organizationId, dto.level),
     ]);
     const password = tempPassword();
     const title = dto.title.trim();
@@ -107,6 +122,7 @@ export class InstituteStaffService {
           organizationId,
           adminScope: org?.name ?? 'Institution',
           staffTitle: title,
+          staffLevel: level,
           staffPermissions: permissions,
           staffGroups: { connect: groupIds.map((id) => ({ id })) },
           passwordHash: await bcrypt.hash(password, 12),
@@ -125,6 +141,7 @@ export class InstituteStaffService {
     const existing = await this.member(organizationId, id);
     const data: Prisma.UserUpdateInput = {};
     if (dto.title !== undefined) data.staffTitle = dto.title.trim();
+    if (dto.level !== undefined) data.staffLevel = await this.checkLevel(organizationId, dto.level);
     if (dto.permissions !== undefined) data.staffPermissions = await this.cleanPermissions(organizationId, dto.permissions);
     if (dto.groupIds !== undefined) data.staffGroups = { set: (await this.cleanGroups(organizationId, dto.groupIds)).map((groupId) => ({ id: groupId })) };
     await this.prisma.$transaction(async (tx) => {

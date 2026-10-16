@@ -13,6 +13,7 @@ export interface StaffMember {
   name: string;
   email: string;
   title: string;
+  level: 1 | 2;
   permissions: InstitutionPermissionKey[];
   groups: { id: string; name: string }[];
   status: 'active' | 'revoked';
@@ -27,10 +28,12 @@ export interface StaffData {
   groups: { id: string; name: string }[];
   permissions: InstitutionPermissionKey[];
   presets: Record<StaffPreset, InstitutionPermissionKey[]>;
+  levels: 0 | 1 | 2;
 }
 
 export interface StaffInput {
   title: string;
+  level: 1 | 2;
   permissions: InstitutionPermissionKey[];
   groupIds: string[];
 }
