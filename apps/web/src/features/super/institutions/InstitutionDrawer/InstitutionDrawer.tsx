@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Building2, Link2, RotateCcw, Send, X } from "lucide-react";
-import styles from "../../access/AdminDrawer/AdminDrawer.module.css";
-import own from "./InstitutionDrawer.module.css";
-import { INSTITUTION_PERMISSION_ITEMS } from "../../access/lib/shared";
-import type { InstitutionPermissionKey } from "../../access/lib/types";
-import { EMAIL_PATTERN, cx, formatAgo, formatDate } from "../../users/lib/shared";
-import { institutionApi } from "../lib/api";
-import { ADMIN_STATUS_META, INSTITUTION_STATUS_META, INSTITUTION_TYPES, TYPE_LABEL, HIERARCHY_OPTIONS } from "../lib/shared";
-import type { InstituteAdmin, InstitutionDetail, InstitutionStatus, InstitutionType, LearnerRef, StaffLevels } from "../lib/types";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Building2, Link2, RotateCcw, Send, X } from 'lucide-react';
+import styles from '../../access/AdminDrawer/AdminDrawer.module.css';
+import own from './InstitutionDrawer.module.css';
+import { INSTITUTION_PERMISSION_ITEMS } from '../../access/lib/shared';
+import type { InstitutionPermissionKey } from '../../access/lib/types';
+import { EMAIL_PATTERN, cx, formatAgo, formatDate } from '../../users/lib/shared';
+import { institutionApi } from '../lib/api';
+import { ADMIN_STATUS_META, HIERARCHY_OPTIONS, INSTITUTION_STATUS_META, INSTITUTION_TYPES, TYPE_LABEL } from '../lib/shared';
+import type { InstituteAdmin, InstitutionDetail, InstitutionStatus, InstitutionType, LearnerRef, StaffLevels } from '../lib/types';
 
 interface InstitutionDrawerProps {
   institutionId: string;
@@ -24,35 +24,36 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const [detail, setDetail] = useState<InstitutionDetail | null>(null);
-  const [loadError, setLoadError] = useState("");
-  const [error, setError] = useState("");
-  const [flash, setFlash] = useState("");
+  const [loadError, setLoadError] = useState('');
+  const [error, setError] = useState('');
+  const [flash, setFlash] = useState('');
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(0);
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState<InstitutionType>("university");
-  const [contactEmail, setContactEmail] = useState("");
-  const [status, setStatus] = useState<InstitutionStatus>("active");
+  const [name, setName] = useState('');
+  const [type, setType] = useState<InstitutionType>('university');
+  const [contactEmail, setContactEmail] = useState('');
+  const [status, setStatus] = useState<InstitutionStatus>('active');
   const [staffLevels, setStaffLevels] = useState<StaffLevels>(0);
   const [permissions, setPermissions] = useState<InstitutionPermissionKey[]>([]);
 
-  const [inviteName, setInviteName] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
   const [credential, setCredential] = useState<{ email: string; password: string } | null>(null);
   const [unlinked, setUnlinked] = useState<InstituteAdmin[]>([]);
-  const [linkId, setLinkId] = useState("");
+  const [linkId, setLinkId] = useState('');
   const [revokingId, setRevokingId] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
-  const [learnerQuery, setLearnerQuery] = useState("");
+  const [reason, setReason] = useState('');
+  const [learnerQuery, setLearnerQuery] = useState('');
   const [learnerOptions, setLearnerOptions] = useState<LearnerRef[]>([]);
-  const [learnerId, setLearnerId] = useState("");
+  const [learnerId, setLearnerId] = useState('');
 
   const apply = useCallback((next: InstitutionDetail) => {
     setDetail(next);
     setName(next.name);
     setType(next.type);
-    setContactEmail(next.contactEmail ?? "");
+    setContactEmail(next.contactEmail ?? '');
+    setStatus(next.status);
     setStaffLevels(next.staffLevels);
     setPermissions(next.permissions);
   }, []);
@@ -80,24 +81,24 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
     const previous = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onCloseRef.current();
+      if (event.key === 'Escape') onCloseRef.current();
     };
-    window.addEventListener("keydown", onKey);
+    window.addEventListener('keydown', onKey);
     return () => {
-      window.removeEventListener("keydown", onKey);
+      window.removeEventListener('keydown', onKey);
       previous?.focus();
     };
   }, []);
 
   useEffect(() => {
     if (!flash) return;
-    const id = window.setTimeout(() => setFlash(""), 3000);
+    const id = window.setTimeout(() => setFlash(''), 3000);
     return () => window.clearTimeout(id);
   }, [flash]);
 
   const run = async (task: () => Promise<{ ok: true; data: InstitutionDetail } | { ok: false; error: string }>, message: string) => {
     setBusy(true);
-    setError("");
+    setError('');
     const result = await task();
     setBusy(false);
     if (!result.ok) {
@@ -115,7 +116,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
       <div className={styles.overlay} onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
         <aside className={styles.drawer} role="dialog" aria-modal="true" aria-label="Institution">
           <div className={styles.head}>
-            <p className={styles.hint}>{loadError || "Loading institution…"}</p>
+            <p className={styles.hint}>{loadError || 'Loading institution…'}</p>
             <button ref={closeRef} type="button" className={styles.close} aria-label="Close institution" onClick={onClose}>
               <X width={18} height={18} aria-hidden="true" />
             </button>
@@ -125,32 +126,32 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
     );
   }
 
-  const detailsDirty = name.trim() !== detail.name || type !== detail.type || contactEmail.trim().toLowerCase() !== (detail.contactEmail ?? "") || status !== detail.status || staffLevels !== detail.staffLevels;
+  const detailsDirty = name.trim() !== detail.name || type !== detail.type || contactEmail.trim().toLowerCase() !== (detail.contactEmail ?? '') || status !== detail.status || staffLevels !== detail.staffLevels;
   const permissionsDirty = !sameKeys(permissions, detail.permissions);
   const statusMeta = INSTITUTION_STATUS_META[detail.status];
   const problemTotal = Object.values(detail.problemsByStatus).reduce((sum, value) => sum + value, 0);
 
   const saveDetails = async (event: FormEvent) => {
     event.preventDefault();
-    if (name.trim().length < 2) return setError("Enter the institution’s name");
+    if (name.trim().length < 2) return setError('Enter the institution’s name');
     const email = contactEmail.trim().toLowerCase();
-    if (email && !EMAIL_PATTERN.test(email)) return setError("Enter a valid contact email");
-    await run(() => institutionApi.update(detail.id, { name: name.trim(), type, status, staffLevels, ...(email ? { contactEmail: email } : {}) }), "Details saved");
+    if (email && !EMAIL_PATTERN.test(email)) return setError('Enter a valid contact email');
+    await run(() => institutionApi.update(detail.id, { name: name.trim(), type, status, staffLevels, ...(email ? { contactEmail: email } : {}) }), 'Details saved');
   };
 
   const invite = async (event: FormEvent) => {
     event.preventDefault();
     const email = inviteEmail.trim().toLowerCase();
-    if (inviteName.trim().length < 2) return setError("Enter the admin’s full name");
-    if (!EMAIL_PATTERN.test(email)) return setError("Enter a valid email address");
+    if (inviteName.trim().length < 2) return setError('Enter the admin’s full name');
+    if (!EMAIL_PATTERN.test(email)) return setError('Enter a valid email address');
     setBusy(true);
-    setError("");
+    setError('');
     const result = await institutionApi.invite(detail.id, inviteName.trim(), email);
     setBusy(false);
     if (!result.ok) return setError(result.error);
     setCredential({ email, password: result.data.temporaryPassword });
-    setInviteName("");
-    setInviteEmail("");
+    setInviteName('');
+    setInviteEmail('');
     const refreshed = await institutionApi.get(detail.id);
     if (refreshed.ok) apply(refreshed.data);
     onChanged();
@@ -160,47 +161,47 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
     const result = await institutionApi.unlinkedLearners(learnerQuery.trim());
     if (result.ok) {
       setLearnerOptions(result.data.items);
-      setLearnerId(result.data.items[0]?.id ?? "");
-      if (result.data.items.length === 0) setError("No unlinked learner matches that search.");
+      setLearnerId(result.data.items[0]?.id ?? '');
+      if (result.data.items.length === 0) setError('No unlinked learner matches that search.');
     } else setError(result.error);
   };
 
   const linkLearner = async () => {
     if (!learnerId) return;
-    if (await run(() => institutionApi.linkLearner(detail.id, learnerId), "Learner linked")) {
-      setLearnerId("");
+    if (await run(() => institutionApi.linkLearner(detail.id, learnerId), 'Learner linked')) {
+      setLearnerId('');
       setLearnerOptions([]);
-      setLearnerQuery("");
+      setLearnerQuery('');
     }
   };
 
   const link = async () => {
     if (!linkId) return;
-    if (await run(() => institutionApi.link(detail.id, linkId), "Admin linked")) {
-      setLinkId("");
+    if (await run(() => institutionApi.link(detail.id, linkId), 'Admin linked')) {
+      setLinkId('');
       void loadUnlinked();
     }
   };
 
   const revoke = async (event: FormEvent, admin: InstituteAdmin) => {
     event.preventDefault();
-    if (reason.trim().length < 5) return setError("Give a reason of at least 5 characters. It is shown in the audit log.");
+    if (reason.trim().length < 5) return setError('Give a reason of at least 5 characters. It is shown in the audit log.');
     if (await run(() => institutionApi.revoke(detail.id, admin.id, reason.trim()), `Revoked ${admin.name}`)) {
       setRevokingId(null);
-      setReason("");
+      setReason('');
     }
   };
 
   const facts: [string, string][] = [
-    ["Code", detail.code],
-    ["Type", TYPE_LABEL[detail.type]],
-    ["Registered", formatDate(detail.createdAt)],
-    ["Registered by", detail.createdBy],
-    ["Problems", String(problemTotal)],
-    ["Learners", `${detail.learners.active} active${detail.learners.revoked ? `, ${detail.learners.revoked} revoked` : ""}`],
-    ["Contact", detail.contactEmail ?? "Not set"],
-    ["Hierarchy", HIERARCHY_OPTIONS.find((item) => item.value === detail.staffLevels)?.description ?? ""],
-    ["Environment", detail.environment === "predefined" ? "Predefined content" : "Empty"],
+    ['Code', detail.code],
+    ['Type', TYPE_LABEL[detail.type]],
+    ['Registered', formatDate(detail.createdAt)],
+    ['Registered by', detail.createdBy],
+    ['Problems', String(problemTotal)],
+    ['Learners', `${detail.learners.active} active${detail.learners.revoked ? `, ${detail.learners.revoked} revoked` : ''}`],
+    ['Contact', detail.contactEmail ?? 'Not set'],
+    ['Hierarchy', HIERARCHY_OPTIONS.find((item) => item.value === detail.staffLevels)?.description ?? ''],
+    ['Environment', detail.environment === 'predefined' ? 'Predefined content' : 'Empty'],
   ];
 
   return (
@@ -208,7 +209,8 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
       className={styles.overlay}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
-      }}>
+      }}
+    >
       <aside className={styles.drawer} role="dialog" aria-modal="true" aria-labelledby="institution-title">
         <div className={styles.head}>
           <div className={styles.profile}>
@@ -230,7 +232,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
           </button>
         </div>
 
-        {detail.status === "suspended" && (
+        {detail.status === 'suspended' && (
           <div className={styles.suspendedBox}>
             <strong>Suspended</strong>
             <span>Its Institute Admins are signed out and cannot use any feature until you reactivate it.</span>
@@ -251,7 +253,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
           <p className={styles.flash} role="status">
             {`Temporary password for ${credential.email}: `}
             <code className={styles.mono}>{credential.password}</code>
-            {" — share it securely. It is shown only once."}
+            {' — share it securely. It is shown only once.'}
           </p>
         )}
 
@@ -271,7 +273,12 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
             {INSTITUTION_PERMISSION_ITEMS.map((item) => (
               <li key={item.key}>
                 <label className={own.permRow}>
-                  <input type="checkbox" checked={permissions.includes(item.key)} onChange={() => setPermissions((current) => (current.includes(item.key) ? current.filter((key) => key !== item.key) : [...current, item.key]))} aria-label={item.label} />
+                  <input
+                    type="checkbox"
+                    checked={permissions.includes(item.key)}
+                    onChange={() => setPermissions((current) => (current.includes(item.key) ? current.filter((key) => key !== item.key) : [...current, item.key]))}
+                    aria-label={item.label}
+                  />
                   <span className={own.permText}>
                     <span className={own.permName}>{item.label}</span>
                     <span className={own.permDesc}>{item.description}</span>
@@ -284,7 +291,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
             <button type="button" className={styles.ghostButton} disabled={!permissionsDirty || busy} onClick={() => setPermissions(detail.permissions)}>
               Reset
             </button>
-            <button type="button" className={styles.primaryButton} disabled={!permissionsDirty || busy} onClick={() => void run(() => institutionApi.setPermissions(detail.id, permissions), "Permissions saved")}>
+            <button type="button" className={styles.primaryButton} disabled={!permissionsDirty || busy} onClick={() => void run(() => institutionApi.setPermissions(detail.id, permissions), 'Permissions saved')}>
               Save permissions
             </button>
           </div>
@@ -302,11 +309,11 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
                   <li key={admin.id} className={own.adminRow}>
                     <span className={own.adminInfo}>
                       <span className={own.adminName}>{admin.name}</span>
-                      <span className={own.adminMeta}>{`${admin.email} · ${admin.status === "invited" ? "not signed in yet" : `last sign-in ${formatAgo(admin.lastSignInAt, now)}`}`}</span>
-                      {admin.status === "revoked" && admin.revokeReason && <span className={own.adminMeta}>{`Revoked: ${admin.revokeReason}`}</span>}
+                      <span className={own.adminMeta}>{`${admin.email} · ${admin.status === 'invited' ? 'not signed in yet' : `last sign-in ${formatAgo(admin.lastSignInAt, now)}`}`}</span>
+                      {admin.status === 'revoked' && admin.revokeReason && <span className={own.adminMeta}>{`Revoked: ${admin.revokeReason}`}</span>}
                     </span>
                     <span className={cx(styles.badge, styles[`tone_${meta.tone}`])}>{meta.label}</span>
-                    {admin.status === "revoked" ? (
+                    {admin.status === 'revoked' ? (
                       <button type="button" className={styles.ghostButton} disabled={busy} onClick={() => void run(() => institutionApi.restore(detail.id, admin.id), `Restored ${admin.name}`)}>
                         <RotateCcw width={14} height={14} aria-hidden="true" />
                         Restore
@@ -341,7 +348,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
               <span className={styles.label}>Work email</span>
               <input className={styles.control} type="email" value={inviteEmail} placeholder="priya@institution.edu" onChange={(event) => setInviteEmail(event.target.value)} />
             </label>
-            <button type="submit" className={styles.primaryButton} disabled={busy || detail.status !== "active"} title={detail.status !== "active" ? "Reactivate the institution first" : undefined}>
+            <button type="submit" className={styles.primaryButton} disabled={busy || detail.status !== 'active'} title={detail.status !== 'active' ? 'Reactivate the institution first' : undefined}>
               <Send width={14} height={14} aria-hidden="true" />
               Invite
             </button>
@@ -380,7 +387,7 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
                 placeholder="Name or email"
                 onChange={(event) => setLearnerQuery(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") {
+                  if (event.key === 'Enter') {
                     event.preventDefault();
                     void findLearners();
                   }
@@ -434,6 +441,13 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
                 <input className={styles.control} type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} />
               </label>
               <label className={styles.field}>
+                <span className={styles.label}>Status</span>
+                <select className={styles.control} value={status} onChange={(event) => setStatus(event.target.value as InstitutionStatus)}>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </label>
+              <label className={styles.field}>
                 <span className={styles.label}>Hierarchy levels</span>
                 <select className={styles.control} value={staffLevels} onChange={(event) => setStaffLevels(Number(event.target.value) as StaffLevels)}>
                   {HIERARCHY_OPTIONS.map((item) => (
@@ -445,8 +459,8 @@ export function InstitutionDrawer({ institutionId, onClose, onChanged }: Institu
               </label>
             </div>
             <div className={styles.formActions}>
-              <button type="submit" className={status === "suspended" && detail.status === "active" ? styles.dangerButton : styles.primaryButton} disabled={!detailsDirty || busy}>
-                {status === "suspended" && detail.status === "active" ? "Suspend institution" : "Save details"}
+              <button type="submit" className={status === 'suspended' && detail.status === 'active' ? styles.dangerButton : styles.primaryButton} disabled={!detailsDirty || busy}>
+                {status === 'suspended' && detail.status === 'active' ? 'Suspend institution' : 'Save details'}
               </button>
             </div>
           </form>

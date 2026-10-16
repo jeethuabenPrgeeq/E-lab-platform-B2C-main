@@ -137,7 +137,7 @@ export function CreateInstitutionModal({ busy, serverError, onCancel, onSubmit }
               {errors.contactEmail && <p className={styles.errorText}>{errors.contactEmail}</p>}
             </div>
 
-                        <fieldset className={cx(styles.fieldset, styles.wide)}>
+            <fieldset className={cx(styles.fieldset, styles.wide)}>
               <legend className={styles.label}>Hierarchy levels</legend>
               {HIERARCHY_OPTIONS.map((item) => (
                 <label key={item.value} className={styles.confirmRow}>

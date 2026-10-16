@@ -2,7 +2,6 @@ import { ArrayMaxSize, IsArray, IsEmail, IsIn, IsOptional, IsString, MaxLength, 
 
 import { INSTITUTION_PERMISSIONS, type InstitutionPermission } from '../access/permissions.js';
 
-
 export const STAFF_LEVELS = [1, 2] as const;
 
 export class InviteStaffDto {

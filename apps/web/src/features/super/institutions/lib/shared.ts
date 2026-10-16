@@ -25,7 +25,6 @@ export const ADMIN_STATUS_META: Record<InstituteAdminStatus, { label: string; to
 
 export const CODE_PATTERN = /^[A-Za-z0-9-]{2,20}$/;
 
-
 export const HIERARCHY_OPTIONS: { value: 0 | 1 | 2; label: string; description: string }[] = [
   { value: 0, label: '2 levels', description: 'Institute Admin → Learners' },
   { value: 1, label: '3 levels', description: 'Institute Admin → Staff → Learners' },

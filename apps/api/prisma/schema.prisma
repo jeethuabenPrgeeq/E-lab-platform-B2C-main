@@ -342,6 +342,8 @@ model Organization {
   createdByName String?
   staffLevels   Int                @default(0)
   environment   String             @default("empty")
+  staffLevels   Int                @default(0)
+  environment   String             @default("empty")
   users          User[]
   problems       Problem[]
   contentBatches ContentBatch[]

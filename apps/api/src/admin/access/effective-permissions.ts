@@ -7,10 +7,12 @@ export interface PermissionSubject {
   status: string;
   adminRoleId: string | null;
   adminRole: { permissions: unknown } | null;
-  organization?: { status: string; permissions: unknown; staffLevels?: number } | null;  
+  organizationId?: string | null;
+  organization?: { status: string; permissions: unknown; staffLevels?: number } | null;
   staffTitle?: string | null;
   staffPermissions?: string[];
   staffGroups?: { id: string }[];
+  staffLevel?: number | null;
 }
 
 export interface StaffScope {

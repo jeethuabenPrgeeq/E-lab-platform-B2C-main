@@ -6,12 +6,12 @@ import { PageQueryDto } from '../common/pagination.js';
 export const INSTITUTION_TYPES = ['university', 'college', 'corporate', 'skill_academy', 'bootcamp', 'ngo', 'government'] as const;
 export const INSTITUTION_STATUSES = ['active', 'suspended'] as const;
 
+export type InstitutionType = (typeof INSTITUTION_TYPES)[number];
+export type InstitutionStatus = (typeof INSTITUTION_STATUSES)[number];
+
 export const STAFF_LEVEL_OPTIONS = [0, 1, 2] as const;
 export const ENVIRONMENTS = ['empty', 'predefined'] as const;
 export type InstitutionEnvironment = (typeof ENVIRONMENTS)[number];
-
-export type InstitutionType = (typeof INSTITUTION_TYPES)[number];
-export type InstitutionStatus = (typeof INSTITUTION_STATUSES)[number];
 
 export class InstitutionQueryDto extends PageQueryDto {
   @IsOptional() @IsIn(INSTITUTION_TYPES) type?: InstitutionType;

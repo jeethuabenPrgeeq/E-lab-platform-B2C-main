@@ -2,9 +2,9 @@ import type { InstitutionPermissionKey } from '../../access/lib/types';
 
 export type InstitutionType = 'university' | 'college' | 'corporate' | 'skill_academy' | 'bootcamp' | 'ngo' | 'government';
 export type InstitutionStatus = 'active' | 'suspended';
+export type InstituteAdminStatus = 'active' | 'invited' | 'revoked';
 export type StaffLevels = 0 | 1 | 2;
 export type InstitutionEnvironment = 'empty' | 'predefined';
-export type InstituteAdminStatus = 'active' | 'invited' | 'revoked';
 
 export interface InstitutionSummary {
   id: string;
@@ -45,7 +45,7 @@ export interface LearnerRef {
 }
 
 export interface InstitutionDetail extends Omit<InstitutionSummary, 'admins' | 'problems' | 'learners'> {
-    staffLevels: StaffLevels;
+  staffLevels: StaffLevels;
   environment: InstitutionEnvironment;
   createdBy: string;
   updatedAt: number;
