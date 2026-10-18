@@ -24,7 +24,8 @@ interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: Query) {
-  const url = new URL(`${API_BASE}${path}`);
+  const origin = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
+  const url = new URL(`${API_BASE}${path}`, origin);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
   }
