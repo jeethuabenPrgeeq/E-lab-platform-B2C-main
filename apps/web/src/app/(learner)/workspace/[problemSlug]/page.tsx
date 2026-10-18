@@ -20,7 +20,7 @@ import styles from "./workspace.module.css";
    API
 ========================================================= */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
 
 /* =========================================================
    EXECUTION RESPONSE

@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Pencil, RefreshCw, Save, UserCheck, UserCog, UserPlus, UserX } from 'lucide-react';
 import { PageHeader, Panel } from '@/components/admin/widgets/AdminWidgets';
+import { useToast } from '@/components/toast/ToastProvider';
 import { formatDate } from '@/features/admin/problems/lib/shared';
 import { INSTITUTION_PERMISSION_ITEMS, INSTITUTION_PERMISSION_LABEL } from '@/features/super/access/lib/shared';
 import type { InstitutionPermissionKey } from '@/features/super/access/lib/types';
@@ -32,15 +33,18 @@ const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter(
 
 export default function StaffPage() {
   const institution = useInstitutionLabel();
+  const toast = useToast();
   const { data, loaded, error, refresh } = useStaff();
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [busy, setBusy] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [formError, setFormError] = useState('');
   const [credential, setCredential] = useState<{ name: string; email: string; temporaryPassword: string } | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const seeded = useRef(false);
+  const credentialRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (!data || seeded.current) return;
@@ -54,6 +58,7 @@ export default function StaffPage() {
   const twoLevels = data?.levels === 2;
   const usable = (keys: InstitutionPermissionKey[]) => keys.filter((key) => enabled.includes(key));
   const fresh = (): Draft => ({ ...EMPTY, level: twoLevels ? 2 : 1, permissions: usable(data?.presets.staff ?? []) });
+  const scrollTo = (target: { current: HTMLElement | null }) => window.requestAnimationFrame(() => target.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
   const startInvite = () => {
     setEditing(null);
@@ -62,34 +67,37 @@ export default function StaffPage() {
 
   const startEdit = (member: StaffMember) => {
     setEditing(member);
+    setFormError('');
+    setRevokingId(null);
     setDraft({ name: member.name, email: member.email, title: member.title, level: member.level, permissions: member.permissions, groupIds: member.groups.map((group) => group.id) });
-    setNotice(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTo(formRef);
   };
 
   const cancelEdit = () => {
     setEditing(null);
+    setFormError('');
     setDraft(fresh());
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy('save');
-    setNotice(null);
+    setFormError('');
     const input = { title: draft.title.trim(), level: twoLevels ? draft.level : (1 as const), permissions: draft.permissions, groupIds: draft.groupIds };
     if (editing) {
       const result = await staffApi.update(editing.id, input);
       setBusy(null);
-      if (!result.ok) return setNotice({ tone: 'error', text: result.error });
-      setNotice({ tone: 'ok', text: `${result.data.name}’s access was updated.` });
+      if (!result.ok) return setFormError(result.error);
+      toast.success(`${result.data.name}’s access was updated`);
       cancelEdit();
     } else {
       const result = await staffApi.invite({ ...input, name: draft.name.trim(), email: draft.email.trim() });
       setBusy(null);
-      if (!result.ok) return setNotice({ tone: 'error', text: result.error });
+      if (!result.ok) return setFormError(result.error);
       setCredential({ name: result.data.staff.name, email: result.data.staff.email, temporaryPassword: result.data.temporaryPassword });
-      setNotice({ tone: 'ok', text: `${result.data.staff.name} was added as ${result.data.staff.title}.` });
+      toast.success(`${result.data.staff.name} was added as ${result.data.staff.title}`);
       startInvite();
+      scrollTo(credentialRef);
     }
     await refresh();
   };
@@ -98,10 +106,10 @@ export default function StaffPage() {
     setBusy(member.id);
     const result = await staffApi.revoke(member.id, reason.trim());
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
+    if (!result.ok) return toast.error(result.error);
     setRevokingId(null);
     setReason('');
-    setNotice({ tone: 'ok', text: `${member.name} was revoked and signed out.` });
+    toast.success(`${member.name} was revoked and signed out`);
     await refresh();
   };
 
@@ -109,12 +117,13 @@ export default function StaffPage() {
     setBusy(member.id);
     const result = await staffApi.restore(member.id);
     setBusy(null);
-    if (!result.ok) return setNotice({ tone: 'error', text: result.error });
-    setNotice({ tone: 'ok', text: `${member.name} can sign in again.` });
+    if (!result.ok) return toast.error(result.error);
+    toast.success(`${member.name} can sign in again`);
     await refresh();
   };
 
-  const canSave = draft.title.trim().length >= 2 && draft.permissions.length > 0 && (editing !== null || (draft.name.trim().length >= 2 && draft.email.includes('@')));
+    const canSave = draft.title.trim().length >= 2 && draft.permissions.length > 0 && draft.groupIds.length > 0 && (editing !== null || (draft.name.trim().length >= 2 && draft.email.includes('@')));
+  const columns = twoLevels ? 7 : 6;
 
   return (
     <div className={styles.page}>
@@ -130,43 +139,39 @@ export default function StaffPage() {
         }
       />
 
-      {notice && (
-        <p className={notice.tone === 'error' ? styles.error : styles.success} role={notice.tone === 'error' ? 'alert' : 'status'}>
-          {notice.text}
-        </p>
-      )}
-
       {credential && (
-        <Panel title="Temporary password" subtitle="Shown once. Share it securely; they’ll be asked to set their own password at first sign-in.">
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Staff member</th>
-                  <th>Temporary password</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <span className={styles.rowTitle}>{credential.name}</span>
-                    <span className={styles.rowMeta}>{credential.email}</span>
-                  </td>
-                  <td>
-                    <code className={styles.code}>{credential.temporaryPassword}</code>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <button type="button" className={styles.textButton} onClick={() => setCredential(null)}>
-            I’ve saved it, hide password
-          </button>
-        </Panel>
+        <div ref={credentialRef} className={local.anchor}>
+          <Panel title="Temporary password" subtitle="Shown once. Share it securely; they’ll be asked to set their own password at first sign-in.">
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Staff member</th>
+                    <th>Temporary password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span className={styles.rowTitle}>{credential.name}</span>
+                      <span className={styles.rowMeta}>{credential.email}</span>
+                    </td>
+                    <td>
+                      <code className={styles.code}>{credential.temporaryPassword}</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="button" className={styles.textButton} onClick={() => setCredential(null)}>
+              I’ve saved it, hide password
+            </button>
+          </Panel>
+        </div>
       )}
 
       <Panel title={editing ? `Edit ${editing.name}` : 'Add a staff member'} subtitle={editing ? editing.email : 'They sign in like you, but only see what you allow.'}>
-        <form className={styles.formGrid} onSubmit={(event) => void submit(event)}>
+        <form ref={formRef} className={`${styles.formGrid} ${local.anchor}`} onSubmit={(event) => void submit(event)}>
           {!editing && (
             <>
               <label className={styles.field}>
@@ -187,7 +192,7 @@ export default function StaffPage() {
           {twoLevels && (
             <div className={`${styles.field} ${styles.fieldWide}`}>
               <span className={styles.label}>Level</span>
-              <span className={local.presets}>
+              <span className={local.presets} role="group" aria-label="Staff level">
                 {LEVELS.map((item) => (
                   <button key={item.value} type="button" className={`${styles.ghostButton} ${draft.level === item.value ? local.presetActive : ''}`} aria-pressed={draft.level === item.value} onClick={() => setDraft({ ...draft, level: item.value, permissions: usable(data?.presets[item.preset] ?? []) })}>
                     {item.label}
@@ -230,7 +235,7 @@ export default function StaffPage() {
               ))
             )}
           </fieldset>
-          {draft.groupIds.length === 0 && groups.length > 0 && <p className={`${styles.rowMeta} ${styles.fieldWide}`}>Without a group they won’t see any learners or assigned batches.</p>}
+          {draft.groupIds.length === 0 && groups.length > 0 && <p className={`${local.groupHint} ${styles.fieldWide}`}>Choose at least one group. Staff only see learners and batches in their groups.</p>}
 
           <div className={`${styles.field} ${styles.fieldWide}`}>
             <span className={styles.rowActions}>
@@ -244,6 +249,11 @@ export default function StaffPage() {
                 </button>
               )}
             </span>
+            {formError && (
+              <p className={local.formError} role="alert">
+                {formError}
+              </p>
+            )}
           </div>
         </form>
       </Panel>
@@ -280,68 +290,92 @@ export default function StaffPage() {
               </thead>
               <tbody>
                 {items.map((member) => (
-                  <tr key={member.id}>
-                    <td>
-                      <span className={styles.rowTitle}>{member.name}</span>
-                      <span className={styles.rowMeta}>{member.email}</span>
-                    </td>
-                    <td>{member.title}</td>
-                    {twoLevels && <td>{member.level === 1 ? 'Lead staff' : 'Staff'}</td>}
-                    <td>
-                      <span className={local.tags}>
-                        {member.permissions.map((key) => (
-                          <span key={key} className={local.tag}>
-                            {INSTITUTION_PERMISSION_LABEL[key]}
-                          </span>
-                        ))}
-                      </span>
-                    </td>
-                    <td>
-                      {member.groups.length ? (
+                  <Fragment key={member.id}>
+                    <tr className={revokingId === member.id ? local.rowRevoking : undefined}>
+                      <td>
+                        <span className={styles.rowTitle}>{member.name}</span>
+                        <span className={styles.rowMeta}>{member.email}</span>
+                      </td>
+                      <td>{member.title}</td>
+                      {twoLevels && <td>{member.level === 1 ? 'Lead staff' : 'Staff'}</td>}
+                      <td>
                         <span className={local.tags}>
-                          {member.groups.map((group) => (
-                            <span key={group.id} className={local.tag}>
-                              {group.name}
+                          {member.permissions.map((key) => (
+                            <span key={key} className={local.tag}>
+                              {INSTITUTION_PERMISSION_LABEL[key]}
                             </span>
                           ))}
                         </span>
-                      ) : (
-                        <span className={styles.rowMeta}>No groups</span>
-                      )}
-                    </td>
-                    <td>
-                      {member.status === 'active' ? 'Active' : 'Revoked'}
-                      <span className={styles.rowMeta}>{member.lastLoginAt ? `Last sign-in ${formatDate(member.lastLoginAt)}` : 'Never signed in'}</span>
-                      {member.revokeReason && <span className={styles.rowMeta}>{member.revokeReason}</span>}
-                    </td>
-                    <td>
-                      {member.status === 'revoked' ? (
-                        <button type="button" className={styles.ghostButton} disabled={busy !== null} onClick={() => void restore(member)}>
-                          <UserCheck size={16} aria-hidden="true" />
-                          Restore
-                        </button>
-                      ) : revokingId === member.id ? (
-                        <span className={styles.rowActions}>
-                          <input className={styles.input} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason" aria-label={`Reason for revoking ${member.name}`} maxLength={300} />
-                          <button type="button" className={styles.dangerButton} disabled={busy !== null || reason.trim().length < 3} onClick={() => void revoke(member)}>
-                            Revoke
+                      </td>
+                      <td>
+                        {member.groups.length ? (
+                          <span className={local.tags}>
+                            {member.groups.map((group) => (
+                              <span key={group.id} className={local.tag}>
+                                {group.name}
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          <span className={styles.rowMeta}>No groups</span>
+                        )}
+                      </td>
+                      <td>
+                        {member.status === 'active' ? 'Active' : 'Revoked'}
+                        <span className={styles.rowMeta}>{member.lastLoginAt ? `Last sign-in ${formatDate(member.lastLoginAt)}` : 'Never signed in'}</span>
+                        {member.revokeReason && <span className={styles.rowMeta}>{member.revokeReason}</span>}
+                      </td>
+                      <td>
+                        {member.status === 'revoked' ? (
+                          <button type="button" className={styles.ghostButton} disabled={busy !== null} onClick={() => void restore(member)}>
+                            <UserCheck size={16} aria-hidden="true" />
+                            Restore
                           </button>
-                          <button type="button" className={styles.textButton} onClick={() => setRevokingId(null)}>
-                            Cancel
-                          </button>
-                        </span>
-                      ) : (
-                        <span className={styles.rowActions}>
-                          <button type="button" className={styles.iconButton} aria-label={`Edit ${member.name}`} title="Edit access" onClick={() => startEdit(member)}>
-                            <Pencil size={16} aria-hidden="true" />
-                          </button>
-                          <button type="button" className={styles.iconButton} aria-label={`Revoke ${member.name}`} title="Revoke access" onClick={() => setRevokingId(member.id)}>
-                            <UserX size={16} aria-hidden="true" />
-                          </button>
-                        </span>
-                      )}
-                    </td>
-                  </tr>
+                        ) : (
+                          <span className={styles.rowActions}>
+                            <button type="button" className={styles.iconButton} aria-label={`Edit ${member.name}`} title="Edit access" onClick={() => startEdit(member)}>
+                              <Pencil size={16} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              className={`${styles.iconButton} ${local.revokeIcon}`}
+                              aria-label={`Revoke ${member.name}`}
+                              aria-expanded={revokingId === member.id}
+                              title="Revoke access"
+                              onClick={() => {
+                                setReason('');
+                                setRevokingId(revokingId === member.id ? null : member.id);
+                              }}
+                            >
+                              <UserX size={16} aria-hidden="true" />
+                            </button>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                    {revokingId === member.id && member.status !== 'revoked' && (
+                      <tr className={local.revokeRow}>
+                        <td colSpan={columns}>
+                          <form
+                            className={local.revokeForm}
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              if (reason.trim().length >= 3) void revoke(member);
+                            }}
+                          >
+                            <span className={local.revokeText}>{`Revoke ${member.name}? They are signed out and can’t sign in until restored.`}</span>
+                            <input className={styles.input} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (at least 3 characters)" aria-label={`Reason for revoking ${member.name}`} maxLength={300} autoFocus />
+                            <button type="submit" className={styles.dangerButton} disabled={busy !== null || reason.trim().length < 3}>
+                              Revoke
+                            </button>
+                            <button type="button" className={styles.textButton} onClick={() => setRevokingId(null)}>
+                              Cancel
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

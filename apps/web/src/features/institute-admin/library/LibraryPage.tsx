@@ -11,6 +11,7 @@ import { DIFFICULTIES, STATUS_LABEL, capitalize, cx, formatDate } from "@/featur
 import type { ProblemStatus } from "@/features/admin/problems/lib/types";
 import { IA_ROUTE, IA_TECHNOLOGIES, useLibrary, type LibraryFilters, type LibraryScope } from "../lib/api";
 import { useInstitutionLabel } from "../lib/useInstitutionLabel";
+import { NewProblemChooser } from "@/features/admin/practice-upload/NewProblemChooser";
 import styles from "./LibraryPage.module.css";
 
 const SCOPES: { value: LibraryScope; label: string }[] = [
@@ -36,6 +37,7 @@ export default function LibraryPage() {
   const { items: technologies } = useTechnologies(IA_TECHNOLOGIES);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [chooserOpen, setChooserOpen] = useState(false);
   const rows = data?.items ?? [];
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -77,9 +79,9 @@ export default function LibraryPage() {
         meta="Your institution’s problems. Drafts can be edited; other stages are view-only."
         actions={
           create.allowed ? (
-            <Link href="/create" className={styles.primaryButton}>
+            <button type="button" className={styles.primaryButton} aria-haspopup="dialog" onClick={() => setChooserOpen(true)}>
               <Plus size={17} aria-hidden="true" /> New problem
-            </Link>
+            </button>
           ) : (
             <button type="button" className={styles.primaryButton} disabled title={create.title}>
               <Plus size={17} aria-hidden="true" /> New problem
@@ -258,6 +260,7 @@ export default function LibraryPage() {
           </>
         )}
       </section>
+      <NewProblemChooser open={chooserOpen} basePath="/upload-content" onClose={() => setChooserOpen(false)} />
     </main>
   );
 }

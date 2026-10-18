@@ -174,6 +174,6 @@ import { TechSupportService } from './ops/tech-support.service.js';
     PlatformAuditService,
     PermissionGuard,
   ],
-  exports: [AuditService],
+  exports: [AuditService, InstituteUploadService],
 })
 export class AdminModule {}

@@ -149,7 +149,7 @@ export function validateRows(
         issues.push({
           column: column.key,
           level: 'error',
-          message: 'Already exists in saved drafts or published problems',
+          message: 'Already used by another problem',
         });
       }
     }

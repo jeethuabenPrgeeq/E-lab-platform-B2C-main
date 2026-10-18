@@ -72,3 +72,65 @@
 .legend {
   margin-bottom: 8px;
 }
+
+.anchor {
+  scroll-margin-top: 112px;
+}
+
+.presets button[aria-pressed='false'] {
+  color: #5a5f7a;
+  font-weight: 500;
+}
+
+.presets button[aria-pressed='true'] {
+  color: #2d4cc8;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: inset 4px 4px 8px #c5c6cc, inset -4px -4px 8px #ffffff;
+}
+
+.formError {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #c0392b;
+}
+
+.revokeIcon {
+  color: #c0392b;
+}
+
+.rowRevoking td {
+  border-bottom: 0;
+}
+
+.revokeRow td {
+  padding-top: 0;
+}
+
+.revokeForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #c0392b;
+  box-shadow: inset 3px 3px 6px #c5c6cc, inset -3px -3px 6px #ffffff;
+}
+
+.revokeText {
+  flex: 1 1 100%;
+  font-size: 14px;
+  color: #31344b;
+}
+
+.revokeForm input {
+  flex: 1 1 240px;
+}
+
+.groupHint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b7791f;
+}

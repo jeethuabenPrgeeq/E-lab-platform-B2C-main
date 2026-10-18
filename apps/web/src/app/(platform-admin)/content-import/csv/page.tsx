@@ -8,6 +8,8 @@ import { TechnologyPicker, technologyFromUrl } from "@/features/admin/practice-u
 import { validateRows, type PreviewRow, type ValidationSummary } from "@/features/admin/practice-upload/validate";
 import { UploadModeSwitch } from "@/features/admin/practice-upload/UploadModeSwitch";
 import { useUploadScope } from "@/features/admin/practice-upload/scope";
+import { useToast } from "@/components/toast/ToastProvider";
+import { UploadRejectedError } from "@/features/admin/practice-upload/api";
 import styles from "./page.module.css";
 
 type Phase = "idle" | "parsing" | "invalid" | "ready" | "importing" | "imported";
@@ -50,6 +52,7 @@ function cx(...classes: Array<string | false | undefined>) {
 
 export default function UploadToPracticePage() {
   const scope = useUploadScope();
+  const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
   const runId = useRef(0);
@@ -196,18 +199,52 @@ export default function UploadToPracticePage() {
     setSaveError("");
     setPhase("importing");
     try {
-      await scope.save({
+      const result = await scope.save({
         technology,
         method: "csv",
         source: summary.fileName,
         rows: importable.map((row) => row.values),
       });
       clearSession(STORAGE_KEYS.previewRows, STORAGE_KEYS.summary);
-      setImportResult({ imported: importable.length, skipped: rows.length - importable.length });
+      setImportResult({ imported: result.saved, skipped: rows.length - importable.length });
       setPhase("imported");
-    } catch (cause) {
+      toast.success(`${plural(result.saved, "problem")} uploaded as draft`);
+        } catch (cause) {
+      if (cause instanceof UploadRejectedError) {
+        const rejected = new Map(cause.rows.map((entry) => [importable[entry.row - 1]?.row, entry.messages]));
+        const nextRows = rows.map((row): PreviewRow => {
+          const messages = rejected.get(row.row);
+          if (!messages) return row;
+          const serverIssues = messages.map((text) => {
+            const split = text.indexOf(": ");
+            return {
+              row: row.row,
+              level: "error" as const,
+              column: split > 0 ? text.slice(0, split) : "—",
+              message: split > 0 ? text.slice(split + 2) : text,
+            };
+          });
+          return { ...row, status: "error", issues: [...row.issues, ...serverIssues] };
+        });
+        const nextSummary: ValidationSummary = {
+          ...summary,
+          validRows: nextRows.filter((row) => row.status === "valid").length,
+          warningRows: nextRows.filter((row) => row.status === "warning").length,
+          errorRows: nextRows.filter((row) => row.status === "error").length,
+        };
+        setRows(nextRows);
+        setSummary(nextSummary);
+        writeSession(STORAGE_KEYS.previewRows, nextRows);
+        writeSession(STORAGE_KEYS.summary, nextSummary);
+        setFilter("error");
+        setSaveError("");
+        setPhase("invalid");
+        toast.error(cause.message);
+        return;
+      }
       setPhase(previousPhase);
       setSaveError(cause instanceof Error ? cause.message : "Could not save. Try again.");
+      toast.error("Upload failed. See the details below.");
     }
   };
 

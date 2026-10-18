@@ -614,6 +614,15 @@
   background: var(--ad-success);
 }
 
+.primaryButton:disabled,
+.ghostButton:disabled,
+.dangerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 @media (max-width: 479px) {
   .twoFields,
   .permList {

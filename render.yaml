@@ -1,0 +1,55 @@
+databases:
+  - name: elab-db
+    plan: free
+    region: singapore
+    databaseName: elab
+    user: elab
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: elab-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install -g pnpm@12.4.1 && pnpm install --frozen-lockfile && pnpm --filter api exec prisma generate && pnpm --filter api exec prisma migrate deploy && pnpm --filter api build
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api/v1/status
+    envVars:
+      - key: NODE_VERSION
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: elab-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_MINUTES
+        sync: false
+      - key: REFRESH_TOKEN_DAYS
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: lax
+      - key: FRONTEND_URL
+        sync: false
+      - key: SEED_DEMO
+        value: "false"
+
+  - type: web
+    name: elab-web
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install -g pnpm@12.4.1 && pnpm install --frozen-lockfile && pnpm --filter web build
+    startCommand: pnpm --filter web start
+    envVars:
+      - key: NODE_VERSION
+        sync: false
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: /api/v1
+      - key: API_ORIGIN
+        sync: false

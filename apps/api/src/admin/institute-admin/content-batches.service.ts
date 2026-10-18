@@ -1,11 +1,20 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import type { Prisma } from '../../../generated/prisma/client/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type { StaffScope } from '../access/effective-permissions.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AdminActor } from '../common/admin-actor.decorator.js';
-import type { BatchQueryDto, CreateBatchDto, UpdateBatchDto } from './content-batches.dto.js';
+import type {
+  BatchQueryDto,
+  CreateBatchDto,
+  UpdateBatchDto,
+} from './content-batches.dto.js';
 
 type Db = Prisma.TransactionClient | PrismaService;
 
@@ -17,13 +26,22 @@ const BATCH_INCLUDE = {
     select: {
       position: true,
       problem: {
-        select: { id: true, slug: true, title: true, difficulty: true, status: true, technology: { select: { name: true } } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          difficulty: true,
+          status: true,
+          technology: { select: { name: true } },
+        },
       },
     },
   },
 } satisfies Prisma.ContentBatchInclude;
 
-type BatchRow = Prisma.ContentBatchGetPayload<{ include: typeof BATCH_INCLUDE }>;
+type BatchRow = Prisma.ContentBatchGetPayload<{
+  include: typeof BATCH_INCLUDE;
+}>;
 
 const FIELD_LABELS: Record<string, string> = {
   name: 'Name',
@@ -44,7 +62,11 @@ export class ContentBatchesService {
 
   private async testCounts(problemIds: string[]) {
     const rows = problemIds.length
-      ? await this.prisma.testCase.groupBy({ by: ['problemId', 'hidden'], where: { problemId: { in: problemIds }, enabled: true }, _count: { _all: true } })
+      ? await this.prisma.testCase.groupBy({
+          by: ['problemId', 'hidden'],
+          where: { problemId: { in: problemIds }, enabled: true },
+          _count: { _all: true },
+        })
       : [];
     const map = new Map<string, { sample: number; hidden: number }>();
     for (const row of rows) {
@@ -56,14 +78,19 @@ export class ContentBatchesService {
     return map;
   }
 
-  private shape(batch: BatchRow, counts: Map<string, { sample: number; hidden: number }>, withItems: boolean) {
+  private shape(
+    batch: BatchRow,
+    counts: Map<string, { sample: number; hidden: number }>,
+    withItems: boolean,
+  ) {
     const items = batch.items.map(({ problem, position }) => {
       const tests = counts.get(problem.id) ?? { sample: 0, hidden: 0 };
       return {
         id: problem.id,
         slug: problem.slug,
         title: problem.title,
-        difficulty: problem.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard',
+        difficulty: problem.difficulty.toLowerCase() as
+          'easy' | 'medium' | 'hard',
         status: problem.status,
         technology: problem.technology.name,
         sampleTests: tests.sample,
@@ -71,15 +98,24 @@ export class ContentBatchesService {
         position,
       };
     });
-    const count = (difficulty: string) => items.filter((item) => item.difficulty === difficulty).length;
+    const count = (difficulty: string) =>
+      items.filter((item) => item.difficulty === difficulty).length;
     return {
       id: batch.id,
       name: batch.name,
       description: batch.description,
       type: batch.type,
       focus: batch.focus,
-      targets: { easy: batch.easyTarget, medium: batch.mediumTarget, hard: batch.hardTarget },
-      difficulty: { easy: count('easy'), medium: count('medium'), hard: count('hard') },
+      targets: {
+        easy: batch.easyTarget,
+        medium: batch.mediumTarget,
+        hard: batch.hardTarget,
+      },
+      difficulty: {
+        easy: count('easy'),
+        medium: count('medium'),
+        hard: count('hard'),
+      },
       problemCount: items.length,
       withoutSample: items.filter((item) => item.sampleTests === 0).length,
       withoutHidden: items.filter((item) => item.hiddenTests === 0).length,
@@ -94,92 +130,235 @@ export class ContentBatchesService {
     };
   }
 
-  private visible(scope: StaffScope | null, actorId?: string): Prisma.ContentBatchWhereInput {
+  private visible(
+    scope: StaffScope | null,
+    actorId?: string,
+  ): Prisma.ContentBatchWhereInput {
     if (!scope) return {};
-    return { OR: [{ assignedGroupId: { in: scope.groupIds } }, ...(actorId ? [{ createdById: actorId }] : [])] };
+    return {
+      OR: [
+        { assignedGroupId: { in: scope.groupIds } },
+        ...(actorId ? [{ createdById: actorId }] : []),
+      ],
+    };
   }
 
-  private async owned(id: string, organizationId: string, db: Db = this.prisma, scope: StaffScope | null = null, actorId?: string) {
-    const batch = await db.contentBatch.findFirst({ where: { id, organizationId, ...this.visible(scope, actorId) }, include: BATCH_INCLUDE });
-    if (!batch) throw new NotFoundException('Batch not found in your institution.');
+  private async owned(
+    id: string,
+    organizationId: string,
+    db: Db = this.prisma,
+    scope: StaffScope | null = null,
+    actorId?: string,
+  ) {
+    const batch = await db.contentBatch.findFirst({
+      where: { id, organizationId, ...this.visible(scope, actorId) },
+      include: BATCH_INCLUDE,
+    });
+    if (!batch)
+      throw new NotFoundException('Batch not found in your institution.');
     return batch;
   }
 
-  private async progress(organizationId: string, slugs: string[], groupId: string | null) {
-    const learners = await this.prisma.user.findMany({ where: { organizationId, role: 'LEARNER', status: 'ACTIVE', ...(groupId ? { learnerGroupId: groupId } : {}) }, select: { id: true } });
-    if (learners.length === 0 || slugs.length === 0) return { learners: learners.length, started: 0, completed: 0 };
+  private async progress(
+    organizationId: string,
+    slugs: string[],
+    groupId: string | null,
+  ) {
+    const learners = await this.prisma.user.findMany({
+      where: {
+        organizationId,
+        role: 'LEARNER',
+        status: 'ACTIVE',
+        ...(groupId ? { learnerGroupId: groupId } : {}),
+      },
+      select: { id: true },
+    });
+    if (learners.length === 0 || slugs.length === 0)
+      return { learners: learners.length, started: 0, completed: 0 };
     const rows = await this.prisma.codeRun.groupBy({
       by: ['userId', 'problemSlug'],
-      where: { kind: 'submit', verdict: 'ac', userId: { in: learners.map((learner) => learner.id) }, problemSlug: { in: slugs } },
+      where: {
+        kind: 'submit',
+        verdict: 'ac',
+        userId: { in: learners.map((learner) => learner.id) },
+        problemSlug: { in: slugs },
+      },
     });
     const solved = new Map<string, number>();
-    for (const row of rows) if (row.userId) solved.set(row.userId, (solved.get(row.userId) ?? 0) + 1);
+    for (const row of rows)
+      if (row.userId) solved.set(row.userId, (solved.get(row.userId) ?? 0) + 1);
     return {
       learners: learners.length,
       started: solved.size,
-      completed: [...solved.values()].filter((count) => count >= slugs.length).length,
+      completed: [...solved.values()].filter((count) => count >= slugs.length)
+        .length,
     };
   }
 
   private async assertPublished(problemIds: string[]) {
-    const unpublished = await this.prisma.problem.count({ where: { id: { in: problemIds }, status: { not: 'published' } } });
-    if (unpublished > 0) throw new BadRequestException(`${unpublished} problem${unpublished === 1 ? ' is' : 's are'} not published yet. Learners can only open published problems.`);
+    const unpublished = await this.prisma.problem.count({
+      where: { id: { in: problemIds }, status: { not: 'published' } },
+    });
+    if (unpublished > 0)
+      throw new BadRequestException(
+        `${unpublished} problem${unpublished === 1 ? ' is' : 's are'} not published yet. Learners can only open published problems.`,
+      );
   }
 
-  async assign(id: string, actor: AdminActor, organizationId: string, groupId: string | null = null, scope: StaffScope | null = null) {
-    const batch = await this.owned(id, organizationId, this.prisma, scope, actor.id);
-    if (scope && !groupId) throw new BadRequestException('Choose one of your learner groups.');
-    if (scope && groupId && !scope.groupIds.includes(groupId)) throw new ForbiddenException('That group is not assigned to you.');
-    if (batch.items.length === 0) throw new BadRequestException('Add problems before assigning the batch.');
+  async assign(
+    id: string,
+    actor: AdminActor,
+    organizationId: string,
+    groupId: string | null = null,
+    scope: StaffScope | null = null,
+  ) {
+    const batch = await this.owned(
+      id,
+      organizationId,
+      this.prisma,
+      scope,
+      actor.id,
+    );
+    if (scope && !groupId)
+      throw new BadRequestException('Choose one of your learner groups.');
+    if (scope && groupId && !scope.groupIds.includes(groupId))
+      throw new ForbiddenException('That group is not assigned to you.');
+    if (batch.items.length === 0)
+      throw new BadRequestException('Add problems before assigning the batch.');
     await this.assertPublished(batch.items.map((item) => item.problem.id));
-    const group = groupId ? await this.prisma.learnerGroup.findFirst({ where: { id: groupId, organizationId }, select: { id: true, name: true } }) : null;
-    if (groupId && !group) throw new BadRequestException('That group is not in your institution.');
-    const assigner = await this.prisma.user.findUnique({ where: { id: actor.id }, select: { name: true } });
+    const group = groupId
+      ? await this.prisma.learnerGroup.findFirst({
+          where: { id: groupId, organizationId },
+          select: { id: true, name: true },
+        })
+      : null;
+    if (groupId && !group)
+      throw new BadRequestException('That group is not in your institution.');
+    const assigner = await this.prisma.user.findUnique({
+      where: { id: actor.id },
+      select: { name: true },
+    });
     await this.prisma.$transaction(async (tx) => {
-      await tx.contentBatch.update({ where: { id }, data: { assignedAt: new Date(), assignedByName: assigner?.name ?? 'Institute admin', assignedGroupId: group?.id ?? null } });
-      await this.audit.record(tx, actor, { action: 'content_batch.assign', entityType: 'content_batch', entityId: id, summary: `Assigned batch ${batch.name} to ${group ? `group ${group.name}` : 'all learners'}` });
+      await tx.contentBatch.update({
+        where: { id },
+        data: {
+          assignedAt: new Date(),
+          assignedByName: assigner?.name ?? 'Institute admin',
+          assignedGroupId: group?.id ?? null,
+        },
+      });
+      await this.audit.record(tx, actor, {
+        action: 'content_batch.assign',
+        entityType: 'content_batch',
+        entityId: id,
+        summary: `Assigned batch ${batch.name} to ${group ? `group ${group.name}` : 'all learners'}`,
+      });
     });
     return this.get(id, organizationId, scope, actor.id);
   }
 
-  async unassign(id: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
-    const batch = await this.owned(id, organizationId, this.prisma, scope, actor.id);
+  async unassign(
+    id: string,
+    actor: AdminActor,
+    organizationId: string,
+    scope: StaffScope | null = null,
+  ) {
+    const batch = await this.owned(
+      id,
+      organizationId,
+      this.prisma,
+      scope,
+      actor.id,
+    );
     if (batch.assignedAt) {
       await this.prisma.$transaction(async (tx) => {
-        await tx.contentBatch.update({ where: { id }, data: { assignedAt: null, assignedByName: null, assignedGroupId: null } });
-        await this.audit.record(tx, actor, { action: 'content_batch.unassign', entityType: 'content_batch', entityId: id, summary: `Withdrew batch ${batch.name} from learners` });
+        await tx.contentBatch.update({
+          where: { id },
+          data: {
+            assignedAt: null,
+            assignedByName: null,
+            assignedGroupId: null,
+          },
+        });
+        await this.audit.record(tx, actor, {
+          action: 'content_batch.unassign',
+          entityType: 'content_batch',
+          entityId: id,
+          summary: `Withdrew batch ${batch.name} from learners`,
+        });
       });
     }
     return this.get(id, organizationId);
   }
 
   private async checkProblems(problemIds: string[], organizationId: string) {
-    if (new Set(problemIds).size !== problemIds.length) throw new BadRequestException('A problem can only appear once in a batch.');
+    if (new Set(problemIds).size !== problemIds.length)
+      throw new BadRequestException(
+        'A problem can only appear once in a batch.',
+      );
     if (problemIds.length === 0) return;
-    const found = await this.prisma.problem.findMany({ where: { id: { in: problemIds }, organizationId }, select: { id: true, status: true } });
+    const found = await this.prisma.problem.findMany({
+      where: { id: { in: problemIds }, organizationId },
+      select: { id: true, status: true },
+    });
     const missing = problemIds.length - found.length;
-    if (missing > 0) throw new BadRequestException(`${missing} selected problem${missing === 1 ? ' is' : 's are'} not in your institution.`);
-    const deprecated = found.filter((problem) => problem.status === 'deprecated').length;
-    if (deprecated > 0) throw new BadRequestException(`Remove ${deprecated} deprecated problem${deprecated === 1 ? '' : 's'} from the batch.`);
+    if (missing > 0)
+      throw new BadRequestException(
+        `${missing} selected problem${missing === 1 ? ' is' : 's are'} not in your institution.`,
+      );
+    const deprecated = found.filter(
+      (problem) => problem.status === 'deprecated',
+    ).length;
+    if (deprecated > 0)
+      throw new BadRequestException(
+        `Remove ${deprecated} deprecated problem${deprecated === 1 ? '' : 's'} from the batch.`,
+      );
   }
 
-  async list(query: BatchQueryDto, organizationId: string, scope: StaffScope | null = null, actorId?: string) {
+  async list(
+    query: BatchQueryDto,
+    organizationId: string,
+    scope: StaffScope | null = null,
+    actorId?: string,
+  ) {
     const q = query.q?.trim();
     const batches = await this.prisma.contentBatch.findMany({
-      where: { organizationId, ...this.visible(scope, actorId), ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}) },
+      where: {
+        organizationId,
+        ...this.visible(scope, actorId),
+        ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
+      },
       orderBy: { updatedAt: 'desc' },
       include: BATCH_INCLUDE,
     });
-    const counts = await this.testCounts([...new Set(batches.flatMap((batch) => batch.items.map((item) => item.problem.id)))]);
+    const counts = await this.testCounts([
+      ...new Set(
+        batches.flatMap((batch) => batch.items.map((item) => item.problem.id)),
+      ),
+    ]);
     return { items: batches.map((batch) => this.shape(batch, counts, false)) };
   }
 
-  async assignedProgress(organizationId: string, scope: StaffScope | null = null) {
+  async assignedProgress(
+    organizationId: string,
+    scope: StaffScope | null = null,
+  ) {
     const batches = await this.prisma.contentBatch.findMany({
-      where: { organizationId, assignedAt: { not: null }, ...(scope ? { assignedGroupId: { in: scope.groupIds } } : {}) },
+      where: {
+        organizationId,
+        assignedAt: { not: null },
+        ...(scope ? { assignedGroupId: { in: scope.groupIds } } : {}),
+      },
       orderBy: { assignedAt: 'desc' },
       take: 20,
-      select: { id: true, name: true, assignedAt: true, assignedGroupId: true, assignedGroup: { select: { name: true } }, items: { select: { problem: { select: { slug: true } } } } },
+      select: {
+        id: true,
+        name: true,
+        assignedAt: true,
+        assignedGroupId: true,
+        assignedGroup: { select: { name: true } },
+        items: { select: { problem: { select: { slug: true } } } },
+      },
     });
     const items = await Promise.all(
       batches.map(async (batch) => ({
@@ -188,22 +367,50 @@ export class ContentBatchesService {
         assignedAt: batch.assignedAt,
         group: batch.assignedGroup?.name ?? null,
         problems: batch.items.length,
-        ...(await this.progress(organizationId, batch.items.map((item) => item.problem.slug), batch.assignedGroupId)),
+        ...(await this.progress(
+          organizationId,
+          batch.items.map((item) => item.problem.slug),
+          batch.assignedGroupId,
+        )),
       })),
     );
     return { items };
   }
 
   async groups(organizationId: string, scope: StaffScope | null = null) {
-    const rows = await this.prisma.learnerGroup.findMany({ where: { organizationId, ...(scope ? { id: { in: scope.groupIds } } : {}) }, orderBy: { name: 'asc' }, select: { id: true, name: true } });
+    const rows = await this.prisma.learnerGroup.findMany({
+      where: {
+        organizationId,
+        ...(scope ? { id: { in: scope.groupIds } } : {}),
+      },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    });
     return { items: rows, scoped: scope !== null };
   }
 
-  async get(id: string, organizationId: string, scope: StaffScope | null = null, actorId?: string) {
-    const batch = await this.owned(id, organizationId, this.prisma, scope, actorId);
+  async get(
+    id: string,
+    organizationId: string,
+    scope: StaffScope | null = null,
+    actorId?: string,
+  ) {
+    const batch = await this.owned(
+      id,
+      organizationId,
+      this.prisma,
+      scope,
+      actorId,
+    );
     const [counts, progress] = await Promise.all([
       this.testCounts(batch.items.map((item) => item.problem.id)),
-      this.progress(organizationId, batch.items.map((item) => item.problem.slug), batch.assignedGroupId),
+      batch.assignedAt
+        ? this.progress(
+            organizationId,
+            batch.items.map((item) => item.problem.slug),
+            batch.assignedGroupId,
+          )
+        : Promise.resolve({ learners: 0, started: 0, completed: 0 }),
     ]);
     return { ...this.shape(batch, counts, true), progress };
   }
@@ -223,7 +430,12 @@ export class ContentBatchesService {
           mediumTarget: dto.mediumTarget ?? 0,
           hardTarget: dto.hardTarget ?? 0,
           createdById: actor.id,
-          items: { create: problemIds.map((problemId, position) => ({ problemId, position })) },
+          items: {
+            create: problemIds.map((problemId, position) => ({
+              problemId,
+              position,
+            })),
+          },
         },
       });
       await this.audit.record(tx, actor, {
@@ -237,8 +449,20 @@ export class ContentBatchesService {
     return this.get(id, organizationId);
   }
 
-  async update(id: string, dto: UpdateBatchDto, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
-    const existing = await this.owned(id, organizationId, this.prisma, scope, actor.id);
+  async update(
+    id: string,
+    dto: UpdateBatchDto,
+    actor: AdminActor,
+    organizationId: string,
+    scope: StaffScope | null = null,
+  ) {
+    const existing = await this.owned(
+      id,
+      organizationId,
+      this.prisma,
+      scope,
+      actor.id,
+    );
     if (dto.problemIds) {
       await this.checkProblems(dto.problemIds, organizationId);
       if (existing.assignedAt) await this.assertPublished(dto.problemIds);
@@ -247,23 +471,48 @@ export class ContentBatchesService {
     const fields = Object.fromEntries(
       Object.entries(rest)
         .filter(([, value]) => value !== undefined)
-        .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value]),
+        .map(([key, value]) => [
+          key,
+          typeof value === 'string' ? value.trim() : value,
+        ]),
     ) as Prisma.ContentBatchUpdateInput;
     const changes = Object.entries(fields)
-      .filter(([key, value]) => (existing as Record<string, unknown>)[key] !== value)
-      .map(([key, value]) => ({ field: FIELD_LABELS[key] ?? key, before: (existing as Record<string, unknown>)[key], after: value }));
+      .filter(
+        ([key, value]) => (existing as Record<string, unknown>)[key] !== value,
+      )
+      .map(([key, value]) => ({
+        field: FIELD_LABELS[key] ?? key,
+        before: (existing as Record<string, unknown>)[key],
+        after: value,
+      }));
     const beforeIds = existing.items.map((item) => item.problem.id);
-    const itemsChanged = Boolean(problemIds) && JSON.stringify(beforeIds) !== JSON.stringify(problemIds);
-    if (changes.length === 0 && !itemsChanged) return this.get(id, organizationId, scope, actor.id);
+    const itemsChanged =
+      Boolean(problemIds) &&
+      JSON.stringify(beforeIds) !== JSON.stringify(problemIds);
+    if (changes.length === 0 && !itemsChanged)
+      return this.get(id, organizationId, scope, actor.id);
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.contentBatch.update({ where: { id }, data: { ...fields, updatedAt: new Date() } });
+      await tx.contentBatch.update({
+        where: { id },
+        data: { ...fields, updatedAt: new Date() },
+      });
       if (itemsChanged && problemIds) {
         await tx.contentBatchItem.deleteMany({ where: { batchId: id } });
-        await tx.contentBatchItem.createMany({ data: problemIds.map((problemId, position) => ({ batchId: id, problemId, position })) });
+        await tx.contentBatchItem.createMany({
+          data: problemIds.map((problemId, position) => ({
+            batchId: id,
+            problemId,
+            position,
+          })),
+        });
       }
-      const added = itemsChanged ? problemIds!.filter((pid) => !beforeIds.includes(pid)).length : 0;
-      const removed = itemsChanged ? beforeIds.filter((pid) => !problemIds!.includes(pid)).length : 0;
+      const added = itemsChanged
+        ? problemIds!.filter((pid) => !beforeIds.includes(pid)).length
+        : 0;
+      const removed = itemsChanged
+        ? beforeIds.filter((pid) => !problemIds!.includes(pid)).length
+        : 0;
       await this.audit.record(tx, actor, {
         action: 'content_batch.update',
         entityType: 'content_batch',
@@ -271,15 +520,34 @@ export class ContentBatchesService {
         summary: `Edited batch ${existing.name}`,
         changes: {
           fields: changes,
-          ...(itemsChanged ? { problems: { added, removed, reordered: added === 0 && removed === 0 } } : {}),
+          ...(itemsChanged
+            ? {
+                problems: {
+                  added,
+                  removed,
+                  reordered: added === 0 && removed === 0,
+                },
+              }
+            : {}),
         },
       });
     });
     return this.get(id, organizationId, scope, actor.id);
   }
 
-  async remove(id: string, actor: AdminActor, organizationId: string, scope: StaffScope | null = null) {
-    const existing = await this.owned(id, organizationId, this.prisma, scope, actor.id);
+  async remove(
+    id: string,
+    actor: AdminActor,
+    organizationId: string,
+    scope: StaffScope | null = null,
+  ) {
+    const existing = await this.owned(
+      id,
+      organizationId,
+      this.prisma,
+      scope,
+      actor.id,
+    );
     await this.prisma.$transaction(async (tx) => {
       await tx.contentBatch.delete({ where: { id } });
       await this.audit.record(tx, actor, {

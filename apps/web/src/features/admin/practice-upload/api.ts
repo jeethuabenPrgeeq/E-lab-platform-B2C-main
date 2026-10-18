@@ -1,6 +1,6 @@
-import { adminApi, errorText } from '../lib/api';
+import { adminApi, errorText } from "../lib/api";
 
-export type UploadMethod = 'manual' | 'csv' | 'ai';
+export type UploadMethod = "manual" | "csv" | "ai";
 
 export interface SaveDraftsInput {
   technology: string;
@@ -15,6 +15,21 @@ export interface SaveDraftsResult {
   savedAt: string;
 }
 
+export interface RejectedRow {
+  row: number;
+  messages: string[];
+}
+
+export class UploadRejectedError extends Error {
+  constructor(
+    message: string,
+    readonly rows: RejectedRow[],
+  ) {
+    super(message);
+    this.name = "UploadRejectedError";
+  }
+}
+
 export interface SavedBatch extends SaveDraftsResult {
   technology: string;
   method: UploadMethod;
@@ -23,7 +38,7 @@ export interface SavedBatch extends SaveDraftsResult {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-const MOCK_KEY = 'elab_practice_draft_batches';
+const MOCK_KEY = "elab_practice_draft_batches";
 const MOCK_LIMIT = 20;
 
 function readMockBatches(): SavedBatch[] {
@@ -47,7 +62,7 @@ async function saveToMock(input: SaveDraftsInput): Promise<SaveDraftsResult> {
     technology: input.technology,
     method: input.method,
     source: input.source,
-    titles: input.rows.map((row) => row.title ?? '').filter(Boolean),
+    titles: input.rows.map((row) => row.title ?? "").filter(Boolean),
   };
   try {
     localStorage.setItem(MOCK_KEY, JSON.stringify([batch, ...readMockBatches()].slice(0, MOCK_LIMIT)));
@@ -57,9 +72,9 @@ async function saveToMock(input: SaveDraftsInput): Promise<SaveDraftsResult> {
 
 async function postDrafts(input: SaveDraftsInput): Promise<Response> {
   return fetch(`${API_BASE}/admin/practice/drafts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(input),
   });
 }
@@ -67,8 +82,8 @@ async function postDrafts(input: SaveDraftsInput): Promise<Response> {
 async function refreshSession(): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
     });
     return response.ok;
   } catch {
@@ -81,29 +96,33 @@ async function saveToApi(input: SaveDraftsInput): Promise<SaveDraftsResult> {
 
   if (response.status === 401) {
     if (!(await refreshSession())) {
-      throw new Error('Your session has expired. Please sign in again.');
+      throw new Error("Your session has expired. Please sign in again.");
     }
     response = await postDrafts(input);
   }
 
-  const data = (await response.json().catch(() => ({}))) as Partial<SaveDraftsResult> & { message?: string };
-  if (!response.ok) throw new Error(data.message ?? `Save failed (${response.status})`);
+  const data = (await response.json().catch(() => ({}))) as Partial<SaveDraftsResult> & { message?: string | string[]; issues?: string[]; rows?: RejectedRow[] };
+  if (!response.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(" ") : (data.message ?? `Save failed (${response.status})`);
+    if (Array.isArray(data.rows) && data.rows.length > 0) throw new UploadRejectedError(message, data.rows);
+    throw new Error([message, ...(data.issues ?? [])].join(" "));
+  }
   return {
-    batchId: data.batchId ?? '',
+    batchId: data.batchId ?? "",
     saved: data.saved ?? input.rows.length,
     savedAt: data.savedAt ?? new Date().toISOString(),
   };
 }
 
 export async function savePracticeDrafts(input: SaveDraftsInput): Promise<SaveDraftsResult> {
-  if (input.rows.length === 0) throw new Error('Nothing to save');
+  if (input.rows.length === 0) throw new Error("Nothing to save");
   return API_BASE ? saveToApi(input) : saveToMock(input);
 }
 
 export async function saveInstitutionUpload(input: SaveDraftsInput): Promise<SaveDraftsResult> {
-  if (input.rows.length === 0) throw new Error('Nothing to save');
+  if (input.rows.length === 0) throw new Error("Nothing to save");
   try {
-    return await adminApi<SaveDraftsResult>('/institute/uploads', { method: 'POST', body: input });
+    return await adminApi<SaveDraftsResult>("/institute/uploads", { method: "POST", body: input });
   } catch (error) {
     throw new Error(errorText(error));
   }

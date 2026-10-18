@@ -112,7 +112,7 @@ export function InstituteAdminDashboard() {
   if (accessStatus === "ready" && !allowed) {
     return (
       <div className={styles.page}>
-        <PageHeader title={title} pill="Institute Admin" />
+        <PageHeader title={title} pill={pill} />
         <Panel title={institution ? "No access to institution content" : "Not linked to an institution"}>
           <p className={styles.notice}>{institution ? (institution.status === "suspended" ? "Your institution is suspended. Contact the eLab team to reactivate it." : staff ? "Your account does not include the “View institution content” permission. Ask your Institute Admin to grant it." : "Your institution does not include the “View institution content” permission. Ask a Super Admin to grant it.") : "Your account is not linked to an institution yet. Ask a Super Admin to link you from the Institutions page."}</p>
         </Panel>
@@ -123,7 +123,7 @@ export function InstituteAdminDashboard() {
   if (!data) {
     return (
       <div className={styles.page}>
-        <PageHeader title={title} pill="Institute Admin" meta={error || "Loading live data…"} />
+        <PageHeader title={title} pill={pill} meta={error || "Loading live data…"} />
       </div>
     );
   }
@@ -150,7 +150,7 @@ export function InstituteAdminDashboard() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={title} pill="Institute Admin" meta={error ? `Showing data from ${data.updatedAt} · ${error}` : `Updated ${data.updatedAt}`} actions={filters} />
+      <PageHeader title={title} pill={pill} meta={error ? `Showing data from ${data.updatedAt} · ${error}` : `Updated ${data.updatedAt}`} actions={filters} />
 
       <Section title="Institution content">
         <div className={styles.statGrid}>

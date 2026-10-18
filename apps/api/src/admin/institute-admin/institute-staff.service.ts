@@ -79,7 +79,7 @@ export class InstituteStaffService {
 
   private async cleanGroups(organizationId: string, groupIds: string[]) {
     const unique = [...new Set(groupIds)];
-    if (unique.length === 0) return unique;
+    if (unique.length === 0) throw new BadRequestException('Choose at least one learner group.');
     const found = await this.prisma.learnerGroup.count({ where: { id: { in: unique }, organizationId } });
     if (found !== unique.length) throw new BadRequestException('Some selected groups are not in your institution.');
     return unique;
